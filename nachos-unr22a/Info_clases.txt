@@ -1,0 +1,16 @@
+1) Instalar mipsel-linux-gnu-gcc
+2) Con make ya compila todo (se puede hacer en las subcarpetas para no compilar todo, pero en ese caso primero make depend y luego make o make all)
+3) ./threads/nachos (ejecutar el subsistema)
+4) ./threads/nachos -d t (mas info de threads)
+5) ./threads/nachos -d i (mas info de interrupciones)
+6) ./threads/nachos -d + (mas info de todos los subprocesos)
+7) gdb nachos
+	-> b main
+	-> r
+	-> n
+	-> q
+8) Usar grep -r para buscar cosas si no sabemos donde está
+9) Mensajes de depuracion: DEBUG('t', "Este es un mensaje de depuracion\n");
+10) Yield le dice al scheduler que quiere dejar de ejecutarse y le ceda el turno a otro proceso. (cooperativa)
+A nivel de nucleo tenemos multitarea cooperativa.
+A nivel de usuario tenemos multitarea apropiativa.
