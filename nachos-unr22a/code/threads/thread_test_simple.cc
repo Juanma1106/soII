@@ -37,12 +37,12 @@ SimpleThread(void *name_)
 /// Do it by launching one thread which calls `SimpleThread`, and finally
 /// calling `SimpleThread` on the current thread.
 void
-ThreadTestSimple()
-{
-    char *name = new char [64];
-    strncpy(name, "2nd", 64);
-    Thread *newThread = new Thread(name);
-    newThread->Fork(SimpleThread, (void *) name);
-
-    SimpleThread((void *) "1st");
+ThreadTestSimple() {
+	char names[4][64] = {"2nd", "3rd", "4th", "5th"};
+	for(int i = 0; i < 4; i++){
+		Thread *newThread = new Thread(names[i]);
+		newThread->Fork(SimpleThread, (void *) names[i]);
+	}
+	SimpleThread((void *) "1st");
 }
+

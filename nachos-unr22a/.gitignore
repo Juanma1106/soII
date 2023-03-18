@@ -1,0 +1,7 @@
+*.o
+code/bin/coff2flat
+code/bin/coff2noff
+code/bin/disassemble
+code/bin/readnoff
+Makefile.depends
+nachos
