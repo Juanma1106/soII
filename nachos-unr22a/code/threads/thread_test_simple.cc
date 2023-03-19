@@ -7,20 +7,18 @@
 
 #include "thread_test_simple.hh"
 #include "system.hh"
-#include "semaphore.hh"
 
 #include <stdio.h>
 #include <string.h>
 
-//#define SEMAPHORE_TEST
-
-static Semaphore *mySemaphore;
 
 /// Loop 10 times, yielding the CPU to another ready thread each iteration.
 ///
 /// * `name` points to a string with a thread name, just for debugging
 ///   purposes.
-void SimpleThread(void *name_) {
+void
+SimpleThread(void *name_)
+{
     // Reinterpret arg `name` as a string.
     char *name = (char *) name_;
 
@@ -28,15 +26,7 @@ void SimpleThread(void *name_) {
     // behave incorrectly, because printf execution may cause race
     // conditions.
     for (unsigned num = 0; num < 10; num++) {
-#ifdef SEMAPHORE_TEST
-	    mySemaphore->P();
-	    DEBUG('t', "*** Thread `%s` make P()\n",name);
-#endif
         printf("*** Thread `%s` is running: iteration %u\n", name, num);
-#ifdef SEMAPHORE_TEST
-        mySemaphore->V();
-	    DEBUG('t', "*** Thread `%s` make V()\n",name);
-#endif
         currentThread->Yield();
     }
     printf("!!! Thread `%s` has finished\n", name);
@@ -46,15 +36,30 @@ void SimpleThread(void *name_) {
 ///
 /// Do it by launching one thread which calls `SimpleThread`, and finally
 /// calling `SimpleThread` on the current thread.
-void ThreadTestSimple() {
-#ifdef SEMAPHORE_TEST
-	mySemaphore = new Semaphore("MySemaphore", 3);
-#endif
-	char names[4][64] = {"2nd", "3rd", "4th", "5th"};
-	for(int i = 0; i < 4; i++){
-		Thread *newThread = new Thread(names[i]);
-		newThread->Fork(SimpleThread, (void *) names[i]);
-	}
-	SimpleThread((void *) "1st");
-}
+void
+ThreadTestSimple()
+{
+    char *name2 = new char [64];    
+    strncpy(name2, "2nd", 64);
+    Thread *newThread2 = new Thread(name2);
+    newThread2->Fork(SimpleThread, (void *) name2);
 
+    char *name3 = new char [64];    
+    strncpy(name3, "3rd", 64);
+    Thread *newThread3 = new Thread(name3);
+    newThread3->Fork(SimpleThread, (void *) name3);
+
+    char *name4 = new char [64];    
+    strncpy(name4, "4th", 64);
+    Thread *newThread4 = new Thread(name4);
+    newThread4->Fork(SimpleThread, (void *) name4);
+
+    char *name5 = new char [64];    
+    strncpy(name5, "5th", 64);
+    Thread *newThread5 = new Thread(name5);
+    newThread5->Fork(SimpleThread, (void *) name5);
+
+
+
+    SimpleThread((void *) "1st");
+}

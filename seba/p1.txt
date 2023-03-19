@@ -1,0 +1,289 @@
+////////////////// EJERCICIO 1 ///////////////
+// Una de las razones para emular una CPU en vez de utilizar la local es
+// que permite abstraerse del hardware real, utilizando solo el emulado. Por ejemplo, si se emula un
+// procesador de 2 hilos, no se necesario pensar que pasaria si se tuviesen 4.
+// Por otro lado, permite utilizar herramientas de debugging como gdb, o de busqueda como grep, que de otra manera seria imposible.
+// 
+//
+
+
+
+/////////////////// EJERCICIO 2 /////////////////////
+// La memoria principal esta definida env bin/int.h
+#define MEMSIZE    (1 << 24)  
+// 
+// Sin embargo, la memoria de usuario esta en mmu.hh 
+const unsigned PAGE_SIZE = SECTOR_SIZE;
+const unsigned NUM_PHYS_PAGES = 32;
+const unsigned MEMORY_SIZE = NUM_PHYS_PAGES * PAGE_SIZE;
+// donde si buscamos en disk.hh, vemos que SECTOR_SIZE es, en bytes
+const unsigned SECTOR_SIZE = 128;       
+// 128*32 = 4096 bytes = 4 kb
+
+
+/////////////////// EJERCICIO 3 /////////////////////
+// En el caso que queramos cambiar la cantidad de memoria
+// debemos modificar o la cantidad de paginas (NUM_PHYS_PAGES)   
+// o el tamano de cada pagina (PAGE_SIZE)
+//
+//
+
+///////////////////  EJERCICIO 4 ///////////////////
+const unsigned SECTOR_SIZE = 128;       ///< Number of bytes per disk sector.
+const unsigned SECTORS_PER_TRACK = 32;  ///< Number of sectors per disk
+                                        ///< track.
+const unsigned NUM_TRACKS = 32;         ///< Number of tracks per disk.
+const unsigned NUM_SECTORS = SECTORS_PER_TRACK * NUM_TRACKS;
+// En este caso, el tamano del disco es el numero de sectores 
+// multiplicado por el tamano de cada sector
+// TOTAL = NUM_SECTORS * SECTOR_SIZE
+// TOTAL = (32 * 32) * 128
+// TOTAL = 131072 bytes = 128 kb
+// 
+
+/////////////////// EJERCICIO 5 /////////////////////
+// Como podemos ver en mips_sim.cc, existen 59 instrucciones
+
+
+
+/////////////////// EJERCICIO 6 /////////////////////
+//
+// bin/main.c:main(int argc, char *argv[])
+// bin/coff2noff.c:main(int argc, char *argv[])
+// bin/disasm.c:main(int argc, char *argv[])
+// bin/readnoff.c:main(int argc, char *argv[])
+// bin/fuse/nachosfuse.c:main(int argc, char *argv[])
+// bin/coff2flat.c:main(int argc, char *argv[])
+// bin/out.c:main(int argc, char *argv[])
+// userland/filetest.c:main(void)
+// userland/touch.c:main(int argc, char *argv[])
+// userland/shell.c:main(void)
+// userland/sort.c:main(void)
+// userland/tiny_shell.c:main(void)
+// userland/echo.c:main(int argc, char *argv[])
+// userland/matmult.c:main(void)
+// userland/halt.c:main(void)
+// threads/main.cc:main(int argc, char **argv)
+
+// En total, son 16.
+
+// userprog usa el main de thread
+// dentro del makefile de userprog, vemos esto
+// SRC_FILES    = $(THREAD_SRC) $(USERPROG_SRC)
+// 
+
+
+/////////////////// EJERCICIO 7 /////////////////////
+//
+// main llama a Initialize, que esta en system.cc
+// y sistem.cc llama a ASSERT, que esta definida en assert.hh
+
+// main llama a DEBUG, definida en utility.hh
+// 
+ 
+// main llama a sysinfo, declarado en sys_info.cc
+// sysinfo imprime valores de constantes definidas en los archivos
+// copyright.h, sysinfo.cc, raw_file_header.hh, directory_entry.hh, file_system.hh
+
+// main llama a print version que imprime constantes en copyright.h
+// 
+
+// como las banderas no estan definidas, hay unos bloques de codigo que no se ejecutan
+
+// finalmente, se llama a finish de current thread, definido en thread.cc
+
+
+/////////////////// EJERCICIO 8 /////////////////////
+// El assert esta definido en assert.cc y se incluye en utility. La macro es esta:
+#define ASSERT(condition)  Assert(condition, #condition, __FILE__, __LINE__)
+// Lo que hace, basicamente es llamar al metodo Assert que tiene este codigo
+void Assert(bool result, const char *expString, const char *filename, unsigned line){
+    if (!result) {
+        fprintf(stderr, "\nAssertion failed!\n"
+                        "\tExpression: `%s`\n"
+                        "\tLocation: file `%s`, line %u\n",
+                expString, filename, line);
+        fflush(stderr);
+        abort();
+    }
+}
+// si el resultado no es el esperado, imprime un error que se muestra por la consola de error
+// luego aborta lo que esta ejecutando
+// 
+// 
+
+
+
+// La macro de debug esta definida en debug.hh:
+#define DEBUG(...)  (debug.Print)(__FILE__, __LINE__, __func__, __VA_ARGS__)
+// Entonces, lo que hace es llamar al metodo Print de la clase Debug, para que imprima con el siguiente codigo
+void Debug::Print(const char *file, const unsigned line, const char *func, char flag, const char *format, ...) const {
+    ASSERT(format != nullptr);
+
+    if (!IsEnabled(flag))   return;
+
+    // Option effects preceding the message.
+    if (opts.location)      fprintf(stderr, "[location: %s:%u]\n", file, line);
+    if (opts.function)      fprintf(stderr, "[function: %s]\n", func);
+    
+
+    fprintf(stderr, "[%c] ", flag);
+
+    va_list ap;
+    // You will get an unused variable message here -- ignore it.
+    va_start(ap, format);
+    vfprintf(stderr, format, ap);
+    va_end(ap);
+
+    fflush(stderr);
+
+    // Option effects succeeding the message.
+    if (opts.sleep) {
+        SystemDep::Delay(1);
+    }
+    if (opts.interactive) {
+        getchar();
+    }
+}
+
+// Si a debug se le pasa la letra t, solo imprime si en la ejecucion de nachos se le paso el 
+// parametro -d t    o    -d +     (tambien sirve -d ti, etc)
+
+// __VA_ARGS__
+
+
+
+
+
+///////////// EJERCICIO 9 /////////////////
+//
+// Preguntar si esta OK o hay que explicar que hace cada bandera
+
+/// * `+` -- turn on all debug messages.
+/// * `t` -- thread system.
+/// * `s` -- semaphores, locks, and conditions.
+/// * `i` -- interrupt emulation.
+/// * `m` -- machine emulation (requires *USER_PROGRAM*).
+/// * `d` -- disk emulation (requires *FILESYS*).
+/// * `f` -- file system (requires *FILESYS*).
+/// * `a` -- address spaces (requires *USER_PROGRAM*).
+/// * `e` -- exception handling (requires *USER_PROGRAM*).
+/// * `n` -- network emulation (requires *NETWORK*).
+//
+//
+//
+//
+//
+
+///////////// EJERCICIO 10 /////////////////
+//
+// USER_PROGRAM Y FILESYS_NEEDED podemos verlas definidas en el makefile de 
+// vmem, userprog, filesys y network
+
+// FILESYS_STUB podemos verla definida en el makefile de 
+// vmem y userprog
+//
+
+// NETWORK podemos verla definida solo en el makefile de network
+
+
+///////////// EJERCICIO 11 /////////////////
+///
+///     nachos [-d <debugflags>] [-do <debugopts>] [-p]
+///            [-rs <random seed #>] [-z] [-tt]
+///            [-s] [-x <nachos file>] [-tc <consoleIn> <consoleOut>]
+///            [-f] [-cp <unix file> <nachos file>] [-pr <nachos file>]
+///            [-rm <nachos file>] [-ls] [-D] [-c] [-tf]
+///            [-n <network reliability>] [-id <machine id>]
+///            [-tn <other machine id>]
+///
+/// General options
+/// ---------------
+///
+/// * `-d`  -- causes certain debugging messages to be printed (cf.
+///            `utility.hh`).
+/// * `-do` -- enables options that modify the behavior when printing
+///            debugging messages.
+/// * `-p`  -- enables preemptive multitasking for kernel threads.
+/// * `-rs` -- causes `Yield` to occur at random (but repeatable) spots.
+/// * `-z`  -- prints version and copyright information, and exits.
+///
+/// -rs genera una semilla random que ese util para debuggear en la parte de threads.
+//
+
+
+///////////// EJERCICIO 12 /////////////////
+//
+// modificado en sys_info.cc
+//
+
+
+///////////// EJERCICIO 13 /////////////////
+//
+// las listas sincrozadas permiten ser accedidas solo por un hilo a la vez. Ademas,
+// si un hilo quiere eliminar un item de la lista, va a esperar a que la lista tenga 
+// un item para remover.
+
+// ademas, las listas sincronizadas tienen menos elementos, solo el apply, append y pop
+// en las listas no sincronizadas, ademas, tenemos 
+    void Prepend(Item item);
+    Item Head();
+    void Remove(Item item);
+    bool Has(Item item) const;
+    bool IsEmpty() const;
+    void SortedInsert(Item item, int sortKey);
+    Item SortedPop(int *keyPtr);
+//
+//
+
+
+
+///////////// EJERCICIO 14 /////////////////
+//
+// modificado en thread_test_simple.cc
+//
+
+
+///////////// EJERCICIO 15 /////////////////
+//
+//
+//
+//
+//
+//
+
+///////////// EJERCICIO 16 /////////////////
+//
+//
+//
+//
+//
+//
+
+
+///////////// EJERCICIO 17 /////////////////
+//
+//
+//
+//
+//
+//
+
+///////////// EJERCICIO 18 /////////////////
+//
+//
+//
+//
+//
+//
+
+
+
+
+
+
+
+
+
+
+
