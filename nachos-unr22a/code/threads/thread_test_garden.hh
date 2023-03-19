@@ -10,5 +10,6 @@
 
 void ThreadTestGarden();
 
+void ThreadTestGardenSemaphores();
 
 #endif
