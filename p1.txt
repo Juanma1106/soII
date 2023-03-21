@@ -1,4 +1,6 @@
 ////////////////// EJERCICIO 1 ///////////////
+// ¿Por qué se prefiere emular una CPU en vez de utilizar directamente la CPU existente?
+
 // Una de las razones para emular una CPU en vez de utilizar la local es
 // que permite abstraerse del hardware real, utilizando solo el emulado. Por ejemplo, si se emula un
 // procesador de 2 hilos, no se necesario pensar que pasaria si se tuviesen 4.
@@ -9,19 +11,20 @@
 
 
 /////////////////// EJERCICIO 2 /////////////////////
-// La memoria principal esta definida env bin/int.h
-#define MEMSIZE    (1 << 24)  
-// 
-// Sin embargo, la memoria de usuario esta en mmu.hh 
+// ¿Cuánta memoria tiene la máquina simulada para Nachos?
+
+// La memoria de usuario esta en mmu.hh 
 const unsigned PAGE_SIZE = SECTOR_SIZE;
 const unsigned NUM_PHYS_PAGES = 32;
 const unsigned MEMORY_SIZE = NUM_PHYS_PAGES * PAGE_SIZE;
 // donde si buscamos en disk.hh, vemos que SECTOR_SIZE es, en bytes
 const unsigned SECTOR_SIZE = 128;       
-// 128*32 = 4096 bytes = 4 kb
+// 128 * 32 = 4096 bytes = 4 kb
 
 
 /////////////////// EJERCICIO 3 /////////////////////
+// ¿Qué modificarı́a para cambiar la cantidad de memoria?
+
 // En el caso que queramos cambiar la cantidad de memoria
 // debemos modificar o la cantidad de paginas (NUM_PHYS_PAGES)   
 // o el tamano de cada pagina (PAGE_SIZE)
@@ -29,6 +32,8 @@ const unsigned SECTOR_SIZE = 128;
 //
 
 ///////////////////  EJERCICIO 4 ///////////////////
+// ¿De qué tamaño es un disco?
+
 const unsigned SECTOR_SIZE = 128;       ///< Number of bytes per disk sector.
 const unsigned SECTORS_PER_TRACK = 32;  ///< Number of sectors per disk
                                         ///< track.
@@ -39,15 +44,20 @@ const unsigned NUM_SECTORS = SECTORS_PER_TRACK * NUM_TRACKS;
 // TOTAL = NUM_SECTORS * SECTOR_SIZE
 // TOTAL = (32 * 32) * 128
 // TOTAL = 131072 bytes = 128 kb
-// 
+
 
 /////////////////// EJERCICIO 5 /////////////////////
+// ¿Cuántas instrucciones de MIPS simula la máquina virtual de Nachos?
+
 // Como podemos ver en mips_sim.cc, existen 59 instrucciones
 
 
 
 /////////////////// EJERCICIO 6 /////////////////////
-//
+// ¿En qué archivos está definida la función main? ¿En qué archivo está definida la función
+// main del ejecutable nachos del directorio userprog?
+
+
 // bin/main.c:main(int argc, char *argv[])
 // bin/coff2noff.c:main(int argc, char *argv[])
 // bin/disasm.c:main(int argc, char *argv[])
@@ -71,10 +81,14 @@ const unsigned NUM_SECTORS = SECTORS_PER_TRACK * NUM_TRACKS;
 // dentro del makefile de userprog, vemos esto
 // SRC_FILES    = $(THREAD_SRC) $(USERPROG_SRC)
 // 
-
+// Además se puede chequear ejecutando el comando ./nachos -d + en el directorio de userprog.
 
 /////////////////// EJERCICIO 7 /////////////////////
-//
+// Nombre los archivos fuente en los que figuran las funciones y métodos llamados por el
+// main de Nachos al ejecutarlo en el directorio threads, hasta dos niveles de profundidad.
+// Por ejemplo: main llama a Initialize, que está en tal archivo; e Initialize llama
+// a ASSERT, que está en tal otro archivo.
+
 // main llama a Initialize, que esta en system.cc
 // y sistem.cc llama a ASSERT, que esta definida en assert.hh
 
@@ -85,15 +99,20 @@ const unsigned NUM_SECTORS = SECTORS_PER_TRACK * NUM_TRACKS;
 // sysinfo imprime valores de constantes definidas en los archivos
 // copyright.h, sysinfo.cc, raw_file_header.hh, directory_entry.hh, file_system.hh
 
-// main llama a print version que imprime constantes en copyright.h
+// main llama a PrintVersion que imprime constantes en copyright.h
 // 
 
-// como las banderas no estan definidas, hay unos bloques de codigo que no se ejecutan
+// main llama a ThreadTest() que esta definida en thread_test que a su vez llama a
+// DEBUG, luego la funcion Choose() y luego Run() (es para elegir el test que se quiere ejecutar).
 
-// finalmente, se llama a finish de current thread, definido en thread.cc
+// como las banderas USER_PROGRAM, FILESYS y NETWORK no estan definidas en el Makefile de threads, hay unos bloques de codigo que no se ejecutan
+
+// finalmente, se llama a Finish() de current thread, definido en thread.cc
 
 
 /////////////////// EJERCICIO 8 /////////////////////
+// ¿Qué efecto hacen las macros ASSERT y DEBUG definidas en lib/utility.hh?
+
 // El assert esta definido en assert.cc y se incluye en utility. La macro es esta:
 #define ASSERT(condition)  Assert(condition, #condition, __FILE__, __LINE__)
 // Lo que hace, basicamente es llamar al metodo Assert que tiene este codigo
@@ -156,8 +175,7 @@ void Debug::Print(const char *file, const unsigned line, const char *func, char 
 
 
 ///////////// EJERCICIO 9 /////////////////
-//
-// Preguntar si esta OK o hay que explicar que hace cada bandera
+// Comente el efecto de las distintas banderas de depuración.
 
 /// * `+` -- turn on all debug messages.
 /// * `t` -- thread system.
@@ -169,14 +187,12 @@ void Debug::Print(const char *file, const unsigned line, const char *func, char 
 /// * `a` -- address spaces (requires *USER_PROGRAM*).
 /// * `e` -- exception handling (requires *USER_PROGRAM*).
 /// * `n` -- network emulation (requires *NETWORK*).
-//
-//
-//
-//
-//
+
 
 ///////////// EJERCICIO 10 /////////////////
-//
+// ¿Dónde están definidas las constantes USER PROGRAM, FILESYS NEEDED, FILESYS STUB
+// y NETWORK?
+
 // USER_PROGRAM Y FILESYS_NEEDED podemos verlas definidas en el makefile de 
 // vmem, userprog, filesys y network
 
@@ -188,6 +204,9 @@ void Debug::Print(const char *file, const unsigned line, const char *func, char 
 
 
 ///////////// EJERCICIO 11 /////////////////
+// ¿Qué argumentos de lı́nea de comandos admite Nachos? ¿Qué efecto tiene la opción
+// -rs?
+
 ///
 ///     nachos [-d <debugflags>] [-do <debugopts>] [-p]
 ///            [-rs <random seed #>] [-z] [-tt]
@@ -213,19 +232,22 @@ void Debug::Print(const char *file, const unsigned line, const char *func, char 
 
 
 ///////////// EJERCICIO 12 /////////////////
-//
+// Al ejecutar nachos -i, se obtiene información del sistema. Sin embargo está incom-
+// pleta. Modifique el código para que se muestren los datos que faltan.
+
 // modificado en sys_info.cc
 //
 
 
 ///////////// EJERCICIO 13 /////////////////
-//
+// ¿Cuál es la diferencia entre las clases List y SynchList?
+
 // las listas sincrozadas permiten ser accedidas solo por un hilo a la vez. Ademas,
 // si un hilo quiere eliminar un item de la lista, va a esperar a que la lista tenga 
-// un item para remover.
+// un item para remover y si un hilo agrega un item, va a despertar a un hilo cualquiera que estuviera esperando para remover.
 
-// ademas, las listas sincronizadas tienen menos elementos, solo el apply, append y pop
-// en las listas no sincronizadas, ademas, tenemos 
+// Las listas sincronizadas tienen menos métodos: solo apply, append y pop (ademas del constructor y destroy)
+// En las listas no sincronizadas, ademas, tenemos 
     void Prepend(Item item);
     Item Head();
     void Remove(Item item);
@@ -239,51 +261,47 @@ void Debug::Print(const char *file, const unsigned line, const char *func, char 
 
 
 ///////////// EJERCICIO 14 /////////////////
-//
+// Modifique el caso de prueba simple del directorio threads para que se generen 5 hilos
+// en lugar de 2.
+
 // modificado en thread_test_simple.cc
 //
 
 
 ///////////// EJERCICIO 15 /////////////////
+// Modifique el caso de prueba para que estos cinco hilos utilicen un semáforo inicializado
+// en 3. Esto debe ocurrir solo si se define la macro de compilación SEMAPHORE_TEST.
 //
-//
-//
-//
-//
-//
+// modificado en thread_test_simple.cc
+// Además se agregó la bandera -DSEMAPHORE_TEST en el Makefile en la carpeta threads.
 
 ///////////// EJERCICIO 16 /////////////////
+// Agregue al caso anterior una lı́nea de depuración que diga cuándo cada hilo hace un P()
+// y cuándo un V(). La salida debe verse por pantalla solamente si se activa la bandera
+// de depuración correspondiente.
 //
-//
-//
-//
-//
-//
+// Se agregó la bandera s para que muestre estos mensajes.
+// Para ejecutarlo:
+// ./nachos -tt -d s
 
 
 ///////////// EJERCICIO 17 /////////////////
+// En threads se provee un caso de prueba que implementa el jardı́n ornamental. Sin
+// embargo, el resultado es erróneo. Corrı́jalo de forma que se mantengan los cambios de
+// contexto, sin agregar nuevas variables.
 //
-//
-//
-//
-//
-//
+// Se modificó el archivo thread_test_garden.cc, se quitó la variable temporal temp que
+// se estaba quedando con un valor viejo luego del cambio de contexto
+
 
 ///////////// EJERCICIO 18 /////////////////
+// Replique el jardı́n ornamental en un nuevo caso de prueba. Revierta la solución anterior
+// y solucione el problema usando semáforos esta vez.
 //
+// Se modificó el archivo thread_test_garden.cc, se agregó semáforos en la región crítica
+// que abarca desde que se guarda el valor temporal de count en temp y que se usa para actualizar
+// el valor de count.
+// Además se agregó un cambio de contexto luego de hacer un V() para que ambos hilos se ejecutan
+// en "paralelo", sino se ejecutaba siempre el primer hilo y cuando terminaba recién se ejecutaba
+// el segundo
 //
-//
-//
-//
-//
-
-
-
-
-
-
-
-
-
-
-

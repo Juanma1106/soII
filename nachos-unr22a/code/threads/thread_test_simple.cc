@@ -12,8 +12,6 @@
 #include <stdio.h>
 #include <string.h>
 
-//#define SEMAPHORE_TEST
-
 static Semaphore *mySemaphore;
 
 /// Loop 10 times, yielding the CPU to another ready thread each iteration.
@@ -30,12 +28,12 @@ void SimpleThread(void *name_) {
     for (unsigned num = 0; num < 10; num++) {
 #ifdef SEMAPHORE_TEST
 	    mySemaphore->P();
-	    DEBUG('t', "*** Thread `%s` make P()\n",name);
+	    DEBUG('s', "*** Thread `%s` make P()\n",name);
 #endif
         printf("*** Thread `%s` is running: iteration %u\n", name, num);
 #ifdef SEMAPHORE_TEST
         mySemaphore->V();
-	    DEBUG('t', "*** Thread `%s` make V()\n",name);
+	    DEBUG('s', "*** Thread `%s` make V()\n",name);
 #endif
         currentThread->Yield();
     }

@@ -64,14 +64,15 @@ static void TurnstileSemaphores(void *n_) {
     unsigned *n = (unsigned *) n_;
 
     for (unsigned i = 0; i < ITERATIONS_PER_TURNSTILE; i++) {
-	    DEBUG('t', "Turnstile %u want make P. Count is now %u.\n", *n, count);
+	    DEBUG('s', "Turnstile %u want make P. Count is now %u.\n", *n, count);
 	    mySemaphore->P();
-	    DEBUG('t', "Turnstile %u make P. Count is now %u.\n", *n, count);
+	    DEBUG('s', "Turnstile %u make P. Count is now %u.\n", *n, count);
         int temp = count;
         currentThread->Yield();
         count = temp + 1;
 	    mySemaphore->V();
-	    DEBUG('t', "Turnstile %u make V. Count is now %u.\n", *n, count);
+	    DEBUG('s', "Turnstile %u make V. Count is now %u.\n", *n, count);
+	    currentThread->Yield();
     }
     printf("Turnstile %u finished. Count is now %u.\n", *n, count);
     done[*n] = true;
