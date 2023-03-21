@@ -2,12 +2,13 @@
 // ¿Por qué se prefiere emular una CPU en vez de utilizar directamente la CPU existente?
 
 // Una de las razones para emular una CPU en vez de utilizar la local es
-// que permite abstraerse del hardware real, utilizando solo el emulado. Por ejemplo, si se emula un
-// procesador de 2 hilos, no se necesario pensar que pasaria si se tuviesen 4.
-// Por otro lado, permite utilizar herramientas de debugging como gdb, o de busqueda como grep, que de otra manera seria imposible.
+// que permite abstraerse del hardware real, utilizando solo el emulado.
 // 
-//
-
+// Esto simplifica enormemente el desarrollo del SO, reduciendo el tiempo invertido en el ciclo
+// de desarrollo (compilación, ejecución y debugging). 
+// Y, a su vez, permite el uso de debuggers como gdb. Por estas ventajas, en el desarrollo de
+// varios sistemas operativos comerciales se usan máquinas simuladas.
+// [Bedicheck 1990]
 
 
 /////////////////// EJERCICIO 2 /////////////////////
