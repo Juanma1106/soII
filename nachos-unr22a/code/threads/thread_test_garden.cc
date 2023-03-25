@@ -8,6 +8,7 @@
 #include "thread_test_garden.hh"
 #include "system.hh"
 #include "semaphore.hh"
+#include "lock.hh"
 
 #include <stdio.h>
 
@@ -17,6 +18,7 @@ static const unsigned ITERATIONS_PER_TURNSTILE = 50;
 static bool done[NUM_TURNSTILES];
 static int count;
 static Semaphore *mySemaphore;
+static Lock *l;
 
 static void Turnstile(void *n_) {
     unsigned *n = (unsigned *) n_;
@@ -65,12 +67,14 @@ static void TurnstileSemaphores(void *n_) {
 
     for (unsigned i = 0; i < ITERATIONS_PER_TURNSTILE; i++) {
 	    DEBUG('s', "Turnstile %u want make P. Count is now %u.\n", *n, count);
-	    mySemaphore->P();
-	    DEBUG('s', "Turnstile %u make P. Count is now %u.\n", *n, count);
+	    // DEBUG('s', "%s, %s", currentThread->GetName(), l->GetName());
+        
+	    l->Acquire();
+        DEBUG('s', "Turnstile %u make P. Count is now %u.\n", *n, count);
         int temp = count;
         currentThread->Yield();
         count = temp + 1;
-	    mySemaphore->V();
+	    l->Release();
 	    DEBUG('s', "Turnstile %u make V. Count is now %u.\n", *n, count);
 	    currentThread->Yield();
     }
@@ -80,7 +84,7 @@ static void TurnstileSemaphores(void *n_) {
 }
 
 void ThreadTestGardenSemaphores() {
-	mySemaphore = new Semaphore("My Semaphore", 1);
+	l = new Lock("lock");
 	// Launch a new thread for each turnstile.
     for (unsigned i = 0; i < NUM_TURNSTILES; i++) {
         printf("Launching turnstile %u.\n", i);

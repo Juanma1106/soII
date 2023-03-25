@@ -16,37 +16,55 @@
 
 
 #include "lock.hh"
+#include "semaphore.hh"
+#include "system.hh"
 
+static Semaphore *s;
+static const char *isLockedBy = "";
 
 /// Dummy functions -- so we can compile our later assignments.
 
-Lock::Lock(const char *debugName)
-{}
+Lock::Lock(const char *debugName) 
+{
+    s = new Semaphore (debugName,1); 
+
+}
 
 Lock::~Lock()
-{}
+{
+    s->~Semaphore();
+}
 
 const char *
 Lock::GetName() const
 {
-    return name;
+    return s->GetName();
+}
+
+const char *
+Lock::GetLockedBy() const
+{
+    return isLockedBy;
 }
 
 void
 Lock::Acquire()
 {
-    // TODO
+    ASSERT(!IsHeldByCurrentThread()) ;
+    s->P();
+    isLockedBy = currentThread->GetName();
 }
 
 void
 Lock::Release()
 {
-    // TODO
+    ASSERT(IsHeldByCurrentThread()) ;
+    s->V();
+    isLockedBy = "";
 }
 
 bool
 Lock::IsHeldByCurrentThread() const
 {
-    // TODO
-    return false;
+    return isLockedBy == currentThread->GetName();
 }

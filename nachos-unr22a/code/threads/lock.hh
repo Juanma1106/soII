@@ -39,6 +39,7 @@ public:
 
     /// For debugging.
     const char *GetName() const;
+    const char *GetLockedBy() const;
 
     /// Operations on the lock.
     ///

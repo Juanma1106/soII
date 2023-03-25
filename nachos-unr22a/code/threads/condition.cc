@@ -18,6 +18,10 @@
 #include "condition.hh"
 
 
+static Lock *cl;
+// static Lock *wl;
+
+
 /// Dummy functions -- so we can compile our later assignments.
 ///
 /// Note -- without a correct implementation of `Condition::Wait`, the test
@@ -25,12 +29,14 @@
 
 Condition::Condition(const char *debugName, Lock *conditionLock)
 {
-    // TODO
+    name = debugName;
+    cl = conditionLock;
+
 }
 
 Condition::~Condition()
 {
-    // TODO
+    cl->~Lock();
 }
 
 const char *
@@ -42,13 +48,16 @@ Condition::GetName() const
 void
 Condition::Wait()
 {
-    // TODO
+    // VER
+    cl->Release();
 }
 
 void
 Condition::Signal()
 {
-    // TODO
+    // VER
+    cl->Acquire();
+
 }
 
 void
