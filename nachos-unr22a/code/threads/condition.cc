@@ -18,9 +18,6 @@
 #include "condition.hh"
 
 
-static Lock *cl;
-static List<Semaphore> *semList;
-
 
 /// Dummy functions -- so we can compile our later assignments.
 ///
@@ -31,12 +28,14 @@ Condition::Condition(const char *debugName, Lock *conditionLock)
 {
     name = debugName;
     cl = conditionLock;
-    sems = new List<Semaphore>;
+    sem = new Semaphore(debugName, 0);
+    countWaiters = 0;
 }
 
 Condition::~Condition()
 {
     cl->~Lock();
+    sem->~Semaphore();
 }
 
 const char *
@@ -49,8 +48,7 @@ void
 Condition::Wait()
 {
     cl->Acquire();
-    Semaphore *mySem = new Semaphore(currentThread->GetName(), 0);
-    semList->Append(mySem);
+    countWaiters++;
     cl->Release();
     mySem->P();
 }
@@ -59,9 +57,9 @@ void
 Condition::Signal()
 {
     cl->Acquire();
-    if(!semList->IsEmpty()) {
-	    Semaphore *sem = semList->Pop();
-		sem->V();
+    if(countWaiters > 0) {
+		mySem->V();
+		countWaiters--;
 	}
     cl->Release();
 }
@@ -70,9 +68,9 @@ void
 Condition::Broadcast()
 {
     cl->Acquire();
-    while(!semList->IsEmpty()) {
-		Semaphore *sem = semList->Pop();
-		sem->V();
+    while(countWaiters > 0) {
+		mySem->V();
+		countWaiters--;
 	}
     cl->Release();
 }

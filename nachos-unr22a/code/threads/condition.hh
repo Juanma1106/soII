@@ -75,6 +75,9 @@ public:
 private:
 
     const char *name;
+    Lock *cl;
+    Semaphore *sem;
+	int countWaiters;
 
     // Other needed fields are to be added here.
 };
