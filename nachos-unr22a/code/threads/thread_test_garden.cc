@@ -18,7 +18,7 @@ static const unsigned ITERATIONS_PER_TURNSTILE = 50;
 static bool done[NUM_TURNSTILES];
 static int count;
 static Semaphore *mySemaphore;
-static Lock *l;
+// static Lock *l;
 
 static void Turnstile(void *n_) {
     unsigned *n = (unsigned *) n_;
@@ -84,7 +84,8 @@ static void TurnstileSemaphores(void *n_) {
 }
 
 void ThreadTestGardenSemaphores() {
-	l = new Lock("lock");
+	// l = new Lock("lock");
+	mySemaphore = new Semaphore("mySemaphore", 1);
 	// Launch a new thread for each turnstile.
     for (unsigned i = 0; i < NUM_TURNSTILES; i++) {
         printf("Launching turnstile %u.\n", i);

@@ -16,6 +16,7 @@
 
 
 #include "condition.hh"
+#include "semaphore.hh"
 
 
 
@@ -50,7 +51,7 @@ Condition::Wait()
     cl->Acquire();
     countWaiters++;
     cl->Release();
-    mySem->P();
+    sem->P();
 }
 
 void
@@ -58,7 +59,7 @@ Condition::Signal()
 {
     cl->Acquire();
     if(countWaiters > 0) {
-		mySem->V();
+		sem->V();
 		countWaiters--;
 	}
     cl->Release();
@@ -69,7 +70,7 @@ Condition::Broadcast()
 {
     cl->Acquire();
     while(countWaiters > 0) {
-		mySem->V();
+		sem->V();
 		countWaiters--;
 	}
     cl->Release();

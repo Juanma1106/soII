@@ -7,6 +7,11 @@
 #ifndef NACHOS_THREADS_THREADTESTSIMPLE__HH
 #define NACHOS_THREADS_THREADTESTSIMPLE__HH
 
+#include "system.hh"
+#include "semaphore.hh"
+#include <stdio.h>
+#include <string.h>
+
 
 void ThreadTestSimple();
 

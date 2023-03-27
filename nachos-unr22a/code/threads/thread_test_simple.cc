@@ -6,11 +6,6 @@
 
 
 #include "thread_test_simple.hh"
-#include "system.hh"
-#include "semaphore.hh"
-
-#include <stdio.h>
-#include <string.h>
 
 static Semaphore *mySemaphore;
 
