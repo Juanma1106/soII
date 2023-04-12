@@ -1,4 +1,5 @@
 // Channel
+#include "channel.hh"
 
 Channel::Channel() {
 	lockForCondSender = new Lock("lockForCondSender");
@@ -10,7 +11,6 @@ Channel::Channel() {
 	lockSender = new Lock("lockSender");
 	lockReceiver = new Lock("lockReceiver");
 	
-
 	semRead = new Semaphore("semWrite", 0);
 	semWrite = new Semaphore("semWrite", 0);
 	
@@ -25,6 +25,15 @@ Channel::~Channel() {
 	
 }
 
+// Circuito:
+// 1)Llega alguien que quiere enviar un mensaje, adquiere el lockSender
+// 2)
+//	A- Si no hay nadie escuchando, incrementa countSendWaiting y se pone a esperar.
+//		Cuando llega la señal de que alguien se puso a escuchar, continua en el paso 3
+//	B- Si hay alguien escuchando, decrementa countReceiveWaiting y continua en el paso 3
+// 3) Escribimos mensaje en el buffer
+// 4) Avisamos a quien va a recibir el mensaje que ya escribimos el mensaje y esperamos a que el otro lo reciba
+// 5) Soltamos el lockSender
 void Channel::Send (int message) {
 	lockSender->Acquire();
 	if(countReceiveWaiting == 0) {
@@ -37,10 +46,10 @@ void Channel::Send (int message) {
 		countReceiveWaiting--;
 	}
 	
-	// Escribimos mensaje en buffer
+	// Escribimos mensaje en el buffer
 	// TODO
 	
-	// Avisamos al otro proceso que ya escribimos el mensaje
+	// Avisamos a quien va a recibir el mensaje que ya escribimos el mensaje
 	semWrite->V();
 	
 	// Esperamos a que el otro lo reciba
@@ -48,6 +57,16 @@ void Channel::Send (int message) {
 	
 	lockSender->Release();
 }
+
+// Circuito:
+// 1)Llega alguien que quiere recibir un mensaje, adquiere el lockReceiver
+// 2)
+//	A- Si no hay nadie enviando mensaje, incrementa countReceiveWaiting.
+//	B- Si hay alguien enviando mensaje, decrementa countSendWaiting y le avisa a alguno de los que escribe que ya hay alguien escuchando.
+// 3) Esperamos a que se guarde el mensaje en el buffer
+// 4) Leemos el mensaje del buffer
+// 5) Le avisamos al sender que ya leimos el mensaje.
+// 6) Soltamos el lockReceiver
 void Channel::Receive (int *message ) {
 	lockReceiver->Acquire();
 	if(countSendWaiting == 0) {
@@ -60,13 +79,13 @@ void Channel::Receive (int *message ) {
 		condSender->Signal();
 	}
 		
-	// Esperar a que sender escriba el mensaje. Usamos semaforo en vez de condition para evitar que se pierda un signal.
+	// Esperamos a que se guarde el mensaje en el buffer. (Usamos semaforo en vez de condition para evitar que se pierda un signal)
 	semWrite->P();
 
-	// Leer mensaje en buffer		
+	// Leemos el mensaje del buffer
 	// TODO
 
-	// Avisarle a sender que ya leimos el mensaje
+	// Le avisamos al sender que ya leimos el mensaje.
 	semRead->V();
 
 	
