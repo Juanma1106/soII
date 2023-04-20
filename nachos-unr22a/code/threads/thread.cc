@@ -20,7 +20,7 @@
 #include "thread.hh"
 #include "switch.h"
 #include "system.hh"
-
+#include "channel.hh"
 #include <inttypes.h>
 #include <stdio.h>
 
@@ -40,12 +40,15 @@ IsThreadStatus(ThreadStatus s)
 /// `Thread::Fork`.
 ///
 /// * `threadName` is an arbitrary string, useful for debugging.
-Thread::Thread(const char *threadName)
+Thread::Thread(const char *threadName, bool isJoinable = false, Thread *father = nullptr)
 {
     name     = threadName;
     stackTop = nullptr;
     stack    = nullptr;
     status   = JUST_CREATED;
+    joinable = isJoinable;
+    channel = new Channel();
+    _father  = father;
 #ifdef USER_PROGRAM
     space    = nullptr;
 #endif
@@ -95,10 +98,12 @@ Thread::Fork(VoidFunctionPtr func, void *arg)
           name, func, arg);
 
     StackAllocate(func, arg);
-
+    
     IntStatus oldLevel = interrupt->SetLevel(INT_OFF);
     scheduler->ReadyToRun(this);  // `ReadyToRun` assumes that interrupts
                                   // are disabled!
+
+
     interrupt->SetLevel(oldLevel);
 }
 
@@ -159,6 +164,8 @@ Thread::Finish()
     ASSERT(this == currentThread);
 
     DEBUG('t', "Finishing thread \"%s\"\n", GetName());
+
+    if(joinable) channel->Send(0);
 
     threadToBeDestroyed = currentThread;
     Sleep();  // Invokes `SWITCH`.
@@ -227,6 +234,17 @@ Thread::Sleep()
     }
 
     scheduler->Run(nextThread);  // Returns when we have been signalled.
+}
+
+int
+Thread::Join()
+{
+    ASSERT(joinable);
+
+    int value;
+    channel->Recieve(&value);
+
+    return value;
 }
 
 /// ThreadFinish, InterruptEnable
