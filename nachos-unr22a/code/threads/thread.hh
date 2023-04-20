@@ -141,6 +141,12 @@ private:
 
     const char *name;
 
+    bool joinable;
+    
+    Channel *channel;
+
+    Thread *_father;
+
     /// Allocate a stack for thread.  Used internally by `Fork`.
     void StackAllocate(VoidFunctionPtr func, void *arg);
 
