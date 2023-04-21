@@ -13,12 +13,6 @@ Channel::Channel() {
 	
 	semRead = new Semaphore("semWrite", 0);
 	semWrite = new Semaphore("semWrite", 0);
-	
-	//lockRead = new Lock("lockRead");
-	//condRead = new Condition("condRead", lockRead);
-	
-	//lockWrite = new Lock("lockWrite");
-	//condWrite = new Condition("condWrite", lockWrite);
 }
 
 Channel::~Channel() {
@@ -47,7 +41,7 @@ void Channel::Send (int message) {
 	}
 	
 	// Escribimos mensaje en el buffer
-	// TODO
+	myMessage = message; 
 	
 	// Avisamos a quien va a recibir el mensaje que ya escribimos el mensaje
 	semWrite->V();
@@ -83,7 +77,7 @@ void Channel::Receive (int *message ) {
 	semWrite->P();
 
 	// Leemos el mensaje del buffer
-	// TODO
+	*message = myMessage;
 
 	// Le avisamos al sender que ya leimos el mensaje.
 	semRead->V();
