@@ -22,4 +22,5 @@ private:
 	Lock *lockReceiver;
 	Semaphore *semRead;
 	Semaphore *semWrite;
+	int myMessage;
 };
