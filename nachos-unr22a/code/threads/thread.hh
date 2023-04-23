@@ -74,6 +74,9 @@ enum ThreadStatus {
     NUM_THREAD_STATUS
 };
 
+// No se puede importar Semaphore.hh ya que tendriamos una depencia ciclica
+class Semaphore;
+
 /// The following class defines a “thread control block” -- which represents
 /// a single thread of execution.
 ///
@@ -150,7 +153,7 @@ private:
 
     bool joinable;
     
-    //Semaphore *semaphore;
+    Semaphore *semaphore;
     //Channel *channel;
 
     Thread *_father;
