@@ -12,15 +12,8 @@ public:
 	void Receive (int *message );
 	
 private:
-	Lock *lockForCondSender;
-	Lock *lockForCondReceiver;
-	Condition *condSender;
-	Condition *condReceiver;
-	int countReceiveWaiting;
-	int countSendWaiting;
 	Lock *lockSender;
-	Lock *lockReceiver;
-	Semaphore *semRead;
-	Semaphore *semWrite;
+	Semaphore *semReceiver;
+	Semaphore *semFinish;
 	int myMessage;
 };

@@ -48,6 +48,8 @@
 
 #include <stdint.h>
 
+//#include "semaphore.hh"
+
 
 /// CPU register state to be saved on context switch.
 ///
@@ -97,7 +99,7 @@ private:
 public:
 
     /// Initialize a `Thread`.
-    Thread(const char *debugName);
+    Thread(const char *debugName, bool isJoinable = false, Thread *father = nullptr, int priority = 0);
 
     /// Deallocate a Thread.
     ///
@@ -116,6 +118,9 @@ public:
     /// Put the thread to sleep and relinquish the processor.
     void Sleep();
 
+    // Main thread wait child finisih before continue.
+    void Join();
+
     /// The thread is done executing.
     void Finish();
 
@@ -127,6 +132,8 @@ public:
     const char *GetName() const;
 
     void Print() const;
+
+    int getPriority();
 
 private:
     // Some of the private data for this class is listed above.
@@ -143,12 +150,16 @@ private:
 
     bool joinable;
     
-    Channel *channel;
+    //Semaphore *semaphore;
+    //Channel *channel;
 
     Thread *_father;
 
     /// Allocate a stack for thread.  Used internally by `Fork`.
     void StackAllocate(VoidFunctionPtr func, void *arg);
+
+    int priority;
+
 
 #ifdef USER_PROGRAM
     /// User-level CPU register state.

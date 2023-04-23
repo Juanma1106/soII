@@ -30,9 +30,7 @@
 const unsigned STACK_FENCEPOST = 0xDEADBEEF;
 
 
-static inline bool
-IsThreadStatus(ThreadStatus s)
-{
+static inline bool IsThreadStatus(ThreadStatus s) {
     return 0 <= s && s < NUM_THREAD_STATUS;
 }
 
@@ -40,15 +38,16 @@ IsThreadStatus(ThreadStatus s)
 /// `Thread::Fork`.
 ///
 /// * `threadName` is an arbitrary string, useful for debugging.
-Thread::Thread(const char *threadName, bool isJoinable = false, Thread *father = nullptr)
-{
+Thread::Thread(const char *threadName, bool isJoinable, Thread *father, int thePriority) {
     name     = threadName;
     stackTop = nullptr;
     stack    = nullptr;
     status   = JUST_CREATED;
     joinable = isJoinable;
-    channel = new Channel();
+    //channel = new Channel();
+    //semaphore = new Semaphore("joinSemaphore", 0);
     _father  = father;
+    priority = thePriority;
 #ifdef USER_PROGRAM
     space    = nullptr;
 #endif
@@ -62,8 +61,7 @@ Thread::Thread(const char *threadName, bool isJoinable = false, Thread *father =
 /// NOTE: if this is the main thread, we cannot delete the stack because we
 /// did not allocate it -- we got it automatically as part of starting up
 /// Nachos.
-Thread::~Thread()
-{
+Thread::~Thread() {
     DEBUG('t', "Deleting thread \"%s\"\n", name);
 
     ASSERT(this != currentThread);
@@ -89,9 +87,7 @@ Thread::~Thread()
 ///
 /// * `func` is the procedure to run concurrently.
 /// * `arg` is a single argument to be passed to the procedure.
-void
-Thread::Fork(VoidFunctionPtr func, void *arg)
-{
+void Thread::Fork(VoidFunctionPtr func, void *arg) {
     ASSERT(func != nullptr);
 
     DEBUG('t', "Forking thread \"%s\" with func = %p, arg = %p\n",
@@ -119,30 +115,22 @@ Thread::Fork(VoidFunctionPtr func, void *arg)
 /// overflows by not putting large data structures on the stack.  Do not do
 /// this:
 ///         void foo() { int bigArray[10000]; ... }
-void
-Thread::CheckOverflow() const
-{
+void Thread::CheckOverflow() const {
     if (stack != nullptr) {
         ASSERT(*stack == STACK_FENCEPOST);
     }
 }
 
-void
-Thread::SetStatus(ThreadStatus st)
-{
+void Thread::SetStatus(ThreadStatus st) {
     ASSERT(IsThreadStatus(st));
     status = st;
 }
 
-const char *
-Thread::GetName() const
-{
+const char * Thread::GetName() const {
     return name;
 }
 
-void
-Thread::Print() const
-{
+void Thread::Print() const {
     printf("%s, ", name);
 }
 
@@ -157,15 +145,16 @@ Thread::Print() const
 ///
 /// NOTE: we disable interrupts, so that we do not get a time slice between
 /// setting `threadToBeDestroyed`, and going to sleep.
-void
-Thread::Finish()
-{
+void Thread::Finish() {
     interrupt->SetLevel(INT_OFF);
     ASSERT(this == currentThread);
 
     DEBUG('t', "Finishing thread \"%s\"\n", GetName());
 
-    if(joinable) channel->Send(0);
+    if(joinable) {
+        //channel->Send(0);
+        //semaphore->V();
+    }
 
     threadToBeDestroyed = currentThread;
     Sleep();  // Invokes `SWITCH`.
@@ -187,9 +176,7 @@ Thread::Finish()
 /// are called with interrupts disabled.
 ///
 /// Similar to `Thread::Sleep`, but a little different.
-void
-Thread::Yield()
-{
+void Thread::Yield() {
     IntStatus oldLevel = interrupt->SetLevel(INT_OFF);
 
     ASSERT(this == currentThread);
@@ -219,9 +206,7 @@ Thread::Yield()
 /// from the synchronization routines which must disable interrupts for
 /// atomicity.  We need interrupts off so that there cannot be a time slice
 /// between pulling the first thread off the ready list, and switching to it.
-void
-Thread::Sleep()
-{
+void Thread::Sleep() {
     ASSERT(this == currentThread);
     ASSERT(interrupt->GetLevel() == INT_OFF);
 
@@ -236,15 +221,15 @@ Thread::Sleep()
     scheduler->Run(nextThread);  // Returns when we have been signalled.
 }
 
-int
-Thread::Join()
-{
+void Thread::Join() {
     ASSERT(joinable);
+    //semaphore->P();
+    //int message;
+    //channel->Receive(&message);
+}
 
-    int value;
-    channel->Recieve(&value);
-
-    return value;
+int Thread::getPriority() {
+    return priority;
 }
 
 /// ThreadFinish, InterruptEnable
@@ -252,15 +237,11 @@ Thread::Join()
 /// Dummy functions because C++ does not allow a pointer to a member
 /// function.  So in order to do this, we create a dummy C function (which we
 /// can pass a pointer to), that then simply calls the member function.
-static void
-ThreadFinish()
-{
+static void ThreadFinish() {
     currentThread->Finish();
 }
 
-static void
-InterruptEnable()
-{
+static void InterruptEnable() {
     interrupt->Enable();
 }
 
@@ -274,9 +255,7 @@ InterruptEnable()
 ///
 /// * `func` is the procedure to be forked.
 /// * `arg` is the parameter to be passed to the procedure.
-void
-Thread::StackAllocate(VoidFunctionPtr func, void *arg)
-{
+void Thread::StackAllocate(VoidFunctionPtr func, void *arg) {
     ASSERT(func != nullptr);
 
     stack = (uintptr_t *)
@@ -307,9 +286,7 @@ Thread::StackAllocate(VoidFunctionPtr func, void *arg)
 /// Note that a user program thread has *two* sets of CPU registers -- one
 /// for its state while executing user code, one for its state while
 /// executing kernel code.  This routine saves the former.
-void
-Thread::SaveUserState()
-{
+void Thread::SaveUserState() {
     for (unsigned i = 0; i < NUM_TOTAL_REGS; i++) {
         userRegisters[i] = machine->ReadRegister(i);
     }
@@ -320,9 +297,7 @@ Thread::SaveUserState()
 /// Note that a user program thread has *two* sets of CPU registers -- one
 /// for its state while executing user code, one for its state while
 /// executing kernel code.  This routine restores the former.
-void
-Thread::RestoreUserState()
-{
+void Thread::RestoreUserState() {
     for (unsigned i = 0; i < NUM_TOTAL_REGS; i++) {
         machine->WriteRegister(i, userRegisters[i]);
     }
