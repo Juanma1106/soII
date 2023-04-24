@@ -23,7 +23,6 @@
 
 #include <stdio.h>
 
-static int PRIORITY_SIZE = 5;
 
 
 /// Initialize the list of ready but not running threads to empty.
@@ -40,7 +39,7 @@ Scheduler::~Scheduler() {
 }
 
 List<Thread *>* Scheduler::findMaxPriority() {
-    for(int i = 0; i < PRIORITY_SIZE; i++) {
+    for(int i = PRIORITY_SIZE-1; i > 0; i--) {
         List<Thread *> *myList = readyLists[i];
         if(!myList->IsEmpty()) {
             return myList;

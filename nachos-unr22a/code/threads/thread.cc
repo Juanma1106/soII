@@ -44,8 +44,8 @@ Thread::Thread(const char *threadName, bool isJoinable, Thread *father, int theP
     stack    = nullptr;
     status   = JUST_CREATED;
     joinable = isJoinable;
-    //channel = new Channel();
-    semaphore = new Semaphore("joinSemaphore", 0);
+    channel = new Channel();
+    //semaphore = new Semaphore("joinSemaphore", 0);
     _father  = father;
     priority = thePriority;
 #ifdef USER_PROGRAM
@@ -152,8 +152,7 @@ void Thread::Finish() {
     DEBUG('t', "Finishing thread \"%s\"\n", GetName());
 
     if(joinable) {
-        //channel->Send(0);
-        semaphore->V();
+        channel->Send(0);
     }
 
     threadToBeDestroyed = currentThread;
@@ -223,13 +222,25 @@ void Thread::Sleep() {
 
 void Thread::Join() {
     ASSERT(joinable);
-    semaphore->P();
-    //int message;
-    //channel->Receive(&message);
+    //semaphore->P();
+    int message;
+    channel->Receive(&message);
+
 }
 
 int Thread::getPriority() {
     return priority;
+}
+
+void Thread::setPriority(int p) {
+    if (p>PRIORITY_SIZE){
+        priority = PRIORITY_SIZE;
+    } else if (p<0) {
+        priority = 0;
+    } else {
+        priority = p;
+    }
+
 }
 
 /// ThreadFinish, InterruptEnable

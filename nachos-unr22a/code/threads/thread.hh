@@ -35,9 +35,13 @@
 /// All rights reserved.  See `copyright.h` for copyright notice and
 /// limitation of liability and disclaimer of warranty provisions.
 
+class Channel;
+
 #ifndef NACHOS_THREADS_THREAD__HH
 #define NACHOS_THREADS_THREAD__HH
 
+// #include "channel.hh"
+static int PRIORITY_SIZE = 5;
 
 #include "lib/utility.hh"
 
@@ -47,8 +51,6 @@
 #endif
 
 #include <stdint.h>
-
-//#include "semaphore.hh"
 
 
 /// CPU register state to be saved on context switch.
@@ -74,8 +76,7 @@ enum ThreadStatus {
     NUM_THREAD_STATUS
 };
 
-// No se puede importar Semaphore.hh ya que tendriamos una depencia ciclica
-class Semaphore;
+
 
 /// The following class defines a “thread control block” -- which represents
 /// a single thread of execution.
@@ -138,6 +139,8 @@ public:
 
     int getPriority();
 
+    void setPriority( int p);
+
 private:
     // Some of the private data for this class is listed above.
 
@@ -153,8 +156,7 @@ private:
 
     bool joinable;
     
-    Semaphore *semaphore;
-    //Channel *channel;
+    Channel *channel;
 
     Thread *_father;
 
