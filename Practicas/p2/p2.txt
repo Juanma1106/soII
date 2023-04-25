@@ -1,0 +1,15 @@
+1) Faltan tests
+
+2) Ejecutar ./nachos -tt -d t (opcion 4)
+
+3) Faltan tests
+
+4) Ejecutar ./nachos -tt -d t (opcion 1)
+
+5) 
+a) Se creó una multicola con prioridades del 0 al 4 (ver scheduler.cc)
+
+b) Explique (en un archivo de texto) por qué no puede hacerse lo mismo con los semáforos:
+
+El problema con lo semáforos es que no tenemos información del thread que va a aumentar el contador (hacer un V) entonces no le podemos decir que aumente su prioridad.
+En el lock esta información si está.
