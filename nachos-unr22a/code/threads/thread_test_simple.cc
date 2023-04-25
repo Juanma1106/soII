@@ -8,7 +8,6 @@
 #include "thread_test_simple.hh"
 
 static Semaphore *mySemaphore;
-
 /// Loop 10 times, yielding the CPU to another ready thread each iteration.
 ///
 /// * `name` points to a string with a thread name, just for debugging
@@ -34,6 +33,8 @@ void SimpleThread(void *name_) {
     }
     printf("!!! Thread `%s` has finished\n", name);
 }
+
+
 
 /// Set up a ping-pong between several threads.
 ///
@@ -83,3 +84,5 @@ void ThreadTestSimpleWithJoin() {
 		threads[i]->~Thread();
 	}
 }
+
+

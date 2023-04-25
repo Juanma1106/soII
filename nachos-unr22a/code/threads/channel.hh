@@ -1,4 +1,7 @@
 // Channel
+#ifndef NACHOS_THREADS_CHANNEL__HH
+#define NACHOS_THREADS_CHANNEL__HH
+
 #include "lock.hh"
 #include "condition.hh"
 
@@ -17,3 +20,5 @@ private:
 	Semaphore *semFinish;
 	int myMessage;
 };
+
+#endif
