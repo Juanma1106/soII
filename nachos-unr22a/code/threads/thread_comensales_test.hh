@@ -2,7 +2,7 @@
 #define NACHOS_THREADS_THREADCOMENSALESTEST__HH
 
 #include "system.hh"
-#include "channel.hh"
+#include "lock.hh"
 #include <stdio.h>
 #include <string.h>
 

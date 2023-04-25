@@ -2,6 +2,15 @@
 
 static Channel *chan;
 
+void ReceiveSendFromChannel(void *name_){
+	int m;
+	for (int k=0; k < 10; k++){
+		chan->Receive(&m);
+	    DEBUG('s', "%s: Received %d\n", currentThread->GetName(),m);
+		chan->Send(m *2);
+	}
+}
+
 void ThreadChannelTest() {
 	chan = new Channel();
 	Thread *thread = new Thread("testChannel");
@@ -14,11 +23,3 @@ void ThreadChannelTest() {
 	}
 }
 
-void ReceiveSendFromChannel(void *name_){
-	int m;
-	for (int k=0; k < 10; k++){
-		chan->Receive(&m);
-	    DEBUG('s', "%s: Received %d\n", currentThread->GetName(),m);
-		chan->Send(m *2);
-	}
-}
