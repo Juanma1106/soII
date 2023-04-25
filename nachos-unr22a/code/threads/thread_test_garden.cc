@@ -66,16 +66,16 @@ static void TurnstileSemaphores(void *n_) {
     unsigned *n = (unsigned *) n_;
 
     for (unsigned i = 0; i < ITERATIONS_PER_TURNSTILE; i++) {
-	    DEBUG('s', "Turnstile %u want make P. Count is now %u.\n", *n, count);
+	    DEBUG('s', "Turnstile %u want makes P. Count is now %u.\n", *n, count);
 	    // l->Acquire();
 	    mySemaphore->P();
-        DEBUG('s', "Turnstile %u make P. Count is now %u.\n", *n, count);
+        DEBUG('s', "Turnstile %u makes P. Count is now %u.\n", *n, count);
         int temp = count;
         currentThread->Yield();
         count = temp + 1;
 	    // l->Release();
    	    mySemaphore->V();
-	    DEBUG('s', "Turnstile %u make V. Count is now %u.\n", *n, count);
+	    DEBUG('s', "Turnstile %u makes V. Count is now %u.\n", *n, count);
 	    currentThread->Yield();
     }
     printf("Turnstile %u finished. Count is now %u.\n", *n, count);

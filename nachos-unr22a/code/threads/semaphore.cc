@@ -41,7 +41,7 @@ Semaphore::Semaphore(const char *debugName, int initialValue)
 /// Assume no one is still waiting on the semaphore!
 Semaphore::~Semaphore()
 {
-    delete queue;
+    queue->~List();
 }
 
 const char *

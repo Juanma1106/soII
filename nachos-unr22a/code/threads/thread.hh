@@ -139,7 +139,11 @@ public:
 
     int getPriority();
 
-    void setPriority( int p);
+    void setPriority(int p);
+
+    int getPriorityTemp();
+
+    void setPriorityTemp(int p);
 
 private:
     // Some of the private data for this class is listed above.
@@ -165,6 +169,7 @@ private:
 
     int priority;
 
+    int priorityTemp;
 
 #ifdef USER_PROGRAM
     /// User-level CPU register state.

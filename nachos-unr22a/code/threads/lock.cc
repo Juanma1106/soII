@@ -35,6 +35,13 @@ const char * Lock::GetName() const {
 
 void Lock::Acquire() {
     ASSERT(!IsHeldByCurrentThread()) ;
+    if(myThread != nullptr) {
+        int priorityTheadLocked = myThread->getPriority();
+        int priorityCurrentThread = currentThread->getPriority();
+        if(priorityCurrentThread > priorityTheadLocked) {
+            myThread->setPriorityTemp(priorityCurrentThread);
+        }
+    }
     s->P();
     myThread = currentThread;
 }

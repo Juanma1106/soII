@@ -44,10 +44,12 @@ Thread::Thread(const char *threadName, bool isJoinable, Thread *father, int theP
     stack    = nullptr;
     status   = JUST_CREATED;
     joinable = isJoinable;
-    channel = new Channel();
-    //semaphore = new Semaphore("joinSemaphore", 0);
+    if(joinable) {
+        channel = new Channel();
+    }
     _father  = father;
     priority = thePriority;
+    priorityTemp = -1;
 #ifdef USER_PROGRAM
     space    = nullptr;
 #endif
@@ -68,6 +70,9 @@ Thread::~Thread() {
     if (stack != nullptr) {
         SystemDep::DeallocBoundedArray((char *) stack,
                                        STACK_SIZE * sizeof *stack);
+    }
+    if(joinable) {
+        channel->~Channel();
     }
 }
 
@@ -152,7 +157,7 @@ void Thread::Finish() {
     DEBUG('t', "Finishing thread \"%s\"\n", GetName());
 
     if(joinable) {
-        channel->Send(0);
+        channel->Send(5);
     }
 
     threadToBeDestroyed = currentThread;
@@ -225,6 +230,7 @@ void Thread::Join() {
     //semaphore->P();
     int message;
     channel->Receive(&message);
+    //DEBUG('t', "message \"%d\"\n", message);
 
 }
 
@@ -240,7 +246,17 @@ void Thread::setPriority(int p) {
     } else {
         priority = p;
     }
+}
 
+int Thread::getPriorityTemp() {
+    return priority;
+}
+
+void Thread::setPriorityTemp(int p) {
+    if(priorityTemp == -1) {
+        priorityTemp = priority;
+    }
+    priority = p;
 }
 
 /// ThreadFinish, InterruptEnable

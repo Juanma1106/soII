@@ -29,6 +29,7 @@ typedef struct {
 
 static const Test TESTS[] = {
     { &ThreadTestSimple,   "simple",   "Simple thread interleaving" },
+    { &ThreadTestSimpleWithJoin,   "simple",   "Simple thread interleaving with join" },
     { &ThreadTestGarden,   "garden",   "Ornamental garden" },
     { &ThreadTestGardenSemaphores,   "garden",   "Ornamental garden with semaphores" },
     { &ThreadTestProdCons, "prodcons", "Producer/Consumer" }

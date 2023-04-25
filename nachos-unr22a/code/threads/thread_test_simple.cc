@@ -44,10 +44,42 @@ void ThreadTestSimple() {
 	mySemaphore = new Semaphore("MySemaphore", 3);
 #endif
 	char names[4][64] = {"2nd", "3rd", "4th", "5th"};
+    currentThread->setPriority(0);
+    Thread** threads = new Thread*[4];
 	for(int i = 0; i < 4; i++){
-		Thread *newThread = new Thread(names[i]);
-        newThread->setPriority(i);
-		newThread->Fork(SimpleThread, (void *) names[i]);
+		threads[i] = new Thread(names[i], true);
+        threads[i]->setPriority(4-i);
+		threads[i]->Fork(SimpleThread, (void *) names[i]);
 	}
 	SimpleThread((void *) "1st");
+    for(int i = 0; i < 4; i++){
+		threads[i]->~Thread();
+	}
+
+}
+
+/// Set up a ping-pong between several threads.
+/// Add join
+///
+/// Do it by launching one thread which calls `SimpleThread`, and finally
+/// calling `SimpleThread` on the current thread.
+void ThreadTestSimpleWithJoin() {
+#ifdef SEMAPHORE_TEST
+	mySemaphore = new Semaphore("MySemaphore", 3);
+#endif
+	char names[4][64] = {"2nd", "3rd", "4th", "5th"};
+    currentThread->setPriority(4);
+    Thread** threads = new Thread*[4];
+	for(int i = 0; i < 4; i++){
+		threads[i] = new Thread(names[i], true);
+        threads[i]->setPriority(4-i-1);
+		threads[i]->Fork(SimpleThread, (void *) names[i]);
+	}
+	SimpleThread((void *) "1st");
+    for(int i = 0; i < 4; i++){
+		threads[i]->Join();
+	}
+    for(int i = 0; i < 4; i++){
+		threads[i]->~Thread();
+	}
 }
