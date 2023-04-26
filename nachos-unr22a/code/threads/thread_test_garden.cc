@@ -18,7 +18,6 @@ static const unsigned ITERATIONS_PER_TURNSTILE = 50;
 static bool done[NUM_TURNSTILES];
 static int count;
 static Semaphore *mySemaphore;
-// static Lock *l;
 
 static void Turnstile(void *n_) {
     unsigned *n = (unsigned *) n_;

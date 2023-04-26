@@ -22,12 +22,12 @@ void SimpleThread(void *name_) {
     for (unsigned num = 0; num < 10; num++) {
 #ifdef SEMAPHORE_TEST
 	    mySemaphore->P();
-	    DEBUG('s', "*** Thread `%s` make P()\n",name);
+	    DEBUG('s', "*** Thread `%s` makes P()\n",name);
 #endif
         printf("*** Thread `%s` is running: iteration %u\n", name, num);
 #ifdef SEMAPHORE_TEST
         mySemaphore->V();
-	    DEBUG('s', "*** Thread `%s` make V()\n",name);
+	    DEBUG('s', "*** Thread `%s` makes V()\n",name);
 #endif
         currentThread->Yield();
     }
@@ -53,9 +53,6 @@ void ThreadTestSimple() {
 		threads[i]->Fork(SimpleThread, (void *) names[i]);
 	}
 	SimpleThread((void *) "1st");
-    for(int i = 0; i < 4; i++){
-		threads[i]->~Thread();
-	}
 
 }
 
@@ -80,9 +77,7 @@ void ThreadTestSimpleWithJoin() {
     for(int i = 0; i < 4; i++){
 		threads[i]->Join();
 	}
-    for(int i = 0; i < 4; i++){
-		threads[i]->~Thread();
-	}
+
 }
 
 

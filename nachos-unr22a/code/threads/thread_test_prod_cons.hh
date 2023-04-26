@@ -9,6 +9,8 @@
 
 #include "condition.hh"
 #include "system.hh"
+#include <stdio.h>
+#include <string.h>
 
 void ThreadTestProdCons();
 

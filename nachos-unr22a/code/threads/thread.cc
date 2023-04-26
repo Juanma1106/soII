@@ -157,7 +157,7 @@ void Thread::Finish() {
     DEBUG('t', "Finishing thread \"%s\"\n", GetName());
 
     if(joinable) {
-        channel->Send(5);
+        channel->Send(5); // envia un numero al azar, solo para recibirlo
     }
 
     threadToBeDestroyed = currentThread;
