@@ -100,7 +100,7 @@ void ThreadTestProdCons() {
 
 	lockProducer = new Lock("producer");
 	lockConsumer = new Lock("consumer");
-	
+
 	char namesCons[NUM_CONSUMER - 1][64] = {"2nd cons", "3rd cons"};
     Thread** threadsConsumers = new Thread*[NUM_CONSUMER - 1];
 	for(int i = 0; i < NUM_CONSUMER - 1; i++){
