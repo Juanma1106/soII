@@ -36,7 +36,8 @@ static const Test TESTS[] = {
     { &ThreadTestGardenSemaphores,   "garden",   "Ornamental garden with semaphores" },
     { &ThreadTestProdCons, "prodcons", "Producer/Consumer" },
     { &ThreadChannelTest, "channeltest", "Channel" },
-    { &ThreadComensalesTest, "comensalestest", "ComensalesWithNoLock" }
+    { &ThreadComensalesTestFailedLocked, "ComensalesTestFailedLocked", "Comensales Test Failed Locked" },
+    { &ThreadComensalesTestFixed, "ComensalesTestFixed", "Comensales Test Fixed" }
 };
 static const unsigned NUM_TESTS = sizeof TESTS / sizeof TESTS[0];
 

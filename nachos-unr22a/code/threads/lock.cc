@@ -34,6 +34,14 @@ const char * Lock::GetName() const {
 }
 
 void Lock::Acquire() {
+
+    // if(myThread != nullptr) {
+    //     DEBUG('v', "Thread %s wants to acquired lock. Lock %s is acquired by %s\n", currentThread->GetName(), GetName(), myThread->GetName());
+    // } else {
+    //     DEBUG('v', "Thread %s wants to acquired lock. Lock %s is free\n", currentThread->GetName(), GetName());
+    // }
+    
+
     ASSERT(!IsHeldByCurrentThread()) ;
     if(myThread != nullptr) {
         int priorityTheadLocked = myThread->getPriority();
@@ -47,9 +55,14 @@ void Lock::Acquire() {
 }
 
 void Lock::Release() {
+    // if(myThread != nullptr) {
+    //     DEBUG('v', "Thread %s wants to release lock. Lock %s is acquired by %s\n", currentThread->GetName(), GetName(), myThread->GetName());
+    // } else {
+    //     DEBUG('v', "Thread %s wants to release lock. Lock %s is not acquired by anyone\n", currentThread->GetName(), GetName());
+    // }
     ASSERT(IsHeldByCurrentThread()) ;
-    s->V();
     myThread = nullptr;
+    s->V();
 }
 
 bool Lock::IsHeldByCurrentThread() const {

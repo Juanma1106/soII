@@ -21,8 +21,6 @@ void ThreadChannelTest() {
 		chan->Send(m*2);
 		chan->Receive(&m);
 	}
-
-	thread->~Thread();
 	chan->~Channel();
 }
 

@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 
-void ThreadComensalesTest();
+void ThreadComensalesTestFailedLocked();
+void ThreadComensalesTestFixed();
 
 #endif
