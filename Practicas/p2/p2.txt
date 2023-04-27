@@ -1,11 +1,13 @@
+Todas las ejecuciones fueron probadas con -rs <semilla> y funcionaron correctamente.
+
 1) -
 
 2) 
 Productor/Consumidor: Ejecutar ./nachos -tt -d t (opcion 4) 
-Comensales: Ejecutar ./nachos -tt -d s (opcion 6)
+Comensales que quedan bloqueados sin poder comer: Ejecutar ./nachos -tt -d s (opcion 6)
 Quedan todos esperando, nunca se imprime la siguiente linea que dice "el comensal terminó de comer"
 
-
+Comensales que logran comer: Ejecutar ./nachos -tt -d s (opcion 7)
 
 3) 
 ChannelTest: Ejecutar ./nachos -tt -d s (opcion 5)

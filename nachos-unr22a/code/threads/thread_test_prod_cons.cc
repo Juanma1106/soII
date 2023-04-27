@@ -18,10 +18,10 @@ static const int NUM_PRODUCER = 3;
 static const int NUM_CONSUMER = 3;
 static int done = 0;
 
-const int BUFFER_SIZE = 3;
+const int BUFFER_SIZE = 20;
 
 void producer(char *name) {
-	int iterations = 3;
+	int iterations = 10;
 	for(int i = 0; i < iterations; i++) {
 		lockProducer->Acquire();
 		DEBUG('s', "*** Thread `%s` acquired lockProducer\n",name);
@@ -50,7 +50,7 @@ void producer(char *name) {
 }
 
 void consumer(char *name) {
-	int iterations = 3;
+	int iterations = 10;
 	for(int i = 0; i < iterations; i++) {
 		lockConsumer->Acquire();
 		DEBUG('s', "*** Thread `%s` acquired lockConsumer\n",name);
