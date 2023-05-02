@@ -10,18 +10,7 @@
 /// All rights reserved.  See `copyright.h` for copyright notice and
 /// limitation of liability and disclaimer of warranty provisions.
 
-
-#include "thread_test_garden.hh"
-#include "thread_test_prod_cons.hh"
-#include "thread_test_simple.hh"
-#include "thread_channel_test.hh"
-#include "thread_comensales_test.hh"
-#include "lib/utility.hh"
-
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "user_test.hh"
 
 
 typedef struct {
@@ -31,14 +20,7 @@ typedef struct {
 } Test;
 
 static const Test TESTS[] = {
-    { &ThreadTestSimple,   "simple",   "Simple thread interleaving" },
-    { &ThreadTestSimpleWithJoin,   "simple",   "Simple thread interleaving with join" },
-    { &ThreadTestGarden,   "garden",   "Ornamental garden" },
-    { &ThreadTestGardenSemaphores,   "garden",   "Ornamental garden with semaphores" },
-    { &ThreadTestProdCons, "prodcons", "Producer/Consumer" },
-    { &ThreadChannelTest, "channeltest", "Channel" },
-    { &ThreadComensalesTestFailedLocked, "ComensalesTestFailedLocked", "Comensales Test Failed Locked" },
-    { &ThreadComensalesTestFixed, "ComensalesTestFixed", "Comensales Test Fixed" }
+    { &WriteReadMemTest, "WriteReadMemTest", "Write Read Mem Test" }
 };
 static const unsigned NUM_TESTS = sizeof TESTS / sizeof TESTS[0];
 
@@ -118,9 +100,7 @@ Run(unsigned i)
     printf("\n");
 }
 
-void
-ThreadTest()
-{
+void UserprogTest() {
     DEBUG('t', "Entering thread test\n");
 
     const unsigned i = Choose();
