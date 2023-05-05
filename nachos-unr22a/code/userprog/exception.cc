@@ -103,7 +103,34 @@ SyscallHandler(ExceptionType _et)
             }
 
             DEBUG('e', "`Create` requested for file `%s`.\n", filename);
+            int fileCreated = fileSystem->Create(filename,1000);
+            machine->WriteRegister(2, fileCreated);
             break;
+        }
+        
+        case SC_REMOVE: {
+            int filenameAddr = machine->ReadRegister(4);
+            if (filenameAddr == 0) {
+                DEBUG('e', "Error: address to filename string is null.\n");
+            }
+
+            char filename[FILE_NAME_MAX_LEN + 1];
+            if (!ReadStringFromUser(filenameAddr,
+                                    filename, sizeof filename)) {
+                DEBUG('e', "Error: filename string too long (maximum is %u bytes).\n",
+                      FILE_NAME_MAX_LEN);
+            }
+
+            DEBUG('e', "`Create` requested for file `%s`.\n", filename);
+            int fileRemoved = fileSystem->Remove(filename);
+            machine->WriteRegister(2, fileRemoved);
+            break;
+        }
+
+        case SC_EXIT:{
+            int returnValue = machine->ReadRegister(4);
+            DEBUG('a', "Exited with status %d\n", returnValue);
+            currentThread->Finish(returnValue);
         }
 
         case SC_CLOSE: {

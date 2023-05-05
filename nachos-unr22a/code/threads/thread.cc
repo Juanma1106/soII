@@ -150,14 +150,14 @@ void Thread::Print() const {
 ///
 /// NOTE: we disable interrupts, so that we do not get a time slice between
 /// setting `threadToBeDestroyed`, and going to sleep.
-void Thread::Finish() {
+void Thread::Finish(int returnValue) {
     interrupt->SetLevel(INT_OFF);
     ASSERT(this == currentThread);
 
     DEBUG('t', "Finishing thread \"%s\"\n", GetName());
 
     if(joinable) {
-        channel->Send(5); // envia un numero al azar, solo para recibirlo
+        channel->Send(returnValue); // envía un valor que es un número de retorno.
     }
 
     threadToBeDestroyed = currentThread;
@@ -230,6 +230,9 @@ void Thread::Join() {
     //semaphore->P();
     int message;
     channel->Receive(&message);
+
+    ASSERT(message == FINISHED) //Siempre devuelve el mismo valor
+
     //DEBUG('t', "message \"%d\"\n", message);
 
 }
@@ -265,7 +268,7 @@ void Thread::setPriorityTemp(int p) {
 /// function.  So in order to do this, we create a dummy C function (which we
 /// can pass a pointer to), that then simply calls the member function.
 static void ThreadFinish() {
-    currentThread->Finish();
+    currentThread->Finish(FINISHED);
 }
 
 static void InterruptEnable() {

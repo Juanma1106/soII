@@ -73,7 +73,8 @@ enum ThreadStatus {
     RUNNING,
     READY,
     BLOCKED,
-    NUM_THREAD_STATUS
+    NUM_THREAD_STATUS,
+    FINISHED
 };
 
 
