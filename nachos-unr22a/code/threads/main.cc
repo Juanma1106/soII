@@ -78,7 +78,6 @@
 #include "system.hh"
 #include "thread_test.hh"
 #include "lib/utility.hh"
-#include "userprog/user_test.hh"
 
 #include <stdio.h>
 #include <string.h>
@@ -155,8 +154,6 @@ main(int argc, char **argv)
             interrupt->Halt();  // Once we start the console, then Nachos
                                 // will loop forever waiting for console
                                 // input.
-        } else if (!strcmp(*argv, "-ut")) {  // Test users
-            UserprogTest();
         }
 #endif
 #ifdef FILESYS

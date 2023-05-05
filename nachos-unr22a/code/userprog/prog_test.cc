@@ -13,16 +13,17 @@
 #include "machine/console.hh"
 #include "threads/semaphore.hh"
 #include "threads/system.hh"
+#include "write_read_mem_test.hh"
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 /// Run a user program.
 ///
 /// Open the executable, load it into memory, and jump to it.
-void
-StartProcess(const char *filename)
-{
+void StartProcess(const char *filename) {
     ASSERT(filename != nullptr);
 
     OpenFile *executable = fileSystem->Open(filename);
@@ -57,15 +58,11 @@ static Semaphore *writeDone;
 ///
 /// Wake up the thread that requested the I/O.
 
-static void
-ReadAvail(void *arg)
-{
+static void ReadAvail(void *arg) {
     readAvail->V();
 }
 
-static void
-WriteDone(void *arg)
-{
+static void WriteDone(void *arg) {
     writeDone->V();
 }
 
@@ -73,9 +70,7 @@ WriteDone(void *arg)
 /// output.
 ///
 /// Stop when the user types a `q`.
-void
-ConsoleTest(const char *in, const char *out)
-{
+void ConsoleTest(const char *in, const char *out) {
     console   = new Console(in, out, ReadAvail, WriteDone, 0);
     readAvail = new Semaphore("read avail", 0);
     writeDone = new Semaphore("write done", 0);
