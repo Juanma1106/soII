@@ -1,0 +1,52 @@
+Memoria fisica: RAM
+se entrega de a un byte
+
+MMU: se encarga de traducir mem virtual a fisica
+----------------------------
+------ Segmentacion --------
+----------------------------
+Tabla de segmentacion:
+pos: inicio	tamaño, permisos, presente
+0:	15208	160		RWX			si
+1:	1400	100		R			si
+2:	964		96		RX			si
+3:	-		184		W			no
+4:	10000	320		RWX			si
+
+(si no está en memoria, está en swap)
+
+Direccion lógica - Tipo de acceso - Direccion fisica
+0-100	R	15308
+2-84	X	1048
+2-84	W	Violacion de seguridad
+2-132	R	Desplazamiento fuera de rango
+3-16	W	Segmento faltante
+
+Genera fragmentacion externa
+
+------- Paginacion ---------
+Se usan paginas para la fragmentacion.
+
+Direccion virtual:
+				- numero de pag virtual
+				- offset
+El offset se mantiene.
+Con el num de pag virtual se obtiene la real (esto se ve en la Tabla de paginas).
+TLB es una caché de esa tabla con las ultimas traducciones
+
+
+Memoria virtual: se guardan paginas que hace mucho no se usan.
+
+====================================
+====================================
+
+Nachos para ejecutar programas de usuarios:
+cd ../code/userland$
+Ejecutamos:
+../userprog/nachos -x halt
+
+====================================
+====================================
+
+ 
+
