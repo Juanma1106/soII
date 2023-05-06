@@ -120,6 +120,8 @@ int Write(const char *buffer, int size, OpenFileId id);
 int Read(char *buffer, int size, OpenFileId id);
 
 /// Close the file, we are done reading and writing to it.
+// Return:  0 if file was closed
+//          -1 if an error ocurred
 int Close(OpenFileId id);
 
 

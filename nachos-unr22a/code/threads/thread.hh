@@ -43,7 +43,9 @@ class Channel;
 // #include "channel.hh"
 static int PRIORITY_SIZE = 5;
 
-#include "lib/utility.hh"
+#include "lib/table.hh"
+#include "filesys/file_system.hh"
+#include "userprog/syscall.h"
 
 #ifdef USER_PROGRAM
 #include "machine/machine.hh"
@@ -127,7 +129,7 @@ public:
     void Join();
 
     /// The thread is done executing.
-    void Finish();
+    void Finish(int status);
 
     /// Check if thread has overflowed its stack.
     void CheckOverflow() const;
@@ -145,6 +147,14 @@ public:
     int getPriorityTemp();
 
     void setPriorityTemp(int p);
+
+    OpenFileId openFile(OpenFile* file);
+
+    OpenFile* closeFile(OpenFileId fileId);
+
+    bool isOpenedFile(OpenFileId fileId);
+
+    OpenFile* getFileOpened(OpenFileId fileId);
 
 private:
     // Some of the private data for this class is listed above.
@@ -171,6 +181,8 @@ private:
     int priority;
 
     int priorityTemp;
+
+    Table<OpenFile*> *openedFiles;
 
 #ifdef USER_PROGRAM
     /// User-level CPU register state.

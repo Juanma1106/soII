@@ -40,6 +40,12 @@ bool ReadStringFromUser(int userAddress, char *outString,
     return *(outString - 1) == '\0';
 }
 
+
+/*
+/// * `addr` is the virtual address to write to.
+/// * `size` is the number of bytes to be written (1, 2, or 4).
+/// * `value` is the data to be written.
+*/
 void WriteBufferToUser(const char *buffer, int userAddress,
                        unsigned byteCount) {
     ASSERT(userAddress != 0);

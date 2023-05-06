@@ -150,14 +150,14 @@ void Thread::Print() const {
 ///
 /// NOTE: we disable interrupts, so that we do not get a time slice between
 /// setting `threadToBeDestroyed`, and going to sleep.
-void Thread::Finish(int returnValue) {
+void Thread::Finish(int status) {
     interrupt->SetLevel(INT_OFF);
     ASSERT(this == currentThread);
 
     DEBUG('t', "Finishing thread \"%s\"\n", GetName());
 
     if(joinable) {
-        channel->Send(returnValue); // envía un valor que es un número de retorno.
+        channel->Send(status); // envía un valor que es un número de retorno.
     }
 
     threadToBeDestroyed = currentThread;
@@ -231,7 +231,7 @@ void Thread::Join() {
     int message;
     channel->Receive(&message);
 
-    ASSERT(message == FINISHED) //Siempre devuelve el mismo valor
+    ASSERT(message == FINISHED); //Siempre devuelve el mismo valor
 
     //DEBUG('t', "message \"%d\"\n", message);
 
@@ -306,6 +306,22 @@ void Thread::StackAllocate(VoidFunctionPtr func, void *arg) {
     machineState[InitialPCState]  = (uintptr_t) func;
     machineState[InitialArgState] = (uintptr_t) arg;
     machineState[WhenDonePCState] = (uintptr_t) ThreadFinish;
+}
+
+OpenFileId Thread::openFile(OpenFile* file) {
+    return openedFiles->Add(file);
+}
+
+OpenFile* Thread::closeFile(OpenFileId fileId) {
+    return openedFiles->Remove(fileId);
+}
+
+bool Thread::isOpenedFile(OpenFileId fileId) {
+    return openedFiles->HasKey(fileId);
+}
+
+OpenFile* Thread::getFileOpened(OpenFileId fileId) {
+    return openedFiles->Get(fileId);
 }
 
 #ifdef USER_PROGRAM
