@@ -89,6 +89,29 @@ SyscallHandler(ExceptionType _et)
             interrupt->Halt();
             break;
 
+        case SC_EXIT:{
+            int returnValue = machine->ReadRegister(4);
+            DEBUG('a', "Exited with status %d\n", returnValue);
+            currentThread->Finish(returnValue);
+        }
+
+        case SC_EXEC: {
+            break;
+        }
+
+        case SC_JOIN: {
+            currentThread->Join();
+            break;
+        }
+
+        //case SC_FORK: {
+        //    break;
+        //}
+
+        //case SC_YIELD: {
+        //    break;
+        //}
+
         case SC_CREATE: {
             int filenameAddr = machine->ReadRegister(4);
             if (filenameAddr == 0) {
@@ -127,15 +150,24 @@ SyscallHandler(ExceptionType _et)
             break;
         }
 
-        case SC_EXIT:{
-            int returnValue = machine->ReadRegister(4);
-            DEBUG('a', "Exited with status %d\n", returnValue);
-            currentThread->Finish(returnValue);
+        case SC_OPEN: {
+            
+            break;
         }
 
         case SC_CLOSE: {
             int fid = machine->ReadRegister(4);
             DEBUG('e', "`Close` requested for id %u.\n", fid);
+            break;
+        }
+
+        case SC_READ: {
+            
+            break;
+        }
+
+        case SC_WRITE: {
+            
             break;
         }
 
