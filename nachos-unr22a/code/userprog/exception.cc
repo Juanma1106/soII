@@ -29,9 +29,7 @@
 
 #include <stdio.h>
 
-static void
-IncrementPC()
-{
+static void IncrementPC() {
     unsigned pc;
 
     pc = machine->ReadRegister(PC_REG);
@@ -50,9 +48,7 @@ IncrementPC()
 ///
 /// * `et` is the kind of exception.  The list of possible exceptions is in
 ///   `machine/exception_type.hh`.
-static void
-DefaultHandler(ExceptionType et)
-{
+static void DefaultHandler(ExceptionType et) {
     int exceptionArg = machine->ReadRegister(2);
 
     fprintf(stderr, "Unexpected user mode exception: %s, arg %d.\n",
@@ -120,8 +116,7 @@ static void SyscallHandler(ExceptionType _et) {
                 DEBUG('e', "Error: address to filename string is null.\n");
             } else {
                 char filename[FILE_NAME_MAX_LEN + 1];
-                if (!ReadStringFromUser(filenameAddr,
-                                        filename, sizeof filename)) {
+                if (!ReadStringFromUser(filenameAddr, filename, sizeof filename)) {
                     DEBUG('e', "Error: filename string too long (maximum is %u bytes).\n",
                         FILE_NAME_MAX_LEN);
                 } else {
@@ -143,8 +138,7 @@ static void SyscallHandler(ExceptionType _et) {
                 DEBUG('e', "Error: address to filename string is null.\n");
             } else {
                 char filename[FILE_NAME_MAX_LEN + 1];
-                if (!ReadStringFromUser(filenameAddr,
-                                        filename, sizeof filename)) {
+                if (!ReadStringFromUser(filenameAddr, filename, sizeof filename)) {
                     DEBUG('e', "Error: filename string too long (maximum is %u bytes).\n",
                         FILE_NAME_MAX_LEN);
                 } else {
@@ -166,8 +160,7 @@ static void SyscallHandler(ExceptionType _et) {
                 DEBUG('e', "Error: address to filename string is null.\n");
             } else {
                 char filename[FILE_NAME_MAX_LEN + 1];
-                if (!ReadStringFromUser(filenameAddr,
-                                        filename, sizeof filename)) {
+                if (!ReadStringFromUser(filenameAddr, filename, sizeof filename)) {
                     DEBUG('e', "Error: filename string too long (maximum is %u bytes).\n",
                         FILE_NAME_MAX_LEN);
                 } else {
@@ -259,21 +252,40 @@ static void SyscallHandler(ExceptionType _et) {
                 errorOcurred=true;
             }
             OpenFileId fileId = machine->ReadRegister(6);
-            if (fileId == 0) {
-                DEBUG('e', "Error: fileId is 0.\n");
+
+            char *buffer = new char[100]; 
+            if (!ReadStringFromUser(bufferAddr, buffer, sizeof buffer)) {
+                DEBUG('e', "Error: filename string too long (maximum is %u bytes).\n",
+                FILE_NAME_MAX_LEN);
                 errorOcurred=true;
             }
-            if (currentThread->isOpenedFile(fileId)) {
-                OpenFile *file = currentThread->getFileOpened(fileId);
-                char *buffer = new char[100]; 
-                int numBytesWrited = file->Write(buffer, size);
-                if (numBytesWrited == 0) {
+
+            if(!errorOcurred) {
+                if(fileId == CONSOLE_INPUT) {
+                    int temp = 0;
+                    char c;
+                    do {
+                        c = buffer[temp];
+                        synchConsole->putChar(c);
+                        temp++;
+                    } while (temp < size || c != '\0');
+                } else if(fileId > 0) {
+                    if (currentThread->isOpenedFile(fileId)) {
+                        OpenFile *file = currentThread->getFileOpened(fileId);
+                        int numBytesWrited = file->Write(buffer, size);
+                        if (numBytesWrited == 0) {
+                            errorOcurred=true;
+                        }
+                    } else {
+                        DEBUG('e', "Error: file is not opened.\n");
+                        errorOcurred=true;
+                    }
+                } else {
+                    DEBUG('e', "Error: fileId can not be negative.\n");
                     errorOcurred=true;
                 }
-            } else {
-                DEBUG('e', "Error: file is not opened.\n");
-                errorOcurred=true;
             }
+            
             if(errorOcurred) {
                 machine->WriteRegister(2, -1);
             } else {
@@ -294,9 +306,7 @@ static void SyscallHandler(ExceptionType _et) {
 
 /// By default, only system calls have their own handler.  All other
 /// exception types are assigned the default handler.
-void
-SetExceptionHandlers()
-{
+void SetExceptionHandlers() {
     machine->SetHandler(NO_EXCEPTION,            &DefaultHandler);
     machine->SetHandler(SYSCALL_EXCEPTION,       &SyscallHandler);
     machine->SetHandler(PAGE_FAULT_EXCEPTION,    &DefaultHandler);

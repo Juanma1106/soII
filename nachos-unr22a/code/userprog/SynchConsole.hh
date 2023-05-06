@@ -20,7 +20,6 @@ public:
 
     char getChar();
     void putChar(char ch);
-
 private: 
     Console *console;  ///< Raw console device.
     Lock *readLock;

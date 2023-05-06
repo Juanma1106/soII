@@ -12,6 +12,7 @@
 #ifdef USER_PROGRAM
 #include "userprog/debugger.hh"
 #include "userprog/exception.hh"
+#include "userprog/SynchConsole.hh"
 #endif
 
 #include <stdlib.h>
@@ -44,6 +45,7 @@ SynchDisk *synchDisk;
 
 #ifdef USER_PROGRAM  // Requires either *FILESYS* or *FILESYS_STUB*.
 Machine *machine;  ///< User program memory and registers.
+SynchConsole *synchConsole;
 #endif
 
 #ifdef NETWORK
@@ -228,6 +230,7 @@ Initialize(int argc, char **argv)
 #ifdef USER_PROGRAM
     Debugger *d = debugUserProg ? new Debugger : nullptr;
     machine = new Machine(d);  // This must come first.
+    synchConsole = new SynchConsole(nullptr, nullptr);
     SetExceptionHandlers();
 #endif
 
@@ -259,6 +262,7 @@ Cleanup()
 
 #ifdef USER_PROGRAM
     delete machine;
+    delete synchConsole;
 #endif
 
 #ifdef FILESYS_NEEDED

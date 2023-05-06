@@ -34,6 +34,8 @@ extern Statistics *stats;            ///< Performance metrics.
 extern Timer *timer;                 ///< The hardware alarm clock.
 
 #ifdef USER_PROGRAM
+#include "userprog/SynchConsole.hh"
+extern SynchConsole *synchConsole;
 #include "machine/machine.hh"
 extern Machine *machine;  // User program memory and registers.
 #endif
