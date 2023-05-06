@@ -12,9 +12,9 @@
 #ifdef USER_PROGRAM
 #include "userprog/debugger.hh"
 #include "userprog/exception.hh"
-#include "userprog/SynchConsole.hh"
 #endif
 
+#include "userprog/SynchConsole.hh"
 #include <stdlib.h>
 #include <string.h>
 

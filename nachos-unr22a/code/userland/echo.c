@@ -1,6 +1,7 @@
 /// Outputs arguments entered on the command line.
 
-#include "syscall.h"
+// #include "syscall.h"
+#include "../userprog/syscall.h"
 
 
 unsigned

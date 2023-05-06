@@ -6,7 +6,8 @@
 /// result back to the file system!
 
 
-#include "syscall.h"
+// #include "syscall.h"
+#include "../userprog/syscall.h"
 
 
 /// Sum total of the arrays does not fit in physical memory.

@@ -5,6 +5,10 @@
 #include "threads/semaphore.hh"
 #include "threads/lock.hh"
 
+static void ReadAvail(void *arg);
+
+static void WriteDone(void *arg);
+
 class SynchConsole {
 public:
 
@@ -13,6 +17,7 @@ public:
 
     /// De-allocate the synch console data.
     ~SynchConsole();
+
 
     /// Read/write a console sector, returning only once the data is actually
     /// read or written.  These call `Console::ReadRequest`/`WriteRequest` and

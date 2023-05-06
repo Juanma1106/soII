@@ -6,7 +6,8 @@
 /// and store the result back to the file system!
 
 
-#include "syscall.h"
+// #include "syscall.h"
+#include "../userprog/syscall.h"
 
 
 #define DIM  1024
