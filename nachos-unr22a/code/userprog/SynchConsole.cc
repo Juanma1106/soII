@@ -10,16 +10,6 @@ SynchConsole::SynchConsole(const char *in, const char *out) {
     console   = new Console(in, out, ReadAvail, WriteDone, 0);
     readAvail = new Semaphore("read avail", 0);
     writeDone = new Semaphore("write done", 0);
-
-    for (;;) {
-        readAvail->P();        // Wait for character to arrive.
-        char ch = console->GetChar();
-        console->PutChar(ch);  // Echo it!
-        writeDone->P();        // Wait for write to finish.
-        if (ch == 'q') {
-            return;  // If `q`, then quit.
-        }
-    }
 }
 
 /// Console interrupt handlers.

@@ -2,7 +2,9 @@
 
 // #include "syscall.h"
 #include "../userprog/syscall.h"
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 unsigned
 StringLength(const char *s)
@@ -30,9 +32,10 @@ PrintChar(char c)
 }
 
 int
-main(int argc, char *argv[])
-{
+main(int argc, char *argv[]) {
+
     for (unsigned i = 1; i < argc; i++) {
+
         if (i != 1) {
             PrintChar(' ');
         }

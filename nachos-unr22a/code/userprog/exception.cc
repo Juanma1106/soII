@@ -28,6 +28,7 @@
 #include "threads/system.hh"
 
 #include <stdio.h>
+#include <unistd.h>
 
 static void IncrementPC() {
     unsigned pc;
@@ -86,10 +87,14 @@ static void SyscallHandler(ExceptionType _et) {
             int status = machine->ReadRegister(4);
             DEBUG('a', "Exited with status %d\n", status);
             currentThread->Finish(status);
+            break;
         }
 
         case SC_EXEC: {
             int returnValue = machine->ReadRegister(4);
+            // Ver preemptive.cc
+            int childPid = fork();
+            
             break;
         }
 
@@ -216,19 +221,34 @@ static void SyscallHandler(ExceptionType _et) {
                 errorOcurred=true;
             }
             OpenFileId fileId = machine->ReadRegister(6);
-            if (fileId == 0) {
-                DEBUG('e', "Error: fileId is 0.\n");
-                errorOcurred=true;
-            }
-            if (currentThread->isOpenedFile(fileId)) {
-                OpenFile *file = currentThread->getFileOpened(fileId);
+
+            if(!errorOcurred) {
                 char *buffer = new char[100]; 
-                file->Read(buffer, size);
+                DEBUG('e', "fileId %d. CONSOLE_OUTPUT %d. ONSOLE_INTPUT %d. Compare wit OUT\n", fileId, CONSOLE_OUTPUT, CONSOLE_INPUT);
+                if(fileId == CONSOLE_INPUT) {
+                    int temp = 0;
+                    char c;
+                    do {
+                        c = synchConsole->getChar();
+                        buffer[temp] = c;
+                        temp++;
+                    } while (temp < size || c != '\0');
+                    buffer[temp]='\0';
+                } else if (fileId > CONSOLE_OUTPUT) {
+                    if (currentThread->isOpenedFile(fileId)) {
+                        OpenFile *file = currentThread->getFileOpened(fileId);
+                        file->Read(buffer, size);
+                    } else {
+                        DEBUG('e', "Error: file is not opened.\n");
+                        errorOcurred=true;
+                    }
+                } else {
+                    DEBUG('e', "Error: Invalid fileId %d.\n", fileId);
+                    errorOcurred=true;
+                }
                 WriteStringToUser(buffer, bufferAddr);
-            } else {
-                DEBUG('e', "Error: file is not opened.\n");
-                errorOcurred=true;
             }
+            
             if(errorOcurred) {
                 machine->WriteRegister(2, -1);
             } else {
@@ -252,24 +272,25 @@ static void SyscallHandler(ExceptionType _et) {
                 errorOcurred=true;
             }
             OpenFileId fileId = machine->ReadRegister(6);
-
-            char *buffer = new char[100]; 
-            if (!ReadStringFromUser(bufferAddr, buffer, sizeof buffer)) {
-                DEBUG('e', "Error: filename string too long (maximum is %u bytes).\n",
-                FILE_NAME_MAX_LEN);
-                errorOcurred=true;
-            }
+            char *buffer = new char[100];
 
             if(!errorOcurred) {
-                if(fileId == CONSOLE_INPUT) {
+                if (!ReadStringFromUser(bufferAddr, buffer, 100)) {
+                    DEBUG('e', "Error: filename string too long (maximum is %u bytes).\n",
+                    FILE_NAME_MAX_LEN);
+                    errorOcurred=true;
+                }
+                DEBUG('e', "buffer : %s\n", buffer);
+                
+                if(fileId == CONSOLE_OUTPUT) {
                     int temp = 0;
                     char c;
                     do {
                         c = buffer[temp];
                         synchConsole->putChar(c);
                         temp++;
-                    } while (temp < size || c != '\0');
-                } else if(fileId > 0) {
+                    } while (temp < size && c != '\0'); //!(temp > size || c == '\0')
+                } else if(fileId > CONSOLE_OUTPUT) {
                     if (currentThread->isOpenedFile(fileId)) {
                         OpenFile *file = currentThread->getFileOpened(fileId);
                         int numBytesWrited = file->Write(buffer, size);
@@ -281,7 +302,7 @@ static void SyscallHandler(ExceptionType _et) {
                         errorOcurred=true;
                     }
                 } else {
-                    DEBUG('e', "Error: fileId can not be negative.\n");
+                    DEBUG('e', "Error: Invalid fileId %d.\n", fileId);
                     errorOcurred=true;
                 }
             }
