@@ -28,6 +28,7 @@
 /// Initialize the list of ready but not running threads to empty.
 Scheduler::Scheduler() {
     readyLists = new List<Thread *>[PRIORITY_SIZE];
+    // entiendo que acá hay que poner el reloj
 }
 
 /// De-allocate the list of ready threads.
@@ -162,9 +163,9 @@ std::string Scheduler::PrintAllThreads() {
     Thread** threadList = threads->getValues();
     std::string toString;
     std::string str;
-    for(int i = 0; i < sizeof(threadList); i++) {
+    for(long unsigned int i = 0; i < sizeof(threadList); i++) {
         str = threadList[i]->ToString();
-        toString = toString + str;
+        toString = toString + "\n" + str;
     }
     return toString;
 }

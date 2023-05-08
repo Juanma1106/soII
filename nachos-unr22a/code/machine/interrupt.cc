@@ -268,7 +268,7 @@ Interrupt::RestartTicks()
 /// * `fromNow` is how far in the future (in simulated time) the interrupt is
 ///   to occur.
 /// * `type` is the hardware device that generated the interrupt.
-void
+void /*Tendríamos que usar esta función para el 4*/
 Interrupt::Schedule(VoidFunctionPtr handler, void *arg,
                     unsigned long fromNow, IntType type)
 {

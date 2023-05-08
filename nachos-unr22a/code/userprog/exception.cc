@@ -26,6 +26,8 @@
 #include "syscall.h"
 #include "filesys/directory_entry.hh"
 #include "threads/system.hh"
+#include "machine.hh"
+
 
 #include <stdio.h>
 #include <unistd.h>
@@ -330,6 +332,10 @@ static void SyscallHandler(ExceptionType _et) {
                 machine->WriteRegister(2, 0);
             }
             break;
+        }
+
+        case SC_PS: {
+            printf("%s\n",scheduler->PrintAllThreads());
         }
 
         default:
