@@ -52,6 +52,7 @@ Thread::Thread(const char *threadName, bool isJoinable, Thread *father, int theP
     priorityTemp = -1;
 #ifdef USER_PROGRAM
     space    = nullptr;
+    spaceId = threads->Add(this);
 #endif
 }
 
@@ -103,8 +104,6 @@ void Thread::Fork(VoidFunctionPtr func, void *arg) {
     IntStatus oldLevel = interrupt->SetLevel(INT_OFF);
     scheduler->ReadyToRun(this);  // `ReadyToRun` assumes that interrupts
                                   // are disabled!
-
-
     interrupt->SetLevel(oldLevel);
 }
 
@@ -135,8 +134,25 @@ const char * Thread::GetName() const {
     return name;
 }
 
-void Thread::Print() const {
-    printf("%s, ", name);
+void Thread::Print() {
+#ifdef USER_PROGRAM
+    printf("Name: %s, Pid: %d, Priority: %d", name, spaceId, priority);
+#else
+    printf("Name: %s, Priority: %d", name, priority);
+#endif
+}
+
+std::string Thread::ToString() {
+    std::string str = "Name: ";
+    char bufPriority [33];
+    sprintf(bufPriority,"%d",priority);
+#ifdef USER_PROGRAM
+    char bufSpaceId [33];
+    sprintf(bufSpaceId,"%d",spaceId);
+    return str.append(name).append(", Pid: ").append(bufSpaceId).append(", Priority: ").append(bufPriority);
+#else
+    return str.append(name).append(", Priority: ").append(bufPriority);
+#endif
 }
 
 /// Called by `ThreadRoot` when a thread is done executing the forked
@@ -160,6 +176,10 @@ void Thread::Finish(int status) {
         channel->Send(status); // envía un valor que es un número de retorno.
     }
 
+    #ifdef USER_PROGRAM
+        threads->Remove(spaceId);
+    #endif
+    
     threadToBeDestroyed = currentThread;
     Sleep();  // Invokes `SWITCH`.
     // Not reached.

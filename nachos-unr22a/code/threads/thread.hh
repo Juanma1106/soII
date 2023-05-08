@@ -47,12 +47,15 @@ static int PRIORITY_SIZE = 5;
 #include "filesys/file_system.hh"
 #include "userprog/syscall.h"
 
+
 #ifdef USER_PROGRAM
 #include "machine/machine.hh"
 #include "userprog/address_space.hh"
 #endif
 
 #include <stdint.h>
+#include <string>
+#include <stdlib.h>
 
 
 /// CPU register state to be saved on context switch.
@@ -138,7 +141,9 @@ public:
 
     const char *GetName() const;
 
-    void Print() const;
+    void Print();
+
+    std::string ToString();
 
     int getPriority();
 
@@ -202,6 +207,8 @@ public:
 
     // User code this thread is running.
     AddressSpace *space;
+
+    SpaceId spaceId;
 #endif
 };
 

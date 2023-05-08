@@ -31,8 +31,7 @@ PrintChar(char c)
     return Write(&c, 1, CONSOLE_OUTPUT);
 }
 
-int
-main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
 
     for (unsigned i = 1; i < argc; i++) {
 

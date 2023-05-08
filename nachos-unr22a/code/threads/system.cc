@@ -17,6 +17,7 @@
 #include "userprog/SynchConsole.hh"
 #include <stdlib.h>
 #include <string.h>
+#include "lib/table.hh"
 
 
 /// This defines *all* of the global data structures used by Nachos.
@@ -46,6 +47,7 @@ SynchDisk *synchDisk;
 #ifdef USER_PROGRAM  // Requires either *FILESYS* or *FILESYS_STUB*.
 Machine *machine;  ///< User program memory and registers.
 SynchConsole *synchConsole;
+Table<Thread*> *threads;
 #endif
 
 #ifdef NETWORK
@@ -215,6 +217,10 @@ Initialize(int argc, char **argv)
     // We did not explicitly allocate the current thread we are running in.
     // But if it ever tries to give up the CPU, we better have a `Thread`
     // object to save its state.
+#ifdef USER_PROGRAM
+    threads = new Table<Thread*>();
+#endif
+
     currentThread = new Thread("main");
     currentThread->SetStatus(RUNNING);
 

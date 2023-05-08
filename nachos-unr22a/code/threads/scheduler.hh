@@ -14,7 +14,7 @@
 #include "thread.hh"
 #include "lib/list.hh"
 
-
+class System;
 
 /// The following class defines the scheduler/dispatcher abstraction --
 /// the data structures and operations needed to keep track of which
@@ -42,6 +42,10 @@ public:
 
     // Print contents of ready list.
     void Print();
+
+#ifdef USER_PROGRAM
+    std::string PrintAllThreads();
+#endif
 
 private:
 

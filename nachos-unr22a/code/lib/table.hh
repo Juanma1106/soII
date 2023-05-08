@@ -46,6 +46,8 @@ public:
     /// Returns the old item.
     T Update(int i, T item);
 
+    T *getValues();
+
 private:
     /// Data items.
     T data[SIZE];
@@ -148,5 +150,17 @@ Table<T>::Update(int i, T item)
     return previous;
 }
 
+template <class T> T *Table<T>::getValues(){
+    int size = current - freed.GetSize();
+    T values[size];
+    int i = 0;
+    for (int j = 0; j < current; j++) {
+        if(HasKey(j)) {
+            values[i] = data[j];
+            i++;
+        }
+    }
+    return values;
+}
 
 #endif

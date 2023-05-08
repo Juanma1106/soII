@@ -91,15 +91,32 @@ static void SyscallHandler(ExceptionType _et) {
         }
 
         case SC_EXEC: {
-            int returnValue = machine->ReadRegister(4);
-            // Ver preemptive.cc
-            int childPid = fork();
-            
+            //SpaceId Exec(char *name);
+            int filenameAddr = machine->ReadRegister(4);
+            if (filenameAddr == 0) {
+                DEBUG('e', "Error: address to filename string is null.\n");
+            } else {
+                char filename[FILE_NAME_MAX_LEN + 1];
+                if (!ReadStringFromUser(filenameAddr, filename, sizeof filename)) {
+                    DEBUG('e', "Error: filename string too long (maximum is %u bytes).\n",
+                        FILE_NAME_MAX_LEN);
+                } else {
+                    DEBUG('e', "`Exec` requested for file `%s`.\n", filename);
+                    char *args[1];
+                    args[0] = filename;
+                    int childPid = execv(filename, args);
+                    machine->WriteRegister(2, childPid);
+                }
+            }
             break;
         }
 
         case SC_JOIN: {
-            currentThread->Join();
+            SpaceId pid = machine->ReadRegister(4);
+            if(threads->HasKey(pid)) {
+                Thread *thread = threads->Get(pid);
+                thread->Join();
+            }
             break;
         }
 

@@ -5,7 +5,7 @@
 /// The bitmap is represented as an array of unsigned integers, on which we
 /// do modulo arithmetic to find the bit we are interested in.
 ///
-/// The data structure is parameterized with with the number of bits being
+/// The data structure is parameterized with the number of bits being
 /// managed.
 ///
 /// Copyright (c) 1992-1993 The Regents of the University of California.

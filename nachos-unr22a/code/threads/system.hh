@@ -34,10 +34,13 @@ extern Statistics *stats;            ///< Performance metrics.
 extern Timer *timer;                 ///< The hardware alarm clock.
 
 #ifdef USER_PROGRAM
-#include "userprog/SynchConsole.hh"
-extern SynchConsole *synchConsole;
 #include "machine/machine.hh"
 extern Machine *machine;  // User program memory and registers.
+#include "userprog/SynchConsole.hh"
+extern SynchConsole *synchConsole;
+#include "lib/table.hh"
+#include "threads/thread.hh"
+extern Table<Thread*> *threads;
 #endif
 
 #ifdef FILESYS_NEEDED  // *FILESYS* or *FILESYS_STUB*.

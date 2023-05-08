@@ -156,3 +156,16 @@ Scheduler::Print()
         (&readyLists[i])->Apply(ThreadPrint);
     }
 }
+
+#ifdef USER_PROGRAM
+std::string Scheduler::PrintAllThreads() {
+    Thread** threadList = threads->getValues();
+    std::string toString;
+    std::string str;
+    for(int i = 0; i < sizeof(threadList); i++) {
+        str = threadList[i]->ToString();
+        toString = toString + str;
+    }
+    return toString;
+}
+#endif
