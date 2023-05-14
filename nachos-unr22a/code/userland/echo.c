@@ -6,9 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-unsigned
-StringLength(const char *s)
-{
+unsigned StringLength(const char *s) {
     // What if `s` is null?
 
     unsigned i;
@@ -16,18 +14,14 @@ StringLength(const char *s)
     return i;
 }
 
-int
-PrintString(const char *s)
-{
+int PrintString(const char *s) {
     // What if `s` is null?
 
     unsigned len = StringLength(s);
     return Write(s, len, CONSOLE_OUTPUT);
 }
 
-int
-PrintChar(char c)
-{
+int PrintChar(char c) {
     return Write(&c, 1, CONSOLE_OUTPUT);
 }
 
