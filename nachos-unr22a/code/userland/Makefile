@@ -12,7 +12,7 @@
 # If you are cross-compiling, you need to point to the right executables and
 # change the flags to ld and the build procedure for as:
 #GCC_PREFIX = /home/mariano/usr/bin/mips-suse-linux-
-GCC_PREFIX = mips-linux-gnu-
+GCC_PREFIX = mipsel-linux-gnu-
 LDFLAGS    = -T arrangement.ld -N -s
 ASFLAGS    = -mips1
 CPPFLAGS   = $(INCLUDE_DIRS)
@@ -51,9 +51,9 @@ start.o: start.s ../userprog/syscall.h
 	@$(RM) strt.s
 
 
-# Las reglas genéricas que siguen sirven para compilar programas simples,
-# que consistan en un único archivo fuente. Si se quieren compilar programas
-# más complejos, se deben agregar reglas adecuadas.
+# Las reglas genï¿½ricas que siguen sirven para compilar programas simples,
+# que consistan en un ï¿½nico archivo fuente. Si se quieren compilar programas
+# mï¿½s complejos, se deben agregar reglas adecuadas.
 
 %.o: %.c
 	@echo ":: Compiling $$(tput bold)$@$$(tput sgr0)"

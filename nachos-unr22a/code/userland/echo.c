@@ -26,7 +26,7 @@ int PrintChar(char c) {
 }
 
 int main(int argc, char *argv[]) {
-
+	Exec("echo", 1, "hola");
     for (unsigned i = 1; i < argc; i++) {
 
         if (i != 1) {
@@ -35,4 +35,5 @@ int main(int argc, char *argv[]) {
         PrintString(argv[i]);
     }
     PrintChar('\n');
+    Halt();
 }

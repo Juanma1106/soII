@@ -46,7 +46,9 @@ public:
     /// Returns the old item.
     T Update(int i, T item);
 
-    T *getValues();
+    int getSize();
+
+    List<T> *getValues();
 
 private:
     /// Data items.
@@ -150,14 +152,16 @@ Table<T>::Update(int i, T item)
     return previous;
 }
 
-template <class T> T *Table<T>::getValues(){
+template <class T> int Table<T>::getSize() {
     int size = current - freed.GetSize();
-    T values[size];
-    int i = 0;
-    for (int j = 0; j < current; j++) {
-        if(HasKey(j)) {
-            values[i] = data[j];
-            i++;
+    return size;
+}
+
+template <class T> List<T> *Table<T>::getValues() {
+    List<T> *values = new List<T>();
+    for(int i=0; i < current; i++) {
+        if(!freed.Has(i)) {
+            values->Append(data[i]);
         }
     }
     return values;

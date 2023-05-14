@@ -44,7 +44,7 @@ public:
     void Print();
 
 #ifdef USER_PROGRAM
-    std::string PrintAllThreads();
+    void PrintAllThreads();
 #endif
 
 private:

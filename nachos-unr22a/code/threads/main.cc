@@ -143,6 +143,7 @@ main(int argc, char **argv)
             ASSERT(argc > 1);
             StartProcess(*(argv + 1));
             argCount = 2;
+            interrupt->Halt();
         } else if (!strcmp(*argv, "-tc")) {  // Test the console.
             if (argc == 1) {
                 ConsoleTest(nullptr, nullptr);

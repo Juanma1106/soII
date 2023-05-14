@@ -34,7 +34,7 @@ Scheduler::Scheduler() {
 /// De-allocate the list of ready threads.
 Scheduler::~Scheduler() {
     for(int i = 0; i < PRIORITY_SIZE; i++) {
-        delete &readyLists[i];
+        (&readyLists[i])->~List();
     }
     
 }
@@ -159,14 +159,10 @@ Scheduler::Print()
 }
 
 #ifdef USER_PROGRAM
-std::string Scheduler::PrintAllThreads() {
-    Thread** threadList = threads->getValues();
-    std::string toString;
-    std::string str;
-    for(long unsigned int i = 0; i < sizeof(threadList); i++) {
-        str = threadList[i]->ToString();
-        toString = toString + "\n" + str;
-    }
-    return toString;
+void Scheduler::PrintAllThreads() {
+    List<Thread*> *values = threads->getValues();
+    //for(int i = 0; i < PRIORITY_SIZE; i++) {
+    values->Apply(ThreadPrint);
+    //}
 }
 #endif
