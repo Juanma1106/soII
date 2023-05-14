@@ -22,7 +22,8 @@ main(void)
         buffer[--i] = '\0';
 
         if (i > 0) {
-            newProc = Exec(buffer);
+            char** argv;
+            newProc = Exec(buffer, 0, argv);
             Join(newProc);
         }
     }
