@@ -1,0 +1,51 @@
+hay que cambiar en restoreUserState
+machine -> pageTable = pageTable
+para que tome la TLB
+
+
+
+ver machine/mmu.cc, 
+    machine/machine.cc
+y   userprog/transfer.cc
+
+readStringFromUser en el for hay que hacer que reintente hasta que la lectura sea exitosa.
+Cada vez que tengamos un machine->readMem  o writeMem en el kernel, hay que reintentar.
+
+
+
+Para el ejercicio 2, una vez que tenemos un fallo, el hit que sigue no hay que contarlo (es obvio que va a venir).
+Hay que modificar machine para aumentar las paginas de la tlb
+
+
+Para el 3.
+el programa no tiene uqe cargar nada en la ram, y a medida que va necesitando, va cargando a medida que necesita y ahi marca como valida.
+En nachos hay que modificar el constructor addressSpace, para que construya la tabla con todas las entradas como invalidas.
+Ahora conviene asociar el addressSpace *guardando el ejecutable* con el archivo, para no tener que andar abriendolo a cada rato.
+
+Si esta en el .text, cargo el .text
+Si esta en el .data, cargo el .data
+Si son datos sin inicializar, relleno con 0
+
+
+Para el 4.
+Hay que crear un archivo swap para cada proceso. Crearlo con FileSystem::Create
+El tamaño del archivo es PAGESIZE * NUMPAGES
+El addresSpace seria el encargado de crear este archivo swap.
+Cuando escribimos una página en el swap.asid (addressSpace ID), la marcamos como inválida en la tabla de paginación (para liberarla y poder usarla)
+
+Ahora una página puede estar marcada como inválida porque:
+a. hay que traerla del swap
+b. hay que traerla del binario
+Entonces es probable que necesitemos alguna constante/bandera para decidir donde buscarla.
+
+
+Posibles mejoras:
+- una tablita que mapea PPN -> (ASID,VPN). Esta tabla se llama coremap
+El pageFaultHandler es el encargado de utilizar coremap
+
+
+Para el 6.
+Ejecutar el programa para obtener la traza. Es la unica forma de calcular el optimo despues. 
+
+
+En el roadmap de nachos tambien hay data sobre esto.

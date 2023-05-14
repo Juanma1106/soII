@@ -30,6 +30,7 @@
 const unsigned STACK_FENCEPOST = 0xDEADBEEF;
 
 
+
 static inline bool IsThreadStatus(ThreadStatus s) {
     return 0 <= s && s < NUM_THREAD_STATUS;
 }
