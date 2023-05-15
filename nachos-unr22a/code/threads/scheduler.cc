@@ -22,7 +22,7 @@
 #include "system.hh"
 
 #include <stdio.h>
-
+#include <machine.hh>
 
 
 /// Initialize the list of ready but not running threads to empty.
@@ -70,9 +70,7 @@ void Scheduler::ReadyToRun(Thread *thread) {
 /// If there are no ready threads, return null.
 ///
 /// Side effect: thread is removed from the ready list.
-Thread *
-Scheduler::FindNextToRun()
-{
+Thread *Scheduler::FindNextToRun() {
     return findMaxPriority()->Pop();
 }
 
@@ -87,9 +85,7 @@ Scheduler::FindNextToRun()
 /// Side effect: the global variable `currentThread` becomes `nextThread`.
 ///
 /// * `nextThread` is the thread to be put into the CPU.
-void
-Scheduler::Run(Thread *nextThread)
-{
+void Scheduler::Run(Thread *nextThread) {
     ASSERT(nextThread != nullptr);
 
     Thread *oldThread = currentThread;
@@ -116,6 +112,9 @@ Scheduler::Run(Thread *nextThread)
     // after this, both from the point of view of the thread and from the
     // perspective of the “outside world”.
 
+#ifdef USE_TLB
+    machine->GetMMU()->InvalidateTLB();
+#endif
     SWITCH(oldThread, nextThread);
 
     DEBUG('t', "Now in thread \"%s\"\n", currentThread->GetName());

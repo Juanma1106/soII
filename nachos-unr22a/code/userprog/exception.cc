@@ -386,7 +386,8 @@ static void SyscallHandler(ExceptionType _et) {
 
         default:
             fprintf(stderr, "Unexpected system call: id %d.\n", scid);
-            ASSERT(false);
+            // Reemplazar por otra cosa. No puede morir el SO.
+            //ASSERT(false);
 
     }
 

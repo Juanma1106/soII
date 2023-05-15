@@ -34,8 +34,7 @@
 #include <stdio.h>
 
 
-MMU::MMU()
-{
+MMU::MMU() {
     mainMemory = new char [MEMORY_SIZE];
     for (unsigned i = 0; i < MEMORY_SIZE; i++) {
         mainMemory[i] = 0;
@@ -43,9 +42,7 @@ MMU::MMU()
 
 #ifdef USE_TLB
     tlb = new TranslationEntry[TLB_SIZE];
-    for (unsigned i = 0; i < TLB_SIZE; i++) {
-        tlb[i].valid = false;
-    }
+    InvalidateTLB();
     pageTable = nullptr;
 #else  // Use linear page table.
     tlb = nullptr;
@@ -53,17 +50,14 @@ MMU::MMU()
 #endif
 }
 
-MMU::~MMU()
-{
+MMU::~MMU() {
     delete [] mainMemory;
     if (tlb != nullptr) {
         delete [] tlb;
     }
 }
 
-void
-MMU::PrintTLB() const
-{
+void MMU::PrintTLB() const {
 #ifdef USE_TLB
     printf("TLB content (%u entries):\n", TLB_SIZE);
     for (unsigned i = 0; i < TLB_SIZE; i++) {
@@ -88,9 +82,7 @@ MMU::PrintTLB() const
 /// * `addr` is the virtual address to read from.
 /// * `size` is the number of bytes to read (1, 2, or 4).
 /// * `value` is the place to write the result.
-ExceptionType
-MMU::ReadMem(unsigned addr, unsigned size, int *value)
-{
+ExceptionType MMU::ReadMem(unsigned addr, unsigned size, int *value) {
     ASSERT(value != nullptr);
 
     DEBUG('a', "Reading VA 0x%X, size %u\n", addr, size);
@@ -135,9 +127,7 @@ MMU::ReadMem(unsigned addr, unsigned size, int *value)
 /// * `addr` is the virtual address to write to.
 /// * `size` is the number of bytes to be written (1, 2, or 4).
 /// * `value` is the data to be written.
-ExceptionType
-MMU::WriteMem(unsigned addr, unsigned size, int value)
-{
+ExceptionType MMU::WriteMem(unsigned addr, unsigned size, int value) {
     DEBUG('a', "Writing VA 0x%X, size %u, value 0x%X\n", addr, size, value);
 
     unsigned physicalAddress;
@@ -183,8 +173,7 @@ MMU::RetrievePageEntry(unsigned vpn, TranslationEntry **entry) const
                        vpn, pageTableSize);
             return ADDRESS_ERROR_EXCEPTION;
         } else if (!pageTable[vpn].valid) {
-            DEBUG_CONT('a', "virtual page # %u too large for"
-                            " page table size %u!\n",
+            DEBUG_CONT('a', "virtual page # %u is not valid!\n",
                        vpn, pageTableSize);
             return PAGE_FAULT_EXCEPTION;
         }
@@ -277,4 +266,10 @@ MMU::Translate(unsigned virtAddr, unsigned *physAddr,
     ASSERT(*physAddr >= 0 && *physAddr + size <= MEMORY_SIZE);
     DEBUG_CONT('a', "physical address 0x%X\n", *physAddr);
     return NO_EXCEPTION;
+}
+
+void MMU::InvalidateTLB() {
+    for (unsigned i = 0; i < TLB_SIZE; i++) {
+        tlb[i].valid = false;
+    }
 }
