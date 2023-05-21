@@ -30,6 +30,7 @@ bool ReadStringFromUser(int userAddress, char *outString,
     ASSERT(maxByteCount != 0);
 
     unsigned count = 0;
+    /* ESTO TIENE QUE HACERSE HASTA QUE LA LECTURA SEA EXITOSA */
     do {
         int temp;
         count++;

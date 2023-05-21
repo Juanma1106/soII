@@ -93,7 +93,9 @@ Machine::WriteRegister(unsigned num, int value)
 
 bool
 Machine::ReadMem(unsigned addr, unsigned size, int *value)
-{
+{/* TANTO ESTE COMO EL WRITE, HAY QUE HACER QUE REINTENTE
+    HASTA QUE LA LECTURA SEA EXITOSA SI SE HACE DESDE EL KERNEL
+    SINO, PODEMOS TIRAR PAGE-FAULT-EXCEPTION  */
     ExceptionType e = mmu.ReadMem(addr, size, value);
     if (e != NO_EXCEPTION) {
         RaiseException(e, addr);
