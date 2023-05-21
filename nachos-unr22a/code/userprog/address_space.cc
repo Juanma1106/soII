@@ -39,11 +39,12 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
 
     // First, set up the translation.
 
+    char *mainMemory = machine->GetMMU()->mainMemory;
+
     pageTable = new TranslationEntry[numPages];
     for (unsigned i = 0; i < numPages; i++) {
         pageTable[i].virtualPage  = i;
-          // For now, virtual page number = physical page number.
-        pageTable[i].physicalPage = i;
+        pageTable[i].physicalPage = -1;
         pageTable[i].valid        = false; /*3)*/
         pageTable[i].use          = false;
         pageTable[i].dirty        = false;
@@ -52,12 +53,10 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
           // set its pages to be read-only.
     }
 
-    char *mainMemory = machine->GetMMU()->mainMemory;
-
     // Zero out the entire address space, to zero the unitialized data
     // segment and the stack segment.
-    memset(mainMemory, 0, size);
-
+    // memset(mainMemory, 0, size);
+    
     // Then, copy in the code and data segments into memory.
     uint32_t codeSize = exe.GetCodeSize();
     uint32_t initDataSize = exe.GetInitDataSize();
@@ -79,8 +78,7 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
 /// Deallocate an address space.
 ///
 /// Nothing for now!
-AddressSpace::~AddressSpace()
-{
+AddressSpace::~AddressSpace() {
     delete [] pageTable;
 }
 
