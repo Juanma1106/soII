@@ -33,10 +33,18 @@
 
 #include <stdio.h>
 
-unsigned MMU::findNextToReplace(){
+// Libera un espacio en la TLB
+void MMU::loadInMmu(unsigned vpn){
     /*esto es para FIFO, despues deberíamos cambiarlo*/
-
-    return (toReplace++)%TLB_SIZE; 
+    unsigned int posForFree;
+#ifdef PRPOLICY_FIFO
+    posForFree = (toReplace++)%TLB_SIZE; 
+#else
+    SystemDep::RandomInit(TLB_SIZE);
+    posForFree = SystemDep::Random();
+#endif
+    tlb[posForFree].virtualPage = vpn;
+    tlb[posForFree].valid = true;
 }
 
 MMU::MMU() {
@@ -57,14 +65,14 @@ MMU::MMU() {
 #endif
 }
 /// 2)
-void  MMU::sumHit()  {
+void MMU::sumHit() {
     totalCount++;
 }
-void  MMU::sumMiss()  {
+void MMU::sumMiss() {
     missCount++;
 }
-double MMU::getHitRatio(){
-    return (double) missCount/totalCount;
+double MMU::getHitRatio() {
+    return (double) missCount / totalCount;
 }
 
 MMU::~MMU() {
@@ -176,9 +184,7 @@ ExceptionType MMU::WriteMem(unsigned addr, unsigned size, int value) {
     return NO_EXCEPTION;
 }
 
-ExceptionType
-MMU::RetrievePageEntry(unsigned vpn, TranslationEntry **entry) const
-{
+ExceptionType MMU::RetrievePageEntry(unsigned vpn, TranslationEntry **entry) {
     ASSERT(entry != nullptr);
 
     if (tlb == nullptr) {
@@ -200,13 +206,12 @@ MMU::RetrievePageEntry(unsigned vpn, TranslationEntry **entry) const
 
     } else {
         // Use the TLB.
-
         unsigned i;
         for (i = 0; i < TLB_SIZE; i++) {
             TranslationEntry *e = &tlb[i];
             if (e->valid && e->virtualPage == vpn) {
                 *entry = e;  // FOUND!
-                MMU::sumHit();
+                sumHit();
                 return NO_EXCEPTION;
             }
         }

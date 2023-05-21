@@ -132,15 +132,16 @@ void StartProcess2(void *a) {
 /* seba: genero uno aparte, de paso nos queda el Increment por fuera */
 static void PageFaultHandler(ExceptionType _et){ /*1)c)*/
 
-    /// nose pq esto, pero lo usan los otros handlers
-    int exceptionArg = machine->ReadRegister(2);
-    unsigned toReplace = machine->GetMMU()->findNextToReplace();
-
+    // Tenemos que leer el registro BAD_VADDR_REG que es donde guardamos la direccion virtual que no estaba en la TLB
+    int virtAddr = machine->ReadRegister(BAD_VADDR_REG);
+    unsigned vpn    = (unsigned) virtAddr / PAGE_SIZE;
+    machine->GetMMU()->loadInMmu(vpn);
 }
 
 static void ReadOnlyHandler(ExceptionType _et){ /*1)d)*/
+    int virtAddr = machine->ReadRegister(BAD_VADDR_REG);
+    unsigned vpn    = (unsigned) virtAddr / PAGE_SIZE;  // Esta es la pagina, pero no se la pos en el TLB si eso es lo que buscas...
 
-    int exceptionArg = machine->ReadRegister(2);
     TranslationEntry *ro /* = ver de donde se saca la pagina */;
     if (ro->readOnly){
         printf("La entrada %s se quiso modificar y es RO.\n", ro->name);

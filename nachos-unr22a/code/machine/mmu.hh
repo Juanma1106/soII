@@ -80,22 +80,24 @@ public:
                             ///< “read-only” to Nachos kernel code.
 
     TranslationEntry *pageTable;
+    
     unsigned pageTableSize;
 
     void InvalidateTLB();
 
-    unsigned findNextToReplace();
+    void loadInMmu(unsigned vpn);
 
-    void  sumMiss() ;
-    void  sumHit() ;
+    void sumMiss();
+
+    void sumHit();
+
     double getHitRatio();
 
 
 private:
 
     /// Retrieve a page entry either from a page table or the TLB.
-    ExceptionType RetrievePageEntry(unsigned vpn,
-                                    TranslationEntry **entry) const;
+    ExceptionType RetrievePageEntry(unsigned vpn, TranslationEntry **entry);
 
     /// Translate an address, and check for alignment.
     ///

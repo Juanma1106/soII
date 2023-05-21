@@ -1,0 +1,37 @@
+PLANCHA 4:
+
+La paginacion es la base para la plancha 4....
+
+1) Modificar exception. Agregar handler para tratar las excepciones cuando una pagina no esta en la TLB (fallo de pagina).
+A diferencia de las tablas de paginas tenemos 1 solo TLB para todo el procesador (no es por proceso).
+PageFaultException
+ReadOnlyException
+Para cambiar tamaño de RAM y de TLB hay que cambiar en machine (es lo unico que vamos a tocar ahi).
+
+use y dirty es lo que hay que setear ante un cambio de contexto
+
+b) Read y write van a generar un fallo y van a devolver falso. Luego de esto hay que reintentar.
+
+Para elegir la pagina a reemplazar en TLB, usar random.
+
+Modificar 
+	- saveState de address_space.cc
+
+2) Usar sort y malmult para probarlo.
+
+4) Implementar memoria virtual
+
+5) Reloj es mas facil que LRU. Ya estan las banderas para hacerlo (valid, use, dirty, etc de translation_entry). Cuando volver a poner en 0 una vezque fueron usadas.
+
+
+Pregunta de parcial:
+	linuxvm ==> Multiple swap-in y swap-in swap-out. (18/05 Primera parte)
+
+Grep:
+	rgrep -- '->use' (el -- sirve para poner expresiones regulares.)
+	
+Recomendacion:
+	Usar PrintTLB para ver si estamos haciendo las cosas bien
+	
+
+
