@@ -48,5 +48,16 @@ Ejecutamos:
 ====================================
 ====================================
 
- 
+Falta arreglar multiprogramacion.
+
+- mmu.hh
+- translation_entry.hh
+- address_space.cc		==> Esto hay que modificar
+
+executable.hh
+Se le pasa un archivo y te da los bloques de memoria virtual.
+
+bin/noff.h
+noffHeader cabecera del programa
+
 

@@ -48,6 +48,7 @@ SynchDisk *synchDisk;
 Machine *machine;  ///< User program memory and registers.
 SynchConsole *synchConsole;
 Table<Thread*> *threads;
+Bitmap *bitmap;
 #endif
 
 #ifdef NETWORK
@@ -241,6 +242,7 @@ Initialize(int argc, char **argv)
     Debugger *d = debugUserProg ? new Debugger : nullptr;
     machine = new Machine(d);  // This must come first.
     synchConsole = new SynchConsole(nullptr, nullptr);
+    bitmap = new Bitmap(NUM_PHYS_PAGES);
     SetExceptionHandlers();
 #endif
 

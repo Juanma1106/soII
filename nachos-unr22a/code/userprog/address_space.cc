@@ -39,25 +39,30 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
 
     // First, set up the translation.
 
+    char *mainMemory = machine->GetMMU()->mainMemory;
+
     pageTable = new TranslationEntry[numPages];
     for (unsigned i = 0; i < numPages; i++) {
         pageTable[i].virtualPage  = i;
           // For now, virtual page number = physical page number.
-        pageTable[i].physicalPage = i;
+        pageTable[i].physicalPage = bitmap->Find();
+        ASSERT(pageTable[i].physicalPage >= 0);
+        DEBUG('a', "Page %d to %d\n", i, pageTable[i].physicalPage);
         pageTable[i].valid        = true;
         pageTable[i].use          = false;
         pageTable[i].dirty        = false;
         pageTable[i].readOnly     = false;
           // If the code segment was entirely on a separate page, we could
           // set its pages to be read-only.
+        
+        // Zero out the entire address space, to zero the unitialized data
+        // segment and the stack segment.
+        // Ya no podemos inicializar todas las paginas juntas.
+        memset(mainMemory, pageTable[i].physicalPage, PAGE_SIZE);
     }
 
-    char *mainMemory = machine->GetMMU()->mainMemory;
-
-    // Zero out the entire address space, to zero the unitialized data
-    // segment and the stack segment.
-    memset(mainMemory, 0, size);
-
+    // memset(mainMemory, 0, size);
+    
     // Then, copy in the code and data segments into memory.
     uint32_t codeSize = exe.GetCodeSize();
     uint32_t initDataSize = exe.GetInitDataSize();
@@ -79,8 +84,10 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
 /// Deallocate an address space.
 ///
 /// Nothing for now!
-AddressSpace::~AddressSpace()
-{
+AddressSpace::~AddressSpace() {
+    for(int i = 0; i < numPages; i++) {
+        bitmap->Clear(pageTable[i].physicalPage);
+    }
     delete [] pageTable;
 }
 
