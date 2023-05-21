@@ -84,6 +84,9 @@ public:
 
     void InvalidateTLB();
 
+    unsigned findNextToReplace();
+
+
 private:
 
     /// Retrieve a page entry either from a page table or the TLB.
@@ -97,6 +100,8 @@ private:
     /// completed.
     ExceptionType Translate(unsigned virtAddr, unsigned *physAddr,
                             unsigned size, bool writing);
+
+    unsigned toReplace = 0;
 };
 
 

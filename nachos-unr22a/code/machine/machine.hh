@@ -39,6 +39,7 @@ enum {
     PC_REG         = 34,  ///< Current program counter.
     NEXT_PC_REG    = 35,  ///< Next program counter (for branch delay).
     PREV_PC_REG    = 36,  ///< Previous program counter (for debugging).
+    PREV_PREV_PC_REG = 100,
     LOAD_REG       = 37,  ///< The register target of a delayed load.
     LOAD_VALUE_REG = 38,  ///< The value to be loaded by a delayed load.
     BAD_VADDR_REG  = 39,  ///< The failing virtual address on an exception.

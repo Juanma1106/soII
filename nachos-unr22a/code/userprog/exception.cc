@@ -43,9 +43,24 @@ static void IncrementPC() {
     pc = machine->ReadRegister(PC_REG);
     machine->WriteRegister(PREV_PC_REG, pc);
     pc = machine->ReadRegister(NEXT_PC_REG);
-    machine->WriteRegister(PC_REG, pc);
+    machine->WriteRegister(PC_REG, pc); 
     pc += 4;
     machine->WriteRegister(NEXT_PC_REG, pc);
+    /* podriamos agregar codigo aca para mantener prev_prev tmb */
+}
+
+static void DecrementPC() {
+    /*
+    Entiendo que va a ser más fácil decrementar cuando no había que aumentar 
+    que andar chequeando caso por caso
+    */
+    unsigned pc;
+    pc = machine->ReadRegister(PC_REG);
+    machine->WriteRegister(NEXT_PC_REG, pc);
+    pc = machine->ReadRegister(PREV_PC_REG);
+    machine->WriteRegister(PC_REG, pc);
+    pc -= 4;
+    machine->WriteRegister(PREV_PREV_PC_REG, pc);
 }
 
 /// Do some default behavior for an unexpected exception.
@@ -113,6 +128,27 @@ void StartProcess2(void *a) {
 ///
 /// And do not forget to increment the program counter before returning. (Or
 /// else you will loop making the same system call forever!)
+
+/* seba: genero uno aparte, de paso nos queda el Increment por fuera */
+static void PageFaultHandler(ExceptionType _et){ /*1)c)*/
+
+    /// nose pq esto, pero lo usan los otros handlers
+    int exceptionArg = machine->ReadRegister(2);
+    unsigned toReplace = machine->GetMMU()->findNextToReplace();
+
+}
+
+static void ReadOnlyHandler(ExceptionType _et){ /*1)d)*/
+
+    int exceptionArg = machine->ReadRegister(2);
+    TranslationEntry *ro /* = ver de donde se saca la pagina */;
+    if (ro->readOnly){
+        printf("La entrada %s se quiso modificar y es RO.\n", ro->name);
+
+    }
+
+}
+
 static void SyscallHandler(ExceptionType _et) {
     int scid = machine->ReadRegister(2);
 
@@ -400,8 +436,8 @@ static void SyscallHandler(ExceptionType _et) {
 void SetExceptionHandlers() {
     machine->SetHandler(NO_EXCEPTION,            &DefaultHandler);
     machine->SetHandler(SYSCALL_EXCEPTION,       &SyscallHandler);
-    machine->SetHandler(PAGE_FAULT_EXCEPTION,    &DefaultHandler);
-    machine->SetHandler(READ_ONLY_EXCEPTION,     &DefaultHandler);
+    machine->SetHandler(PAGE_FAULT_EXCEPTION,    &PageFaultHandler);
+    machine->SetHandler(READ_ONLY_EXCEPTION,     &ReadOnlyHandler);
     machine->SetHandler(BUS_ERROR_EXCEPTION,     &DefaultHandler);
     machine->SetHandler(ADDRESS_ERROR_EXCEPTION, &DefaultHandler);
     machine->SetHandler(OVERFLOW_EXCEPTION,      &DefaultHandler);

@@ -33,6 +33,11 @@
 
 #include <stdio.h>
 
+unsigned MMU::findNextToReplace(){
+    /*esto es para FIFO, despues deberíamos cambiarlo*/
+
+    return (toReplace++)%TLB_SIZE; 
+}
 
 MMU::MMU() {
     mainMemory = new char [MEMORY_SIZE];
@@ -42,6 +47,8 @@ MMU::MMU() {
 
 #ifdef USE_TLB
     tlb = new TranslationEntry[TLB_SIZE];
+    /*seba: aca deberiamos poner el count de cual reemplazar*/
+    unsigned toReplace = 0;
     InvalidateTLB();
     pageTable = nullptr;
 #else  // Use linear page table.
@@ -238,6 +245,7 @@ MMU::Translate(unsigned virtAddr, unsigned *physAddr,
     TranslationEntry *entry;
     ExceptionType exception = RetrievePageEntry(vpn, &entry);
     if (exception != NO_EXCEPTION) {
+        /*seba: ¿acá es donde deberíamos agregar la info para debuguear la exception?*/
         return exception;
     }
 

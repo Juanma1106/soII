@@ -31,6 +31,9 @@
 class TranslationEntry {
 public:
 
+    /// Agrego nombre como para identificarlo más fácil
+    char *name;
+
     /// The page number in virtual memory.
     unsigned virtualPage;
 
@@ -47,13 +50,12 @@ public:
     /// contents of the page.
     bool readOnly;
 
-    /// This bit is set by the hardware every time the page is referenced or
+    /// This bit is set by findNextToReplacethe hardware every time the page is referenced or
     /// modified.
     bool use;
 
     /// This bit is set by the hardware every time the page is modified.
     bool dirty;
-
 };
 
 
