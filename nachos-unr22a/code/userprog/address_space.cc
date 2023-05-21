@@ -44,7 +44,7 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
         pageTable[i].virtualPage  = i;
           // For now, virtual page number = physical page number.
         pageTable[i].physicalPage = i;
-        pageTable[i].valid        = true;
+        pageTable[i].valid        = false; /*3)*/
         pageTable[i].use          = false;
         pageTable[i].dirty        = false;
         pageTable[i].readOnly     = false;

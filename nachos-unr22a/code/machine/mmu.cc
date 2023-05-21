@@ -56,6 +56,16 @@ MMU::MMU() {
     pageTable = nullptr;
 #endif
 }
+/// 2)
+void  MMU::sumHit()  {
+    totalCount++;
+}
+void  MMU::sumMiss()  {
+    missCount++;
+}
+double MMU::getHitRatio(){
+    return (double) missCount/totalCount;
+}
 
 MMU::~MMU() {
     delete [] mainMemory;
@@ -196,12 +206,14 @@ MMU::RetrievePageEntry(unsigned vpn, TranslationEntry **entry) const
             TranslationEntry *e = &tlb[i];
             if (e->valid && e->virtualPage == vpn) {
                 *entry = e;  // FOUND!
+                MMU::sumHit();
                 return NO_EXCEPTION;
             }
         }
 
         // Not found.
         DEBUG_CONT('a', "no valid TLB entry found for this virtual page!\n");
+        sumMiss();
         return PAGE_FAULT_EXCEPTION;  // Really, this is a TLB fault, the
                                       // page may be in memory, but not in
                                       // the TLB.

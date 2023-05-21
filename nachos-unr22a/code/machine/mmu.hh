@@ -86,6 +86,10 @@ public:
 
     unsigned findNextToReplace();
 
+    void  sumMiss() ;
+    void  sumHit() ;
+    double getHitRatio();
+
 
 private:
 
@@ -102,6 +106,8 @@ private:
                             unsigned size, bool writing);
 
     unsigned toReplace = 0;
+    unsigned totalCount = 0; 
+    unsigned missCount = 0;
 };
 
 
