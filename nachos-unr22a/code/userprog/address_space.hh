@@ -55,6 +55,10 @@ private:
     /// Number of pages in the virtual address space.
     unsigned numPages;
 
+    OpenFile *executable_file; /* agregado para el 3*/
+
+
+
 };
 
 

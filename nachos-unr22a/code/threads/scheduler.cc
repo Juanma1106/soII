@@ -112,9 +112,11 @@ void Scheduler::Run(Thread *nextThread) {
     // after this, both from the point of view of the thread and from the
     // perspective of the “outside world”.
 
+/* esto no va acá
 #ifdef USE_TLB
     machine->GetMMU()->InvalidateTLB();
 #endif
+*/
     SWITCH(oldThread, nextThread);
 
     DEBUG('t', "Now in thread \"%s\"\n", currentThread->GetName());

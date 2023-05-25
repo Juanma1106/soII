@@ -21,6 +21,7 @@ void ReadBufferFromUser(int userAddress, char *outBuffer,
 #ifdef USE_TLB
         if(!machine->ReadMem(userAddress++, 1, &temp)) {
             // Se genero un fallo en la TLB.
+            // ver de reintentar tmb este
             ASSERT(machine->ReadMem(userAddress++, 1, &temp));
         }
 #else
@@ -37,14 +38,16 @@ bool ReadStringFromUser(int userAddress, char *outString,
     ASSERT(maxByteCount != 0);
 
     unsigned count = 0;
-    /* ESTO TIENE QUE HACERSE HASTA QUE LA LECTURA SEA EXITOSA */
     do {
         int temp;
         count++;
 #ifdef USE_TLB
+/*
         if(!machine->ReadMem(userAddress++, 1, &temp)) {
             ASSERT(machine->ReadMem(userAddress++, 1, &temp));
-        }
+        } 
+*/
+        for(int i=0;i<5 || machine->ReadMem(userAddress++, 1, &temp)==false; i++); 
 #else
         ASSERT(machine->ReadMem(userAddress++, 1, &temp));
 #endif
@@ -69,9 +72,12 @@ void WriteBufferToUser(const char *buffer, int userAddress,
     int temp = 0;
     do {
 #ifdef USE_TLB
+/*
         if(!machine->WriteMem(userAddress++, 1, buffer[temp])) {
             ASSERT(machine->WriteMem(userAddress++, 1, buffer[temp]));
         }
+*/
+        for(int i=0; i<5 || (machine->WriteMem(userAddress++, 1, buffer[temp])==false); i++);
 #else
         ASSERT(machine->WriteMem(userAddress++, 1, buffer[temp]));
 #endif

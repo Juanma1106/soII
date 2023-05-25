@@ -44,7 +44,7 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
     pageTable = new TranslationEntry[numPages];
     for (unsigned i = 0; i < numPages; i++) {
         pageTable[i].virtualPage  = i;
-        pageTable[i].physicalPage = -1;
+        pageTable[i].physicalPage = -1; // todavía no se cargó
         pageTable[i].valid        = false; /*3)*/
         pageTable[i].use          = false;
         pageTable[i].dirty        = false;
@@ -57,6 +57,10 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
     // segment and the stack segment.
     // memset(mainMemory, 0, size);
     
+
+    /* Segun min 43 del video, parece que todo esto que viene hay que comentarlo */
+
+
     // Then, copy in the code and data segments into memory.
     uint32_t codeSize = exe.GetCodeSize();
     uint32_t initDataSize = exe.GetInitDataSize();
@@ -126,6 +130,7 @@ void AddressSpace::RestoreState() {
 #ifdef USE_TLB
     machine->GetMMU()->pageTable     = machine->GetMMU()->tlb;
     machine->GetMMU()->pageTableSize = TLB_SIZE;
+    machine->GetMMU()->InvalidateTLB();
 #else
     machine->GetMMU()->pageTable     = pageTable;
     machine->GetMMU()->pageTableSize = numPages;

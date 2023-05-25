@@ -36,15 +36,15 @@
 // Libera un espacio en la TLB
 void MMU::loadInMmu(unsigned vpn){
     /*esto es para FIFO, despues deberíamos cambiarlo*/
-    unsigned int posForFree;
+    unsigned int posToFree;
 #ifdef PRPOLICY_FIFO
-    posForFree = (toReplace++)%TLB_SIZE; 
+    posToFree = (toReplace++)%TLB_SIZE; 
 #else
     SystemDep::RandomInit(TLB_SIZE);
-    posForFree = SystemDep::Random();
+    posToFree = SystemDep::Random();
 #endif
-    tlb[posForFree].virtualPage = vpn;
-    tlb[posForFree].valid = true;
+    tlb[posToFree].virtualPage = vpn; /*en el video, el hace currentT->space->pageT[vpn]*/
+    tlb[posToFree].valid = true;
 }
 
 MMU::MMU() {
@@ -262,7 +262,7 @@ MMU::Translate(unsigned virtAddr, unsigned *physAddr,
     TranslationEntry *entry;
     ExceptionType exception = RetrievePageEntry(vpn, &entry);
     if (exception != NO_EXCEPTION) {
-        /*seba: ¿acá es donde deberíamos agregar la info para debuguear la exception?*/
+        /*seba: entry es la pagina que deberíamos cargar en la tlb*/
         return exception;
     }
 

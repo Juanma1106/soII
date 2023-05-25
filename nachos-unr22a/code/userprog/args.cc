@@ -58,7 +58,8 @@ char ** SaveArgs(int address) {
         args[i] = new char [MAX_ARG_LENGTH];
         int strAddr;
         // For each pointer, read the corresponding string.
-        machine->ReadMem(address + i * 4, 4, &strAddr);
+        /* reintenta 3 veces si no puede leer la memoria. Por ahí podríamos meter un parámetro */
+        for(int k=0; k<3 || machine->ReadMem(address + i * 4, 4, &strAddr)==false;k++ );
         ReadStringFromUser(strAddr, args[i], MAX_ARG_LENGTH);
     }
     args[count] = nullptr;  // Write the trailing null.
@@ -95,7 +96,8 @@ WriteArgs(char **args)
     sp -= c * 4 + 4;  // Make room for `argv`, including the trailing null.
     // Write each argument's address.
     for (unsigned i = 0; i < c; i++) {
-        machine->WriteMem(sp + 4 * i, 4, argsAddress[i]);
+        /* reintenta 3 veces si no puede escribir la memoria. Por ahí podríamos meter un parámetro */
+        for (int k=0; k<3 || machine->WriteMem(sp + 4 * i, 4, argsAddress[i]) == false; k++);
     }
     machine->WriteMem(sp + 4 * c, 4, 0);  // The last is null.
 
