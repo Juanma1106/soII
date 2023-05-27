@@ -34,7 +34,7 @@
 #include <stdio.h>
 
 // Libera un espacio en la TLB
-void MMU::loadInMmu(unsigned vpn){
+void MMU::loadInMmu(Thread *currentThread, unsigned vpn){
     /*esto es para FIFO, despues deberíamos cambiarlo*/
     unsigned int posToFree;
 #ifdef PRPOLICY_FIFO
@@ -43,7 +43,8 @@ void MMU::loadInMmu(unsigned vpn){
     SystemDep::RandomInit(TLB_SIZE);
     posToFree = SystemDep::Random();
 #endif
-    tlb[posToFree].virtualPage = vpn; /*en el video, el hace currentT->space->pageT[vpn]*/
+    tlb[posToFree].virtualPage = currentThread->space->pageTable[vpn];
+    // vpn; /*en el video, el hace currentT->space->pageT[vpn]*/
     tlb[posToFree].valid = true;
 }
 
@@ -72,7 +73,12 @@ void MMU::sumMiss() {
     missCount++;
 }
 double MMU::getHitRatio() {
-    return (double) missCount / totalCount;
+    if(totalCount == 0){
+        std::printf("no hubo accesos a la memoria \n");
+        return 0;
+    } else {
+        return (double) missCount / totalCount;
+    }
 }
 
 MMU::~MMU() {

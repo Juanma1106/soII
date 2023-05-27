@@ -11,6 +11,10 @@
 
 #include "exception_type.hh"
 #include "disk.hh"
+/*
+#include "threads/system.hh"
+*/
+#include "threads/thread.hh"
 #include "translation_entry.hh"
 
 
@@ -85,7 +89,7 @@ public:
 
     void InvalidateTLB();
 
-    void loadInMmu(unsigned vpn);
+    void loadInMmu(Thread * currentThread, unsigned vpn);
 
     void sumMiss();
 

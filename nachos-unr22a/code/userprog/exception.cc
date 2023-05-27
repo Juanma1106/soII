@@ -26,6 +26,7 @@
 #include "syscall.h"
 #include "filesys/directory_entry.hh"
 #include "threads/system.hh"
+// #include "threads/thread.hh"
 #include "machine.hh"
 #include "args.hh"
 
@@ -130,63 +131,25 @@ void StartProcess2(void *a) {
 /// else you will loop making the same system call forever!)
 
 /* seba: genero uno aparte, de paso nos queda el Increment por fuera */
-static void PageFaultHandler(ExceptionType _et){ /*1)c)*/
+static void PageFaultHandler(ExceptionType _et){ 
+    /*1)c)*/
 
     // Tenemos que leer el registro BAD_VADDR_REG que es donde guardamos 
     // la direccion virtual que no estaba en la TLB
     int virtAddr = machine->ReadRegister(BAD_VADDR_REG);
     unsigned vpn = (unsigned) virtAddr / PAGE_SIZE;
-    machine->GetMMU()->loadInMmu(vpn);
-    /*
-    !pageTable[i].valid -> loadPage(vpn)
+    machine->GetMMU()->loadInMmu(currentThread, vpn);
 
-    TranslationEntry *AddressSpace::loadPage(vpn){
-        // chequear si la pagina corresponde a codigo, datos o stack
-        // con las funciones dentro del constructor, como GetCodeSize
-
-        nuevaPagFreeMap; // página nueva que pido al freemap
-
-        if (vpn*pagesize > codesize+datasize) { 
-            // es stack: relleno con 0
-            nuevaPagFreeMap.fillWithZeros();
-            pageTable[vpn].physicalPage = nuevaPagFreeMap;
-        } else if(vpn*pagesize < codesize){
-            // es codigo
-            // Then, copy in the code and data segments into memory.
-            uint32_t codeSize = exe.GetCodeSize();
-            uint32_t initDataSize = exe.GetInitDataSize();
-            if (codeSize > 0) {
-                uint32_t virtualAddr = exe.GetCodeAddr();
-                DEBUG('a', "Initializing code segment, at 0x%X, size %u\n",
-                    virtualAddr, codeSize);
-                exe.ReadCodeBlock(&mainMemory[virtualAddr], codeSize, 0);
-            } else if(vpn*pagesize < codesize + datasize){
-            // es dato
-            if (initDataSize > 0) {
-                uint32_t virtualAddr = exe.GetInitDataAddr();
-                DEBUG('a', "Initializing data segment, at 0x%X, size %u\n",
-                    virtualAddr, initDataSize);
-                exe.ReadDataBlock(&mainMemory[virtualAddr], initDataSize, 0);
-            }
-
-        }
-
-        }
-
-        return pageTable[vpn];
-        
-    }
-    */
 }
+
 
 static void ReadOnlyHandler(ExceptionType _et){ /*1)d)*/
     int virtAddr = machine->ReadRegister(BAD_VADDR_REG);
     unsigned vpn    = (unsigned) virtAddr / PAGE_SIZE;  // Esta es la pagina
-    /*unsigned offset = (unsigned) virtAddr % PAGE_SIZE; */// Esta es la pos, pero creo que no nos sirve
-    TranslationEntry *ro  = machine->GetMMUtlb->tlb[vpn];
+    TranslationEntry *ro  = machine->GetMMU()->tlb[vpn];
     if (ro->readOnly){
         printf("La entrada %s se quiso modificar y es RO.\n", ro->name);
-        /* deberiamos tirar algo más supongo */
+        /* deberiamos tirar algo más? Escribimos en el registro? */
     }
 
 }

@@ -45,10 +45,14 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
     for (unsigned i = 0; i < numPages; i++) {
         pageTable[i].virtualPage  = i;
         pageTable[i].physicalPage = -1; // todavía no se cargó
-        pageTable[i].valid        = false; /*3)*/
         pageTable[i].use          = false;
         pageTable[i].dirty        = false;
         pageTable[i].readOnly     = false;
+#ifdef DEMAND_LOADING
+        pageTable[i].valid        = false; /*3)*/
+#else
+        pageTable[i].valid        = true; 
+#endif
           // If the code segment was entirely on a separate page, we could
           // set its pages to be read-only.
     }
@@ -58,9 +62,11 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
     // memset(mainMemory, 0, size);
     
 
-    /* Segun min 43 del video, parece que todo esto que viene hay que comentarlo */
 
-
+#ifdef DEMAND_LOADING
+    // en caso de que esté prendida esta bandera, no hay que hacer nada, 
+    // se encarga el page-fault-handler
+#else
     // Then, copy in the code and data segments into memory.
     uint32_t codeSize = exe.GetCodeSize();
     uint32_t initDataSize = exe.GetInitDataSize();
@@ -76,9 +82,54 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
               virtualAddr, initDataSize);
         exe.ReadDataBlock(&mainMemory[virtualAddr], initDataSize, 0);
     }
-
+#endif
 }
 
+//#ifdef DEMAND_LOADING 
+    // !pageTable[i].valid -> loadPage(vpn)
+
+TranslationEntry *AddressSpace::loadPage(uint32_t vpn){
+        // chequear si la pagina corresponde a codigo, datos o stack
+        // con las funciones dentro del constructor, como GetCodeSize
+    
+
+        uint32_t nuevaPagFreeMap; // página nueva que pido al freemap
+        uint32_t codeSize = exe.GetCodeSize();
+        uint32_t initDataSize = exe.GetInitDataSize();
+
+        if (vpn*PAGE_SIZE > codeSize+initDataSize) { 
+            // es stack: relleno con 0
+            pageTable[vpn].fillWithZeros();
+            pageTable[vpn].physicalPage = nuevaPagFreeMap;
+        } else if(vpn*PAGE_SIZE < codeSize){
+            // es codigo
+            // Then, copy in the code and data segments into memory.
+            if (codeSize > 0) { // ¿hace falta esto?
+                uint32_t virtualAddr = exe.GetCodeAddr();
+                DEBUG('a', "Initializing code segment, at 0x%X, size %u\n",
+                    virtualAddr, PAGE_SIZE);
+                // entiendo que acá hay que leer una página
+                // y meterla en nuevaPagFreeMap 
+
+                // exe.ReadCodeBlock(&mainMemory[virtualAddr], PAGE_SIZE, 0); 
+                exe.ReadCodeBlock(&nuevaPagFreeMap, PAGE_SIZE, 0); 
+            } else if(vpn*PAGE_SIZE < codeSize+initDataSize){
+                // es dato
+                if (initDataSize > 0) {
+                    uint32_t virtualAddr = exe.GetInitDataAddr();
+                    DEBUG('a', "Initializing data segment, at 0x%X, size %u\n",
+                        virtualAddr, PAGE_SIZE);
+                    exe.ReadDataBlock(&nuevaPagFreeMap, PAGE_SIZE, 0);
+                }
+            }
+        }
+
+        return pageTable[vpn];
+        
+    }
+#else
+
+#endif
 /// Deallocate an address space.
 ///
 /// Nothing for now!
