@@ -11,10 +11,6 @@
 
 #include "exception_type.hh"
 #include "disk.hh"
-/*
-#include "threads/system.hh"
-*/
-#include "threads/thread.hh"
 #include "translation_entry.hh"
 
 

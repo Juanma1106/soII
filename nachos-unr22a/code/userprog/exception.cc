@@ -146,9 +146,9 @@ static void PageFaultHandler(ExceptionType _et){
 static void ReadOnlyHandler(ExceptionType _et){ /*1)d)*/
     int virtAddr = machine->ReadRegister(BAD_VADDR_REG);
     unsigned vpn    = (unsigned) virtAddr / PAGE_SIZE;  // Esta es la pagina
-    TranslationEntry *ro  = machine->GetMMU()->tlb[vpn];
-    if (ro->readOnly){
-        printf("La entrada %s se quiso modificar y es RO.\n", ro->name);
+    TranslationEntry ro  = machine->GetMMU()->tlb[vpn];
+    if (ro.readOnly){
+        printf("La entrada %s se quiso modificar y es RO.\n", ro.name);
         /* deberiamos tirar algo más? Escribimos en el registro? */
     }
 
