@@ -138,7 +138,7 @@ static void PageFaultHandler(ExceptionType _et){
     // la direccion virtual que no estaba en la TLB
     int virtAddr = machine->ReadRegister(BAD_VADDR_REG);
     unsigned vpn = (unsigned) virtAddr / PAGE_SIZE;
-    machine->GetMMU()->loadInMmu(currentThread, vpn);
+    machine->GetMMU()->loadInTLB(vpn);
 
 }
 

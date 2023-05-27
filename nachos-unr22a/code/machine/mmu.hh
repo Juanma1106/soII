@@ -89,7 +89,7 @@ public:
 
     void InvalidateTLB();
 
-    void loadInMmu(Thread * currentThread, unsigned vpn);
+    void loadInTLB(unsigned vpn);
 
     void sumMiss();
 
