@@ -30,12 +30,12 @@
 
 #include "mmu.hh"
 #include "endianness.hh"
-
+#include "threads/system.hh"
 #include <stdio.h>
 
 // Libera un espacio en la TLB
-void MMU::loadInMmu(Thread *currentThread, unsigned vpn){
-    /*esto es para FIFO, despues deberíamos cambiarlo*/
+    void MMU::loadInMmu(unsigned vpn){
+        /*esto es para FIFO, despues deberíamos cambiarlo*/
     unsigned int posToFree;
 #ifdef PRPOLICY_FIFO
     posToFree = (toReplace++)%TLB_SIZE; 
@@ -43,7 +43,7 @@ void MMU::loadInMmu(Thread *currentThread, unsigned vpn){
     SystemDep::RandomInit(TLB_SIZE);
     posToFree = SystemDep::Random();
 #endif
-    tlb[posToFree].virtualPage = currentThread->space->pageTable[vpn];
+    tlb[posToFree].virtualPage = currentThread->space->pageTable[vpn].virtualPage;
     // vpn; /*en el video, el hace currentT->space->pageT[vpn]*/
     tlb[posToFree].valid = true;
 }

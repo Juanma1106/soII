@@ -84,8 +84,7 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
     }
 #endif
 }
-
-//#ifdef DEMAND_LOADING 
+#ifdef DEMAND_LOADING 
     // !pageTable[i].valid -> loadPage(vpn)
 
 TranslationEntry *AddressSpace::loadPage(uint32_t vpn){
