@@ -71,8 +71,8 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
 
         DEBUG('a', "Initializing code segment, at 0x%X, size %u\n",
               virtualAddr, codeSize);
-        int offset = 0:
-        for(int i = 0; i < DivRoundUp(codeSize/PAGE_SIZE); i++) {
+        int offset = 0;
+        for(unsigned i = 0; i < DivRoundUp(codeSize, PAGE_SIZE); i++) {
             exe.ReadCodeBlock(&mainMemory[pageTable[i].physicalPage], PAGE_SIZE, offset);
             offset += PAGE_SIZE;
         }
@@ -82,8 +82,8 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
         uint32_t virtualAddr = exe.GetInitDataAddr();
         DEBUG('a', "Initializing data segment, at 0x%X, size %u\n",
               virtualAddr, initDataSize);
-        int offset = 0:
-        for(int i = 0; i < DivRoundUp(initDataSize/PAGE_SIZE); i++) {
+        int offset = 0;
+        for(unsigned i = 0; i < DivRoundUp(initDataSize, PAGE_SIZE); i++) {
             exe.ReadDataBlock(&mainMemory[pageTable[i].physicalPage], PAGE_SIZE, offset);
             offset += PAGE_SIZE;
         }
