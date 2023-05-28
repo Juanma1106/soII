@@ -51,6 +51,8 @@ public:
     /// Assume linear page table translation for now!
     TranslationEntry *pageTable;
 
+    unsigned getNumPages();
+
 private:
 
 

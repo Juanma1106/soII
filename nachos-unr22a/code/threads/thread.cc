@@ -23,6 +23,7 @@
 #include "channel.hh"
 #include <inttypes.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 
 /// This is put at the top of the execution stack, for detecting stack
@@ -51,10 +52,20 @@ Thread::Thread(const char *threadName, bool isJoinable, Thread *father, int theP
     _father  = father;
     priority = thePriority;
     priorityTemp = -1;
+
+
+
 #ifdef USER_PROGRAM
     space    = nullptr;
     spaceId = threads->Add(this);
 #endif
+#ifdef SWAP
+    const char * fileName = "SWAP."+ std::to_string(spaceId);
+    /* no estoy seguro de que esto tenga que ser acá, porque space es nullptr */
+    FileSystem::Create(fileName, space.getNumPages() * PAGE_SIZE);
+#endif
+
+
 }
 
 /// De-allocate a thread.

@@ -85,13 +85,15 @@ public:
 
     void InvalidateTLB();
 
-    void loadInTLB(unsigned vpn);
+    // void loadInTLB(unsigned vpn);
 
     void sumMiss();
 
     void sumHit();
 
     double getHitRatio();
+
+    int pickVictim();
 
 
 private:

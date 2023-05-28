@@ -209,6 +209,8 @@ public:
     AddressSpace *space;
 
     SpaceId spaceId;
+
+    FileSystem swapFile;
 #endif
 };
 

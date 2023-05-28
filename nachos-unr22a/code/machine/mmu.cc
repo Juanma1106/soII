@@ -33,17 +33,19 @@
 #include "threads/system.hh"
 #include <stdio.h>
 
-// Guarda la pagina vpn en la TLB
-void MMU::loadInTLB(unsigned vpn){
+
+
+int MMU::pickVictim(){
     unsigned int posToFree;
-    TranslationEntry *pageTable = machine->GetMMU()->pageTable;
+    // TranslationEntry *pageTable = machine->GetMMU()->pageTable;
+    // esta declaración nos quedó sin sentido
 #ifdef PRPOLICY_FIFO
     posToFree = (toReplace++)%TLB_SIZE; 
 #else
     SystemDep::RandomInit(TLB_SIZE);
     posToFree = SystemDep::Random();
-#endif  
-    TranslationEntry tE = currentThread->space->loadPage(posToFree, vpn);
+#endif
+    return posToFree;
 }
 
 MMU::MMU() {
@@ -242,8 +244,7 @@ ExceptionType MMU::RetrievePageEntry(unsigned vpn, TranslationEntry **entry) {
 /// * `size" is the amount of memory being read or written.
 /// * `writing` -- if true, check the “read-only” bit in the TLB.
 ExceptionType
-MMU::Translate(unsigned virtAddr, unsigned *physAddr,
-               unsigned size, bool writing)
+MMU::Translate(unsigned virtAddr, unsigned *physAddr,unsigned size, bool writing)
 {
     ASSERT(physAddr != nullptr);
     // We must have either a TLB or a page table, but not both!

@@ -84,13 +84,12 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
     }
 #endif
 }
-#ifdef DEMAND_LOADING 
     // !pageTable[i].valid -> loadPage(vpn)
 
 TranslationEntry AddressSpace::loadPage(int posToFree, uint32_t vpn){
     // chequear si la pagina corresponde a codigo, datos o stack
     // con las funciones dentro del constructor, como GetCodeSize
-
+    TranslationEntry *pageTable = machine->GetMMU()->pageTable;
     Executable exe (executable_file);
     
     uint32_t codeSize = exe.GetCodeSize();
@@ -98,11 +97,11 @@ TranslationEntry AddressSpace::loadPage(int posToFree, uint32_t vpn){
 
     if (vpn*PAGE_SIZE > codeSize+initDataSize) { 
         // es stack
-        pageTable[posToFree].fillWithZeros(); // cómo lo llenamos de 0s?
+        // memset(mainMemory[pageTable[posToFree].physicalPage] , 0, PAGE_SIZE)
     } else if(vpn*PAGE_SIZE < codeSize){
         // es codigo
         if (codeSize > 0) { // ¿hace falta esto?
-            uint32_t virtualAddr = exe.GetCodeAddr();
+            uint32_t virtualAddr = exe.GetCodeAddr(); // ¿hace falta esto?
             DEBUG('a', "Initializing code segment, at 0x%X, size %u\n", virtualAddr, PAGE_SIZE);
             // entiendo que acá hay que leer una página
             // y meterla en nuevaPagFreeMap 
@@ -138,9 +137,7 @@ AddressSpace::~AddressSpace() {
 /// immediately jump to user code.  Note that these will be saved/restored
 /// into the `currentThread->userRegisters` when this thread is context
 /// switched out.
-void
-AddressSpace::InitRegisters()
-{
+void AddressSpace::InitRegisters() {
     for (unsigned i = 0; i < NUM_TOTAL_REGS; i++) {
         machine->WriteRegister(i, 0);
     }
@@ -181,4 +178,8 @@ void AddressSpace::RestoreState() {
     machine->GetMMU()->pageTable     = pageTable;
     machine->GetMMU()->pageTableSize = numPages;
 #endif
+}
+
+unsigned  AddressSpace::getNumPages() {
+    return numPages;
 }
