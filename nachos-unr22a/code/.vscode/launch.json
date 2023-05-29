@@ -7,7 +7,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/userprog/nachos",
-            "args": ["-x", "${workspaceFolder}/userland/lib"],
+            "args": ["-x", "${workspaceFolder}/userland/halt"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/userprog",
             "environment": [],

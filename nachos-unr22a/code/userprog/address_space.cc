@@ -69,10 +69,10 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
     if (codeSize > 0) {
         uint32_t virtualAddr = exe.GetCodeAddr();
 
-        DEBUG('a', "Initializing code segment, at 0x%X, size %u\n",
-              virtualAddr, codeSize);
         int offset = 0;
         for(unsigned i = 0; i < DivRoundUp(codeSize, PAGE_SIZE); i++) {
+            DEBUG('a', "Initializing code segment, at 0x%X, size %u\n",
+                pageTable[i].physicalPage, PAGE_SIZE);
             exe.ReadCodeBlock(&mainMemory[pageTable[i].physicalPage], PAGE_SIZE, offset);
             offset += PAGE_SIZE;
         }
@@ -80,10 +80,10 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
     }
     if (initDataSize > 0) {
         uint32_t virtualAddr = exe.GetInitDataAddr();
-        DEBUG('a', "Initializing data segment, at 0x%X, size %u\n",
-              virtualAddr, initDataSize);
         int offset = 0;
         for(unsigned i = 0; i < DivRoundUp(initDataSize, PAGE_SIZE); i++) {
+            DEBUG('a', "Initializing data segment, at 0x%X, size %u\n",
+                pageTable[i].physicalPage, PAGE_SIZE);
             exe.ReadDataBlock(&mainMemory[pageTable[i].physicalPage], PAGE_SIZE, offset);
             offset += PAGE_SIZE;
         }
