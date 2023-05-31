@@ -52,6 +52,7 @@ Thread::Thread(const char *threadName, bool isJoinable, Thread *father, int theP
     _father  = father;
     priority = thePriority;
     priorityTemp = -1;
+    
 
 
 
@@ -61,8 +62,10 @@ Thread::Thread(const char *threadName, bool isJoinable, Thread *father, int theP
 #endif
 #ifdef SWAP
     const char * fileName = "SWAP."+ std::to_string(spaceId);
-    /* no estoy seguro de que esto tenga que ser acá, porque space es nullptr */
-    FileSystem::Create(fileName, space.getNumPages() * PAGE_SIZE);
+    if (Create(fileName, space.getNumPages() * PAGE_SIZE);)
+        swapFile = fileSystem->Open(fileName);
+    else
+        DEBUG('a', "Error al crear el archivo %s \n", fileName);
 #endif
 
 
@@ -145,6 +148,11 @@ void Thread::SetStatus(ThreadStatus st) {
 const char * Thread::GetName() const {
     return name;
 }
+#ifdef SWAP
+OpenFile Thread::getSwapFile() {
+    return swapFile;
+}
+#endif
 
 void Thread::Print() {
 #ifdef USER_PROGRAM

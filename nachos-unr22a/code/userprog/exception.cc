@@ -130,20 +130,44 @@ void StartProcess2(void *a) {
 /// And do not forget to increment the program counter before returning. (Or
 /// else you will loop making the same system call forever!)
 
-/* seba: genero uno aparte, de paso nos queda el Increment por fuera */
 static void PageFaultHandler(ExceptionType _et){ 
     /*1)c)*/
 
     // Tenemos que leer el registro BAD_VADDR_REG que es donde guardamos 
     // la direccion virtual que no estaba en la TLB
+    // pageTable[posToFree] la tengo que guardar en el swap
+    // y después tengo que rellenarla con vpn
     int virtAddr = machine->ReadRegister(BAD_VADDR_REG);
     unsigned vpn = (unsigned) virtAddr / PAGE_SIZE;
+
+	#ifdef DEMAND_LOADING
+    /* 
+    acá tendría que chequear que la tabla de paginación no tenga
+    pageTable.physicalPage = -1
+    si tiene -1 significa que nunca se cargó, entonces no hay que hacer swap
+    si no tiene -1, significa que hay que hacer swap
+    */
+	if (pageTable[vpn].virtualPage == -1) { // change to vpn to int?
+		currentThread->space->LoadPage(vpn);
+		pageTable[vpn].virtualPage = vpn;
+	}
+	#endif
     
     int posToFree = machine->GetMMU()->pickVictim();
 
-    // Guarda la pagina vpn en la TLB
-    TranslationEntry tE = currentThread->space->loadPage(posToFree, vpn);
-
+    
+    // buscamos la entrada que no estaba en la TLB, en la tabla de paginación
+	TranslationEntry *pageTable = currentThread->space->pageTable;
+	unsigned physicalPage;
+	for (int i = 0; i < currentThread->space->numPages; i++) {
+		if (vpn == pageTable[i].virtualPage) {
+			physicalPage = pageTable[i].physicalPage;
+			/* no soy muy partidario de los breaks, 
+            pero acá podríamos poner uno para optimizar */
+		}
+	}
+	// actualizo TLB
+    machine->GetMMU()->tlb[posToFree] = currentThread->space->loadPage(posToFree, vpn);
 }
 
 

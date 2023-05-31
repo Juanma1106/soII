@@ -161,6 +161,12 @@ public:
 
     OpenFile* getFileOpened(OpenFileId fileId);
 
+#ifdef SWAP
+OpenFile getSwapFile();
+OpenFile swapFile;
+#endif
+
+
 private:
     // Some of the private data for this class is listed above.
 
@@ -210,7 +216,6 @@ public:
 
     SpaceId spaceId;
 
-    FileSystem swapFile;
 #endif
 };
 

@@ -56,6 +56,9 @@ public:
 
     /// This bit is set by the hardware every time the page is modified.
     bool dirty;
+
+    /// bandera para indicar q está en el swap
+    bool inSwap;
 };
 
 

@@ -44,17 +44,17 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
     pageTable = new TranslationEntry[numPages];
     for (unsigned i = 0; i < numPages; i++) {
         pageTable[i].virtualPage  = i;
-        pageTable[i].physicalPage = -1; // todavía no se cargó
         pageTable[i].use          = false;
         pageTable[i].dirty        = false;
         pageTable[i].readOnly     = false;
+        pageTable[i].inSwap       = false;
 #ifdef DEMAND_LOADING
         pageTable[i].valid        = false; /*3)*/
+        pageTable[i].physicalPage = -1; // todavía no se cargó
 #else
+        pageTable[i].physicalPage = bitmap->Find();
         pageTable[i].valid        = true; 
 #endif
-          // If the code segment was entirely on a separate page, we could
-          // set its pages to be read-only.
     }
 
     // Zero out the entire address space, to zero the unitialized data
@@ -63,10 +63,9 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
     
 
 
-#ifdef DEMAND_LOADING
-    // en caso de que esté prendida esta bandera, no hay que hacer nada, 
-    // se encarga el page-fault-handler
-#else
+    // en caso de que esté prendida la bandera DEMAND_LOADING, no hay que hacer nada 
+    // porque se encarga el page-fault-handler
+#ifndef DEMAND_LOADING
     // Then, copy in the code and data segments into memory.
     uint32_t codeSize = exe.GetCodeSize();
     uint32_t initDataSize = exe.GetInitDataSize();
@@ -84,9 +83,34 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
     }
 #endif
 }
-    // !pageTable[i].valid -> loadPage(vpn)
 
-TranslationEntry AddressSpace::loadPage(int posToFree, uint32_t vpn){
+TranslationEntry AddressSpace::loadPage(int posToFree, int vpn){
+
+    int freePhysicalPage = coreMap->Find(); 
+    // asumí que Find la siguiente implementación
+    // si encuentra una página física libre, la devuelve
+    // si no hay libres, retorna -1
+    if (freePhysicalPage < 0) {
+        DEBUG('a', "No hay páginas libres\n");
+
+        // Escribe la página que hay que liberar en el swapFile de mi proceso
+        currentThread->getSwapFile()->Write(
+            &mainMemory[machine->GetMMU()->tlb[posToFree].physicalPage], PAGE_SIZE);
+
+        /* ver cómo leer */
+    } 
+    TranslationEntry *ret;
+    ret->dirty      = false;
+    ret->readOnly   = false;
+    ret->inSwap     = false;
+    ret->valid      = true;
+    ret->use        = true;
+    ret->physicalPage   = freePhysicalPage;
+    ret->virtualPage    = vpn;
+    return ret;
+    
+}
+
     // chequear si la pagina corresponde a codigo, datos o stack
     // con las funciones dentro del constructor, como GetCodeSize
     TranslationEntry *pageTable = machine->GetMMU()->pageTable;
@@ -118,8 +142,6 @@ TranslationEntry AddressSpace::loadPage(int posToFree, uint32_t vpn){
         }
     }
 
-    pageTable[posToFree].physicalPage = pageTable[vpn].physicalPage;
-    pageTable[posToFree].valid = true;
     return pageTable[posToFree];
     
 }

@@ -37,8 +37,6 @@
 
 int MMU::pickVictim(){
     unsigned int posToFree;
-    // TranslationEntry *pageTable = machine->GetMMU()->pageTable;
-    // esta declaración nos quedó sin sentido
 #ifdef PRPOLICY_FIFO
     posToFree = (toReplace++)%TLB_SIZE; 
 #else
