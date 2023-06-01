@@ -70,7 +70,11 @@ public:
 
     unsigned pid;
     
+    int *paginasUsadas;
+
     int Find();
+
+    int PickVictimLRU();
 };
 
 

@@ -34,9 +34,36 @@
 #include <stdio.h>
 
 
+void ReodenarPrioridad(int *paginasUsadas, int pos){
+    int lastValue = paginasUsadas[TLB_SIZE-1];
+    paginasUsadas[TLB_SIZE-1] = paginasUsadas[pos];
+    int temp = 0;
+    for(int j = TLB_SIZE-2; j >= pos; j--){
+        temp = paginasUsadas[j];
+        paginasUsadas[j] = lastValue;
+        lastValue = temp;
+    }
+}
 
-int MMU::pickVictim(){
+
+int MMU::pickVictim(int ingresa = -1){
     unsigned int posToFree;
+
+#ifdef PRPOLICY_LRU
+
+// devuelve -1 si la página esta dentro del array, sino devuelve el valor de página que se saco.
+    if(ingresa < 0)
+        return -2;
+
+    int temp = 0;
+    for(int i = 0; i < TLB_SIZE ; i++){
+        if(paginasUsadas[i] == ingresa){
+            ReodenarPrioridad(paginasUsadas, lastValue, i);
+            return -1
+        }
+        return paginasUsadas[0];
+    }
+#endif
 #ifdef PRPOLICY_FIFO
     posToFree = (toReplace++)%TLB_SIZE; 
 #else
@@ -69,6 +96,10 @@ MMU::MMU() {
         coreMap[i].readOnly     = false;
         coreMap[i].valid        = true; 
     }
+
+#ifdef PRPOLICY_LRU
+    paginasUsadas = new int[NUM_PHYS_PAGES];
+#endif
 
 #else  // Use linear page table.
     tlb = nullptr;
@@ -227,6 +258,11 @@ ExceptionType MMU::RetrievePageEntry(unsigned vpn, TranslationEntry **entry) {
             TranslationEntry *e = &tlb[i];
             if (e->valid && e->virtualPage == vpn) {
                 *entry = e;  // FOUND!
+                
+                #ifdef PRPOLICY_LRU
+                    ReodenarPrioridad(paginasUsadas, i);
+                #endif
+                
                 sumHit();
                 return NO_EXCEPTION;
             }
@@ -324,4 +360,7 @@ CoreMapEntry::Find()
     }
     return -1;
 }
+
+
+
 #endif
