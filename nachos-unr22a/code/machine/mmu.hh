@@ -45,6 +45,8 @@ public:
 
     ExceptionType WriteMem(unsigned addr, unsigned size, int value);
 
+
+    
     void PrintTLB() const;
 
     /// Data structures -- all of these are accessible to Nachos kernel code.
@@ -80,6 +82,12 @@ public:
                             ///< “read-only” to Nachos kernel code.
 
     TranslationEntry *pageTable;
+
+    #ifdef SWAP
+
+    CoreMapEntry *coreMap;
+
+    #endif
     
     unsigned pageTableSize;
 
@@ -94,7 +102,6 @@ public:
     double getHitRatio();
 
     int pickVictim();
-
 
 private:
 
@@ -113,6 +120,7 @@ private:
     unsigned totalCount = 0; 
     unsigned missCount = 0;
 };
+
 
 
 #endif

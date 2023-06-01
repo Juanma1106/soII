@@ -58,6 +58,18 @@ MMU::MMU() {
     unsigned toReplace = 0;
     InvalidateTLB();
     pageTable = nullptr;
+
+#elif SWAP // Plancha 4 ejercicio 4 a
+    coreMap = new TranslationEntry[NUM_PHYS_PAGES];
+    for (unsigned i = 0; i < NUM_PHYS_PAGES; i++) {
+        coreMap[i].virtualPage  = -1; // todavía no se cargó
+        coreMap[i].physicalPage = i; 
+        coreMap[i].use          = false;
+        coreMap[i].dirty        = false;
+        coreMap[i].readOnly     = false;
+        coreMap[i].valid        = true; 
+    }
+
 #else  // Use linear page table.
     tlb = nullptr;
     pageTable = nullptr;
@@ -301,3 +313,15 @@ void MMU::InvalidateTLB() {
         tlb[i].valid = false;
     }
 }
+
+#ifdef SWAP
+int 
+CoreMapEntry::Find()
+{
+    for (unsigned i = 0; i <NUM_PHYS_PAGES; i++) {
+        if(coreMap[i].vpn != -1)
+            return coreMap[i].vpn;
+    }
+    return -1;
+}
+#endif

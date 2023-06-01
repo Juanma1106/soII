@@ -62,4 +62,16 @@ public:
 };
 
 
+class CoreMapEntry {
+public:
+    unsigned virtualPage;
+
+    unsigned physicalPage;
+
+    unsigned pid;
+    
+    int Find();
+};
+
+
 #endif
