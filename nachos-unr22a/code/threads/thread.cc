@@ -62,7 +62,7 @@ Thread::Thread(const char *threadName, bool isJoinable, Thread *father, int theP
 #endif
 #ifdef SWAP
     const char * fileName = "SWAP."+ std::to_string(spaceId);
-    if (Create(fileName, space.getNumPages() * PAGE_SIZE);)
+    if (Create(fileName, space->getNumPages() * PAGE_SIZE))
         swapFile = fileSystem->Open(fileName);
     else
         DEBUG('a', "Error al crear el archivo %s \n", fileName);

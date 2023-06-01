@@ -1,0 +1,192 @@
+/*
+
+Usamos sistema de archivos para guardar información de forma persistente, consultar, modificarla y eliminarla.
+No se accede byte por byte, sino que se accede por bloques (por la complejidad que conlleva escribir)
+Un bloque, hoy en día es de 1024bytes = 1kB
+
+Un disco magnético permite muchas más reescrituras que un sólido (es por esto que no se usa swap en los celulares)
+En un disco magnético, es mejor leer en el mismo cilindro que tener que andar moviendo el cabezal.
+Las cintas se usan para BUp,por ser tan baratas y chicas en comparación con los discos.
+
+Llamamos data a los datos propios del archivo (que escribo con write y leo con read)
+La metadata se puede dividir en GestionGeneral y AsociadaAlArchivo. La AsociadaAlArchivo son los datos como:
+ - nombre
+ - permisos
+ - mapa de donde se encuentra
+ - fecha de creacion
+ - fecha de ult modificacion
+
+La GestionGeneral puede ser:
+ - información de tamaños
+ - parámetros (por ejemplo, MAX_FILE_SIZE)
+ - espacios libres (mapa de bits, tabla de huecos, lista de libres)
+
+//////////////////////////
+Distintos fileSystems
+/////////////////////////
+
+En TAR
+La cabecera (con los metadatos) ocupa 512B, al tamaño del archivo lo relleno hasta un múltiplo de 512B
+Tiene desventajas obvias:
+ - hacer crecer un archivo puede ser un infierno
+ - buscar si el nombre de un archivo está usado, me obliga a leer todos los archivos
+ - los archivos están en subbloques (512 de la primera página lo usa la metadata)
+
+
+Commodore64 
+Concentra la metadata y tiene un puntero al archivo
+El problema del archivo con nombre duplicado ya no existe,  pero el tema de la actualización sigue estando.
+El sector de cabeceras tiene un tamaño fijo y eso es un problema. Si es grande  pq es grande, si es chico puede no alcanzar.
+
+
+Qestar/MFS
+Implementa un mapa de bits para poder saber qué regiones están libres
+Implementa directory, que sería más acertado traducirlo como catálogo que como directorio.
+Por cada archivo, voy a tener información de todos los fragmentos de ese archivo (comienzo y cuántos sectores ocupa).
+Además, con el largo total puedo saber cuánto espacio libre me queda al final de todos los fragmentos utilizados.
+Todo esto es lo que se llama una DirEntry.
+
+El problema con esta distribución es que tiene una fragmentación acotada, para limitar el tamaño que tiene la tabla de dirEntries.
+Además, el bitmap "está de más" (es redundante) y eso puede traer problemillas
+
+
+MSDOS FS (FAT)
+
+Unifica la gestión de libres y la fragmentación en una tabla. FAT = File Allocation Table
+Hay 2 FATs, por si la primera queda inconsistente por algún problema (corte de luz, etc)
+
+------------------------------------------------------
+|boot  | FAT1  | FAT2 | Directorio raiz |  Datos...  |
+------------------------------------------------------
+
+La direntrie acá es parecida a la direntrie de MFS, aunque incluye extensión, atributos, etc., pero lo único que guardo es el inicio (del resto se encarga la FAT)
+Cada cluster es de 2k. Tiene 4 bloques de 512B.
+
+
+dirEntrie
+----------------------------------------------------
+| nombre  | ext  |  |  | largo  | inicio (cluster) |
+----------------------------------------------------
+
+Ejemplos:
+chico  - txt - _ - _ - 5    - 3
+grande - ppt - _ - _ - 3000 - 5
+
+Tengo un entero por cada cluster (4 bloques)
+Si tiene 0, está libre. 
+Si tiene -2, no se puede usar. 
+Si tiene -1 es el último cluster del archivo. 
+En otro caso, indica el siguiente cluster.
+
+Ver ejemplo de 8.4.1 para entender esto mejor.
+
+Los archivos se dividen en clusters, y para leer el archivo entero tengo que ver la FAT (con los enteros).
+
+
+
+
+Para crear archivo nuevo, se tiene:
+1- Crear una dirEntry y escribir el bloque que donde está el directorio raiz
+2- Actualizar las FATs
+// podemos suponer que la escritura de un bloque es atómica
+
+¿qué pasa si se corta la luz?
+
+
+Si sigo el orden 1 y despues 2.
+Si llegué a hacer 1 y no 2 por el corte, tengo en la FAT una dirección marcada como libre que en realidad está escrita. 
+Si se quiere crear otro archivo (o agrandar uno), puede llegar a usar esa dirección, entonces me quedan 2 archivos apuntando al mismo cluster.
+Se están mezclando los datos de ambos archivos, esto se llama Archivos Cruzados.
+
+
+Si primero hago 2 y dsepués 1, pero 1 no lo llego a hacer por el corte de luz, queda la FAT marcada pero el archivo no existe.
+Entoncesm cada tanto hay que hacer un chequeo del fileSystem y recorrer toda la dirEntrie, con toda la FAT, para ver efectivamente qué clusters están ocupados
+
+Las escrituras en la FAT tienen que ser instantáneas, pero las dirEntrie se pueden escribir después (incluso se pueden cachear y escribir varias a la vez)
+
+
+
+
+
+NTFS
+mantiene algunas cosas de FAT, pero es bastante más avanzado.
+La representación es compleja, incluye árboles y listas, por eso vemos FAT.  
+
+
+
+
+
+
+
+UNIX FS
+Toda la info se guarda en los que se llaman i-nodos. Menos los nombres
+Esto permite que los i-nodos tengan tamaños iguales, y eso simplifica muchas cosas.
+Ahora, la direntrie pasa a ser el par (nombre, nro de i-nodos)
+
+La fragmentación se maneja justamente con los sectores directamente.
+
+
+------------------------------------------------------------------------
+|boot  | SUPERBLOCK  | tabla de i-nodos | Directorio raiz |  Datos...  |
+------------------------------------------------------------------------
+
+En el superblock está:
+- lista de entradas de i-nodos libres 
+- mapa de bits libres
+- tamaño de la tabla de i-nodos
+
+
+una dirEntry acá es: {nombre:i-nodo}
+
+un i-nodo tiene cosas como:
+- dueño
+- grupo
+- permisos
+- fechas
+- tamaño
+- nro de links
+- bloques de este archivo:
+        - hay 8 bloques directos
+        - hay un puntero a 128 bloques más
+        - hay un puntero a 128 punteros, con 128 bloques cada uno (2 niveles de indirección 128**2)
+        - hay un ultimo puntero con un tercer nivel de indirección (128**3)
+
+
+Ante una actualización, hay que actualizar el mapa de bits, la dirEntrie y el i-nodo
+
+Para un archivo nuevo:
+1- escribir la dirEntre
+2- escribir el i-nodo
+
+Acá cuando se corta la luz, es lo mismo que antes. Es preferible perder el espacio (el i-nodo) que tener dos dirEntrie apuntando al mismo i-nodo. 
+O sea, conviene hacer 2 antes que 1, y no al reves.
+
+
+
+El número de links, normalmente está en 1 (cuenta cuantos nombres hay enlazados con este i-nodo). Son hardLinks (enlaces duros).
+Si el número está en 2, tengo 2 nombres relacionados: A y B
+Si escribo unlink A (lo que hace rm), se borra la dirEntrie y el nro de link disminuye. Cuando el nro de link llega a 0, significa que se puede borrar efectivamente (liberar los bloques, etc)
+
+Puedo tener un nro mayor cuando, por ejemplo, quiero tener la música ordenada por artista y por género.
+
+
+///
+Un enlace no duro (enlace simbólico) es un archivo con un flag especial cuyos datos son la ubicación del archivo original.
+
+ls -i muestra los i-nodos
+
+
+
+
+
+
+
+
+
+
+//////////// DIRECTORIO ///////////
+Para armar un directorio, lo que tengo que armar es un archivo de dirEntries. Hay otras formas de hacerlo, pero los SistemasOperativos actuales hacen esto. 
+Lo que va a cambiar, en cada FileSystem, es qué es una dirEntrie
+
+
+*/

@@ -91,19 +91,26 @@ TranslationEntry AddressSpace::loadPage(int posToFree, int physicalPage, int vpn
     int freePhysicalPage;
     #ifdef SWAP
     freePhysicalPage = coreMap->Find(); 
-    // asumí que Find la siguiente implementación
     // si encuentra una página física libre en memoria, la devuelve
     // si no hay libres, retorna -1
     if (freePhysicalPage < 0) {
         DEBUG('a', "No hay páginas libres\n");
         // Hay que hacer SWAP
+
+        if(!entryToFree.dirty && entryToFree.physicalPage != -1){
+        // Si está clean y la página ya fue cargada alguna vez (-1 es el valor inicial con demand)
         // Escribe la página que hay que liberar en el swapFile de mi proceso
-        if(entryToFree.dirty){
             currentThread->getSwapFile()->Write(
+                // acá tendría que asociarla de alguna manera a la vpn?
                 &mainMemory[entryToFree.physicalPage], PAGE_SIZE);
+            
+            // Ahora hay que liberar la memoria que ya escribí en el swapFile
+            // sería así?
+            &mainMemory[entryToFree.physicalPage] = &mainMemory[physicalPage];
+            freePhysicalPage = physicalPage;
         }
-        // Ahora hay que liberar la memoria
-        // &mainMemory[entryToFree.physicalPage]
+    } else {
+        DEBUG('a', "Si hay páginas libres\n");
     } 
     #endif
 

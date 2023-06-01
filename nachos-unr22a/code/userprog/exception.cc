@@ -139,34 +139,22 @@ static void PageFaultHandler(ExceptionType _et){
     // y después tengo que rellenarla con vpn
     int virtAddr = machine->ReadRegister(BAD_VADDR_REG);
     unsigned vpn = (unsigned) virtAddr / PAGE_SIZE;
-
-	#ifdef DEMAND_LOADING
-    /* 
-    acá tendría que chequear que la tabla de paginación no tenga
-    pageTable.physicalPage = -1
-    si tiene -1 significa que nunca se cargó, entonces no hay que hacer swap
-    si no tiene -1, significa que hay que hacer swap
-    */
-	#endif
     
     int posToFree = machine->GetMMU()->pickVictim();
 
 #ifdef USE_TLB
     // buscamos la entrada que no estaba en la TLB, en la tabla de paginación
 	TranslationEntry *pageTable = currentThread->space->pageTable;
-	unsigned physicalPage;
-	for (unsigned int i = 0; i < currentThread->space->getNumPages(); i++) {
+	unsigned physicalPage = -2;
+    int i = 0;
+    while(physicalPage != -2 || i < currentThread->space->getNumPages()){
 		if (vpn == pageTable[i].virtualPage){
-            // esto con demandLoading no se si sirve
 			physicalPage = pageTable[i].physicalPage; 
-			
-            /* no soy muy partidario de los breaks, 
-            pero acá podríamos poner uno para optimizar */
 		}
+        i++;
 	}
 	// actualizo TLB
-    TranslationEntry *tlb = machine->GetMMU()->tlb;
-    tlb[posToFree] = 
+    machine->GetMMU()->tlb[posToFree] = 
         currentThread->space->loadPage(posToFree, physicalPage, vpn);
 #endif
 }
