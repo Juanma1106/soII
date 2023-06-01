@@ -41,7 +41,7 @@ public:
 
     /// Initialize user-level CPU registers, before jumping to user code.
     void InitRegisters();
-    TranslationEntry loadPage(int posToFree, unsigned int vpn); 
+    TranslationEntry loadPage(int posToFree, int physicalPage, int vpn); 
 
     /// Save/restore address space-specific info on a context switch.
 

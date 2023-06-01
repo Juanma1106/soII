@@ -101,7 +101,7 @@ public:
 
     double getHitRatio();
 
-    int pickVictim(int ingresa);
+    int pickVictim();
 
 private:
 

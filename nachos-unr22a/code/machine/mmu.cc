@@ -46,12 +46,13 @@ void ReodenarPrioridad(int *paginasUsadas, int pos){
 }
 
 
-int MMU::pickVictim(int ingresa = -1){
+int MMU::pickVictim(){
     unsigned int posToFree;
 
 #ifdef PRPOLICY_LRU
 
 // devuelve -1 si la página esta dentro del array, sino devuelve el valor de página que se saco.
+    int ingresa = -1; //esto estaba en la definición del método, ¿por?
     if(ingresa < 0)
         return -2;
 
