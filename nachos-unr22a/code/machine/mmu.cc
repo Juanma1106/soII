@@ -84,16 +84,12 @@ MMU::MMU() {
     unsigned toReplace = 0;
     InvalidateTLB();
     pageTable = nullptr;
-
-#elif SWAP // Plancha 4 ejercicio 4 a
-    coreMap = new TranslationEntry[NUM_PHYS_PAGES];
+#endif
+#ifdef SWAP // Plancha 4 ejercicio 4 a
+    coreMap = new CoreMapEntry[NUM_PHYS_PAGES];
     for (unsigned i = 0; i < NUM_PHYS_PAGES; i++) {
         coreMap[i].virtualPage  = -1; // todavía no se cargó
         coreMap[i].physicalPage = i; 
-        coreMap[i].use          = false;
-        coreMap[i].dirty        = false;
-        coreMap[i].readOnly     = false;
-        coreMap[i].valid        = true; 
     }
 
 #ifdef PRPOLICY_LRU

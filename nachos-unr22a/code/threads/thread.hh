@@ -162,8 +162,8 @@ public:
     OpenFile* getFileOpened(OpenFileId fileId);
 
 #ifdef SWAP
-OpenFile getSwapFile();
-OpenFile swapFile;
+OpenFile * getSwapFile();
+OpenFile * swapFile;
 #endif
 
 
