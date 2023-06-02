@@ -219,6 +219,7 @@ FileSystem::Open(const char *name)
 
     Directory *dir = new Directory(NUM_DIR_ENTRIES);
     OpenFile  *openFile = nullptr;
+    // openFile->name = name;
 
     DEBUG('f', "Opening file %s\n", name);
     dir->FetchFrom(directoryFile);

@@ -346,12 +346,11 @@ void MMU::InvalidateTLB() {
 }
 
 #ifdef SWAP
-int 
-CoreMapEntry::Find()
-{
+int CoreMapEntry::Find() {
+    CoreMapEntry *coreMap = machine->GetMMU()->coreMap;
     for (unsigned i = 0; i <NUM_PHYS_PAGES; i++) {
-        if(coreMap[i].vpn != -1)
-            return coreMap[i].vpn;
+        if(coreMap[i].virtualPage != -1)
+            return coreMap[i].virtualPage;
     }
     return -1;
 }

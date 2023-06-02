@@ -21,6 +21,9 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
     ASSERT(executable_file != nullptr);
 
     Executable exe (executable_file);
+//    const char * name = executable_file->name;
+//    DEBUG('a', "Archivo: %s \n", executable_file->name );
+    DEBUG('a', "Archivo: %u \n", executable_file->Length() );
     ASSERT(exe.CheckMagic());
 
     // How big is address space?
@@ -98,7 +101,8 @@ TranslationEntry AddressSpace::loadPage(int posToFree, int physicalPage, int vpn
         // Hay que hacer SWAP
 
         if(!entryToFree.dirty && entryToFree.physicalPage != -1){
-        // Si está clean y la página ya fue cargada alguna vez (-1 es el valor inicial con demand)
+        // Si está clean y la página ya fue cargada alguna vez 
+        // (-1 es el valor inicial con demand loading)
         // Escribe la página que hay que liberar en el swapFile de mi proceso
             currentThread->getSwapFile()->Write(
                 // acá tendría que asociarla de alguna manera a la vpn?

@@ -93,6 +93,8 @@ public:
     /// Open a file whose header is located at `sector` on the disk.
     OpenFile(int sector);
 
+    const char * name;
+
     /// Close the file.
     ~OpenFile();
 

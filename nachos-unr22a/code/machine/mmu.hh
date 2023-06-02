@@ -83,9 +83,9 @@ public:
 
     TranslationEntry *pageTable;
 
+    CoreMapEntry *coreMap;
     #ifdef SWAP
 
-    CoreMapEntry *coreMap;
 
     #endif
     
