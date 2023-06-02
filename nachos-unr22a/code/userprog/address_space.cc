@@ -43,6 +43,7 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
 
     pageTable = new TranslationEntry[numPages];
     for (unsigned i = 0; i < numPages; i++) {
+        DEBUG('a', "Page %d to %d\n", i, pageTable[i].physicalPage);
         pageTable[i].virtualPage  = i;
         pageTable[i].use          = false;
         pageTable[i].dirty        = false;
@@ -54,13 +55,12 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
 #else
         pageTable[i].physicalPage = bitmap->Find();
         pageTable[i].valid        = true; 
+        memset(mainMemory, pageTable[i].physicalPage, PAGE_SIZE);
 #endif
     }
 
-    // Zero out the entire address space, to zero the unitialized data
-    // segment and the stack segment.
-    // memset(mainMemory, 0, size);
     
+        // Ya no podemos inicializar todas las paginas juntas.
 
 
 // en caso de que esté prendida la bandera DEMAND_LOADING, no hay que hacer nada 
@@ -165,6 +165,9 @@ TranslationEntry AddressSpace::loadPage(int posToFree, int physicalPage, int vpn
 ///
 /// Nothing for now!
 AddressSpace::~AddressSpace() {
+    for(int i = 0; i < numPages; i++) {
+        bitmap->Clear(pageTable[i].physicalPage);
+    }
     delete [] pageTable;
 }
 
