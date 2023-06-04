@@ -146,8 +146,9 @@ static void PageFaultHandler(ExceptionType _et){
     // buscamos la entrada que no estaba en la TLB, en la tabla de paginación
 	TranslationEntry *pageTable = currentThread->space->pageTable;
 	unsigned physicalPage = -2;
+    int numPages = currentThread->space->getNumPages();
     int i = 0;
-    while(physicalPage != -2 || i < currentThread->space->getNumPages()){
+    while(physicalPage != -2 || i < numPages){
 		if (vpn == pageTable[i].virtualPage){
 			physicalPage = pageTable[i].physicalPage; 
 		}

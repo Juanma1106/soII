@@ -53,6 +53,11 @@ public:
 
     unsigned getNumPages();
 
+#ifdef SWAP
+OpenFile * getSwapFile();
+OpenFile * swapFile;
+#endif
+
 private:
 
 

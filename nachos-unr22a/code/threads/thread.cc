@@ -60,14 +60,6 @@ Thread::Thread(const char *threadName, bool isJoinable, Thread *father, int theP
     space    = nullptr;
     spaceId = threads->Add(this);
 #endif
-#ifdef SWAP
-    const char * pid = std::to_string(spaceId).c_str();
-    const char * fileName = ('SWAP.'+ pid );
-    if (fileSystem->Create(fileName, space->getNumPages() * PAGE_SIZE))
-        swapFile = fileSystem->Open(fileName);
-    else
-        DEBUG('a', "Error al crear el archivo %s \n", fileName);
-#endif
 
 
 }
@@ -149,11 +141,6 @@ void Thread::SetStatus(ThreadStatus st) {
 const char * Thread::GetName() const {
     return name;
 }
-#ifdef SWAP
-OpenFile * Thread::getSwapFile() {
-    return swapFile;
-}
-#endif
 
 void Thread::Print() {
 #ifdef USER_PROGRAM

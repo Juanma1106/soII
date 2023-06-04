@@ -42,7 +42,9 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
 
     // First, set up the translation.
 
+#ifndef DEMAND_LOADING
     char *mainMemory = machine->GetMMU()->mainMemory;
+#endif
 
     pageTable = new TranslationEntry[numPages];
     for (unsigned i = 0; i < numPages; i++) {
@@ -62,8 +64,14 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
 #endif
     }
 
-    
-        // Ya no podemos inicializar todas las paginas juntas.
+#ifdef SWAP
+    const char * pid = std::to_string(currentThread->spaceId).c_str();
+    const char * fileName = 'SWAP.'+ pid ;
+    if (fileSystem->Create(fileName, currentThread->space->getNumPages() * PAGE_SIZE))
+        swapFile = fileSystem->Open(fileName);
+    else
+        DEBUG('a', "Error al crear el archivo %s \n", fileName);
+#endif
 
 
 // en caso de que esté prendida la bandera DEMAND_LOADING, no hay que hacer nada 
@@ -92,6 +100,8 @@ TranslationEntry AddressSpace::loadPage(int posToFree, int physicalPage, int vpn
 
     TranslationEntry entryToFree = machine->GetMMU()->tlb[posToFree];
     int freePhysicalPage;
+    int physicalAddr = physicalPage * PAGE_SIZE;
+    int virtualAddr = vpn * PAGE_SIZE;
     #ifdef SWAP
     freePhysicalPage = coreMap->Find(); 
     // si encuentra una página física libre en memoria, la devuelve
@@ -104,18 +114,50 @@ TranslationEntry AddressSpace::loadPage(int posToFree, int physicalPage, int vpn
         // Si está clean y la página ya fue cargada alguna vez 
         // (-1 es el valor inicial con demand loading)
         // Escribe la página que hay que liberar en el swapFile de mi proceso
-            currentThread->getSwapFile()->Write(
-                // acá tendría que asociarla de alguna manera a la vpn?
-                &mainMemory[entryToFree.physicalPage], PAGE_SIZE);
+            
+            int addrToWrite = entryToFree.vpn * PAGE_SIZE;
+            // voy a escribir en el bloque vpn del archivo
+            int whatToWrite = entryToFree.physicalPage * PAGE_SIZE;
+            // voy a escribir el bloque que voy a liberar
+            currentThread->getSwapFile()->WriteAt(
+                &mainMemory[whatToWrite], PAGE_SIZE, addrToWrite
+                );
             
             // Ahora hay que liberar la memoria que ya escribí en el swapFile
             // sería así?
-            &mainMemory[entryToFree.physicalPage] = &mainMemory[physicalPage];
+            // &mainMemory[entryToFree.physicalPage] = &mainMemory[physicalPage];
             freePhysicalPage = physicalPage;
         }
     } else {
         DEBUG('a', "Si hay páginas libres\n");
     } 
+    //swapFile->ReadAt(&mainMemory[physicalAddr], PAGE_SIZE, vpn * PAGE_SIZE);
+    #endif
+    #ifdef DEMAND_LOADING
+    // chequear si la pagina corresponde a codigo, datos o stack
+    // con las funciones dentro del constructor, como GetCodeSize
+    Executable exe (executable_file);
+    
+    uint32_t codeSize = exe.GetCodeSize();
+    uint32_t initDataSize = exe.GetInitDataSize();
+
+    if (virtualAddr > codeSize+initDataSize) { 
+        // es stack
+        memset(mainMemory[physicalAddr] , 0, PAGE_SIZE)
+    } else if(virtualAddr < codeSize){
+        // es codigo
+        if (codeSize > 0) {
+            // entiendo que acá hay que leer una página
+            // y meterla en nuevaPagFreeMap 
+            // exe.ReadCodeBlock(&mainMemory[virtualAddr], PAGE_SIZE, 0); 
+            exe.ReadCodeBlock(&mainMemory[freePhysicalPage], PAGE_SIZE, 0); 
+        } 
+    } else if(virtualAddr < codeSize+initDataSize){
+            // es dato
+            if (initDataSize > 0) {
+                exe.ReadDataBlock(&mainMemory[freePhysicalPage], PAGE_SIZE, 0);
+            }
+    }
     #endif
 
     TranslationEntry ret;
@@ -130,38 +172,6 @@ TranslationEntry AddressSpace::loadPage(int posToFree, int physicalPage, int vpn
     
 }
 #endif
-/*
-    // chequear si la pagina corresponde a codigo, datos o stack
-    // con las funciones dentro del constructor, como GetCodeSize
-    TranslationEntry *pageTable = machine->GetMMU()->pageTable;
-    Executable exe (executable_file);
-    
-    uint32_t codeSize = exe.GetCodeSize();
-    uint32_t initDataSize = exe.GetInitDataSize();
-
-    if (vpn*PAGE_SIZE > codeSize+initDataSize) { 
-        // es stack
-        // memset(mainMemory[pageTable[posToFree].physicalPage] , 0, PAGE_SIZE)
-    } else if(vpn*PAGE_SIZE < codeSize){
-        // es codigo
-        if (codeSize > 0) { // ¿hace falta esto?
-            uint32_t virtualAddr = exe.GetCodeAddr(); // ¿hace falta esto?
-            DEBUG('a', "Initializing code segment, at 0x%X, size %u\n", virtualAddr, PAGE_SIZE);
-            // entiendo que acá hay que leer una página
-            // y meterla en nuevaPagFreeMap 
-            // exe.ReadCodeBlock(&mainMemory[virtualAddr], PAGE_SIZE, 0); 
-            exe.ReadCodeBlock(&mainMemory[pageTable[posToFree].physicalPage], PAGE_SIZE, 0); 
-        } else if(vpn*PAGE_SIZE < codeSize+initDataSize){
-            // es dato
-            if (initDataSize > 0) {
-                uint32_t virtualAddr = exe.GetInitDataAddr();
-                DEBUG('a', "Initializing data segment, at 0x%X, size %u\n",
-                    virtualAddr, PAGE_SIZE);
-                exe.ReadDataBlock(&mainMemory[nuevaPagFreeMap], PAGE_SIZE, 0);
-            }
-        }
-    }
-*/
   
 
 
@@ -227,3 +237,9 @@ void AddressSpace::RestoreState() {
 unsigned  AddressSpace::getNumPages() {
     return numPages;
 }
+
+#ifdef SWAP
+OpenFile * AddressSpace::getSwapFile() {
+    return swapFile;
+}
+#endif
