@@ -1,0 +1,34 @@
+-f (format) para que genere el ./DISK
+
+hd DISK para verlo con un editor hexadec.
+./nachos -ls te muestra los archivos del directorio con el mismo nachos
+./nachos -pr escribe el contenido del archivo.
+./nachos -D hace un volcado del disco 
+
+RawFileHeader es el i-node
+En file_header está la clase que utiliza esta estructura. Un fileheader usa un sector del disco.
+no va a tener link simbolicos, ni duros. Un i-node en Nachos va a tener lo que hay en RawFileHeader, es decir, el tamaño, el número de sectores y el array de bloques directos,
+
+El i-nodo 10 se refiere al sector 10 del disco.
+
+En directory_entry está la estructura de las direntries. inUse indica si la entrada está libre o no.
+
+También existe rawDirectory y directory.
+
+Antes el OpenFile read o write, usaba el sistema  de archivos de UNIX. Ahora, cuando compilemos en el filesys, se va a usar esa implementación.
+
+En el sector 0 está el fileHeader para el bitmap
+En el sector 1 está el fileHeader para el directorio
+Es por esto que puedo acceder al bitmap (o las direntries)
+Como no tiene nombre, no figura en el directorio, y entonces no puede accederlo el user.
+En la demo que hace Esteban (no se si es la realidad de siempre), en el sector 2 tiene el bloque del bitmap. Y en el bloque 3 y 4 tiene el directorio (las dir-entries)
+Esto lo ve con ./nachos -D | less
+Con hd vemos que tiene los primeros 4 bloques ocupados con el número mágico y después dice 80, es decir, 1000.0000, que es 128. Después marca la cantidad de sectores del bitmap (01 00 00 00), o sea 1.
+
+
+En threads/main hay una listita con todos los comandos del filesys
+-d f es el debug para filesystem
+
+
+
+
