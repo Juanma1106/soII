@@ -53,6 +53,9 @@ public:
 
     unsigned getNumPages();
 
+    unsigned getPositionToReplace();
+
+
 #ifdef SWAP
 OpenFile * getSwapFile();
 OpenFile * swapFile;

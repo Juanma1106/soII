@@ -140,11 +140,15 @@ static void PageFaultHandler(ExceptionType _et){
     int virtAddr = machine->ReadRegister(BAD_VADDR_REG);
     unsigned vpn = (unsigned) virtAddr / PAGE_SIZE;
     
-    int posToFree = machine->GetMMU()->pickVictim();
+    int posToFree = currentThread->space->getPositionToReplace();
 
 #ifdef USE_TLB
     // buscamos la entrada que no estaba en la TLB, en la tabla de paginación
 	TranslationEntry *pageTable = currentThread->space->pageTable;
+    // Como la pagetable está ordenada, sólo tenemos que hacer esto.
+    physicalPage = pageTable[vpn].physicalPage;
+
+/* ESTO NO VA MÁS
 	unsigned physicalPage = -2;
     int numPages = currentThread->space->getNumPages();
     int i = 0;
@@ -154,6 +158,8 @@ static void PageFaultHandler(ExceptionType _et){
 		}
         i++;
 	}
+
+*/
 	// actualizo TLB
     machine->GetMMU()->tlb[posToFree] = 
         currentThread->space->loadPage(posToFree, physicalPage, vpn);

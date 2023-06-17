@@ -55,7 +55,7 @@ int MMU::pickVictim(){
         return -2;
 
     int temp = 0;
-    for(int i = 0; i < TLB_SIZE ; i++){
+    for(int i = 0; i < currentThread->space->getNumPages() ; i++){
         if(paginasUsadas[i] == ingresa){
             ReodenarPrioridad(paginasUsadas, lastValue, i);
             return -1

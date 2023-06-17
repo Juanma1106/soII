@@ -173,6 +173,9 @@ TranslationEntry AddressSpace::loadPage(int posToFree, int physicalPage, int vpn
 }
 #endif
   
+unsigned AddressSpace::getPositionToReplace(){
+    return (toReplace++)%TLB_SIZE;
+}
 
 
 /// Deallocate an address space.
@@ -243,3 +246,4 @@ OpenFile * AddressSpace::getSwapFile() {
     return swapFile;
 }
 #endif
+
