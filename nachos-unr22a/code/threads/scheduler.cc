@@ -38,16 +38,32 @@ Scheduler::~Scheduler() {
     
 }
 
-List<Thread *>* Scheduler::findMaxPriority() {
+void Scheduler::removeFromPriorityList(Thread *t, int priority){
+    (&readyLists[priority])->Remove(t);
+}
+
+void Scheduler::addToPriorityList(Thread *t, int priority){
+    (&readyLists[priority])->Append(t);
+}
+
+/*
+Thread * Scheduler::findMaxPriority() {
+    
+    La solución para buscar el siguiente hilo a ejecutar es engorrosa, 
+    simplemente podrían hacer lo de findMaxPriority() dentro de FindNextToRun() 
+    y en vez de devolver una lista vacía
+    cuando no hay ningún thread a ejecutar ya obtienen el puntero nulo directamente.
+    
     for(int i = PRIORITY_SIZE-1; i >= 0; i--) {
         List<Thread *> *myList = &readyLists[i];
         if(!myList->IsEmpty()) {
-            return myList;
+            return myList->Pop();
         }
     }
-    // Si no tenemos ningun hilo listo para ejecutar, devolvemos una lista vacia
-    return new List<Thread *>;
+    // Si no tenemos ningun hilo listo para ejecutar, devolvemos un puntero nulo
+    return nullptr;
 }
+*/
 
 /// Mark a thread as ready, but not running.
 /// Put it on the ready list, for later scheduling onto the CPU.
@@ -72,7 +88,20 @@ void Scheduler::ReadyToRun(Thread *thread) {
 Thread *
 Scheduler::FindNextToRun()
 {
-    return findMaxPriority()->Pop();
+    /*
+    La solución para buscar el siguiente hilo a ejecutar es engorrosa, 
+    simplemente podrían hacer lo de findMaxPriority() dentro de FindNextToRun() 
+    y en vez de devolver una lista vacía
+    cuando no hay ningún thread a ejecutar ya obtienen el puntero nulo directamente.
+    */
+    for(int i = PRIORITY_SIZE-1; i >= 0; i--) {
+        List<Thread *> *myList = &readyLists[i];
+        if(!myList->IsEmpty()) {
+            return myList->Pop();
+        }
+    }
+    // Si no tenemos ningun hilo listo para ejecutar, devolvemos un puntero nulo
+    return nullptr;
 }
 
 /// Dispatch the CPU to `nextThread`.

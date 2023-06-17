@@ -1,0 +1,30 @@
+Hola, les dejo las correcciones de su entrega:
+
+Ej 1:
+Lock está bien.
+El comportamiento de variables de condición es incorrecto, en el estilo Mesa de variable de condición todas las operaciones deben ser realizadas después de adquirir el lock que tienen declarado como cl, no dentro de ellas.
+En Wait el proceso debe soltar el lock, esperar a una señal que lo despierte y tomar el lock de nuevo antes de salir.
+Signal y Broadcast están bien pero no deben tomar y soltar el lock, solo deben verificar que el thread que llame a estas funciones ya lo posea.
+Este comportamiento está especificado en el archivo condition.hh
+
+Ej 2:
+En el test de consumidores y productores:
+El uso de variables de condición y locks para proteger la región crítica y para señalizar si el buffer se llenó o se vació es incorrecto.
+
+Ej 3:
+Perfecto
+
+Ej 4:
+Guardar la información de cuál es el thread padre es innecesario.
+De forma opcional, también podrían hacer que Finish reciba como argumento el código de salida del thread, así no es siempre 5 y Join pueda retornar este valor. Con una búsqueda rápida de Finish() y ThreadFinish() pueden encontrar cómo funciona.
+Después está bien, cumple con la idea de bloquear al hilo llamante hasta que el thread "joineado" termine.
+
+
+Ej 5:
+Punto a) La solución para buscar el siguiente hilo a ejecutar es engorrosa, simplemente podrían hacer lo de findMaxPriority() dentro de FindNextToRun() y en vez de devolver una lista vacía cuando no hay ningún thread a ejecutar ya obtienen el puntero nulo directamente.
+
+Punto b) La solución al problema de inversión de prioridades está mal, modifican el valor numérico de la prioridad dentro de la estructura del thread, pero en el scheduler sigue estando en la misma cola de prioridad y la solución no es efectiva, tienen que sacar al thread de la cola de menor prioridad y ubicarlo en la cola de mayor prioridad. También tienen que tener en cuenta de restaurar la prioridad original una vez que el thread de menor prioridad suelte el lock.
+
+Pueden corregir en una reentrega, me avisan y actualizo la nota
+Como comentario aparte: ¿Pueden actualizar en el svn la carpeta de entrega de esta plancha para asegurarse de que coincida con el zip adjunto?  Así queda bien registrado, casi se me pasa de largo y lo ví al subir las correcciones.
+También: en la entrega de la plancha 3 les quedó mal copiado el código, este quedó dentro del directorio plancha3 y también está el directorio plancha3/code
