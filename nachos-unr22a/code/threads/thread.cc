@@ -149,6 +149,8 @@ void Thread::Print() const {
 ///
 /// NOTE: we disable interrupts, so that we do not get a time slice between
 /// setting `threadToBeDestroyed`, and going to sleep.
+
+// returnValue: nos indica el valor de retorno del thread (un 0 indica una salida normal)
 void Thread::Finish(int returnValue) {
     interrupt->SetLevel(INT_OFF);
     ASSERT(this == currentThread);
@@ -156,7 +158,7 @@ void Thread::Finish(int returnValue) {
     DEBUG('t', "Finishing thread \"%s\"\n", GetName());
 
     if(joinable) {
-        channel->Send(returnValue); // envia un numero al azar, solo para recibirlo
+        channel->Send(returnValue);
     }
 
     threadToBeDestroyed = currentThread;
@@ -224,7 +226,7 @@ void Thread::Sleep() {
     scheduler->Run(nextThread);  // Returns when we have been signalled.
 }
 
-void Thread::Join() {
+int Thread::Join() {
 /*
 Guardar la información de cuál es el thread padre es innecesario.
 De forma opcional, también podrían hacer que Finish reciba como argumento 
@@ -236,10 +238,10 @@ el thread "joineado" termine.
 
     ASSERT(joinable);
     //semaphore->P();
-    int message;
-    channel->Receive(&message);
+    int returnValue;
+    channel->Receive(&returnValue);
     //DEBUG('t', "message \"%d\"\n", message);
-
+    return returnValue;
 }
 
 int Thread::getPriority() {

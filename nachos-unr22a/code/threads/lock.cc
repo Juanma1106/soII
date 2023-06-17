@@ -34,42 +34,32 @@ const char * Lock::GetName() const {
 }
 
 void Lock::Acquire() {
-    DEBUG('s', "*** Thread `%s` acquired %s\n", currentThread->GetName(), GetName());
     ASSERT(!IsHeldByCurrentThread()) ;
     if(lockerThread != nullptr) {
         int priorityLockerThread = lockerThread->getPriority();
         int priorityCurrentThread = currentThread->getPriority();
         if(priorityCurrentThread > priorityLockerThread) {
-            /*
-            La solución al problema de inversión de prioridades está mal, 
-            modifican el valor numérico de la prioridad dentro de la estructura del thread, 
-            pero en el scheduler sigue estando en la misma cola de prioridad y 
-            la solución no es efectiva, tienen que sacar al thread de la cola de menor 
-            prioridad y ubicarlo en la cola de mayor prioridad. 
-            También tienen que tener en cuenta de restaurar la prioridad original una vez 
-            que el thread de menor prioridad suelte el lock.
-            */
             lockerThread->setPriorityTemp(priorityCurrentThread);
-            // tienen que sacar al thread de la cola de menor 
-            // prioridad y ubicarlo en la cola de mayor prioridad
-            scheduler->removeFromPriorityList(lockerThread, priorityLockerThread);
-            scheduler->addToPriorityList(lockerThread, priorityCurrentThread);
-
+            if(scheduler->isReady(lockerThread, priorityLockerThread)) {
+                scheduler->removeFromPriorityList(lockerThread, priorityLockerThread);
+                scheduler->addToPriorityList(lockerThread, priorityCurrentThread);
+            }
         }
     }
     s->P();
+    DEBUG('s', "*** Thread `%s` acquired %s\n", currentThread->GetName(), GetName());
     lockerThread = currentThread;
 }
 
 
+
 void Lock::Release() {
-    DEBUG('s', "*** Thread `%s` released %s\n", currentThread->GetName(), GetName());
     ASSERT(IsHeldByCurrentThread()) ;
     if(lockerThread->getPriorityTemp() != -1) {
-        // También tienen que tener en cuenta de restaurar la prioridad original una vez 
-        // que el thread de menor prioridad suelte el lock 
         int priorityTemp = lockerThread->getPriorityTemp(); // original del thread
         int priority     = lockerThread->getPriority();     // modificada por inversion
+        // No hace falta chequear si el hilo está ready, ya que lockerThread es currentThread
+        // y por lo tanto está ejecutando (es decir está ready)
         scheduler->removeFromPriorityList(lockerThread, priority);
         scheduler->addToPriorityList(lockerThread, priorityTemp);
         lockerThread->setPriority(priorityTemp);
@@ -77,6 +67,7 @@ void Lock::Release() {
     }
     lockerThread = nullptr;
     s->V();
+    DEBUG('s', "*** Thread `%s` released %s\n", currentThread->GetName(), GetName());
 }
 
 bool Lock::IsHeldByCurrentThread() const {

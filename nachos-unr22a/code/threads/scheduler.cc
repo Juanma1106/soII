@@ -33,9 +33,13 @@ Scheduler::Scheduler() {
 /// De-allocate the list of ready threads.
 Scheduler::~Scheduler() {
     for(int i = 0; i < PRIORITY_SIZE; i++) {
-        delete &readyLists[i];
+        (&readyLists[i])->~List();
     }
     
+}
+
+bool Scheduler::isReady(Thread *t, int priority) {
+    return (&readyLists[priority])->Has(t);
 }
 
 void Scheduler::removeFromPriorityList(Thread *t, int priority){
@@ -45,25 +49,6 @@ void Scheduler::removeFromPriorityList(Thread *t, int priority){
 void Scheduler::addToPriorityList(Thread *t, int priority){
     (&readyLists[priority])->Append(t);
 }
-
-/*
-Thread * Scheduler::findMaxPriority() {
-    
-    La solución para buscar el siguiente hilo a ejecutar es engorrosa, 
-    simplemente podrían hacer lo de findMaxPriority() dentro de FindNextToRun() 
-    y en vez de devolver una lista vacía
-    cuando no hay ningún thread a ejecutar ya obtienen el puntero nulo directamente.
-    
-    for(int i = PRIORITY_SIZE-1; i >= 0; i--) {
-        List<Thread *> *myList = &readyLists[i];
-        if(!myList->IsEmpty()) {
-            return myList->Pop();
-        }
-    }
-    // Si no tenemos ningun hilo listo para ejecutar, devolvemos un puntero nulo
-    return nullptr;
-}
-*/
 
 /// Mark a thread as ready, but not running.
 /// Put it on the ready list, for later scheduling onto the CPU.
@@ -85,22 +70,13 @@ void Scheduler::ReadyToRun(Thread *thread) {
 /// If there are no ready threads, return null.
 ///
 /// Side effect: thread is removed from the ready list.
-Thread *
-Scheduler::FindNextToRun()
-{
-    /*
-    La solución para buscar el siguiente hilo a ejecutar es engorrosa, 
-    simplemente podrían hacer lo de findMaxPriority() dentro de FindNextToRun() 
-    y en vez de devolver una lista vacía
-    cuando no hay ningún thread a ejecutar ya obtienen el puntero nulo directamente.
-    */
+Thread * Scheduler::FindNextToRun() {
     for(int i = PRIORITY_SIZE-1; i >= 0; i--) {
         List<Thread *> *myList = &readyLists[i];
         if(!myList->IsEmpty()) {
             return myList->Pop();
         }
     }
-    // Si no tenemos ningun hilo listo para ejecutar, devolvemos un puntero nulo
     return nullptr;
 }
 

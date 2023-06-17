@@ -123,7 +123,7 @@ public:
     void Sleep();
 
     // Main thread wait child finisih before continue.
-    void Join();
+    int Join();
 
     /// The thread is done executing.
     void Finish(int returnValue);

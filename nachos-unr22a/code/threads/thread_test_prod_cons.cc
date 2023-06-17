@@ -10,8 +10,6 @@
 static Lock *lockForCondition;
 static Condition *condConsumer;
 static Condition *condProducer;
-//static Lock *lockProducer;
-//static Lock *lockConsumer;
 static int itemCount = 0;
 static const int NUM_PRODUCER = 3;
 static const int NUM_CONSUMER = 3;
@@ -21,25 +19,22 @@ static int done = 0;
 El uso de variables de condición y locks para proteger la región crítica y 
 para señalizar si el buffer se llenó o se vació es incorrecto.
 */
-const int BUFFER_SIZE = 20;
+const int BUFFER_SIZE = 3;
 
 void producer(char *name) {
 	int iterations = 10;
 	for(int i = 0; i < iterations; i++) {
 		lockForCondition->Acquire();
-		if (itemCount == BUFFER_SIZE) {
-	    	DEBUG('s', "*** Thread `%s` is waiting to produce\n", name);
-	    	// Con esto explota, porque puede ejecutarse un Signal antes de que este thread esté escuchando
-	    	// currentThread->Yield();
-	        condProducer->Wait();
-	    }
+		while(itemCount == BUFFER_SIZE) {
+			DEBUG('s', "*** Thread `%s` is waiting to produce\n", name);
+			condProducer->Wait();
+		}
 		// produceItem
 		itemCount++;
-		DEBUG('s', "*** Thread `%s` send signal. ItemCount > 0\n",name);
+		DEBUG('s', "*** Thread `%s`. Items Count %d. Iterations pending %d\n", name, itemCount, iterations - i - 1);
 	    condConsumer->Signal();
-	   	DEBUG('s', "*** Items Count %d. Iterations pending %d\n", itemCount, iterations - i - 1);
+	   	DEBUG('s', "*** Thread `%s` send signal. ItemCount > 0\n",name);
 		lockForCondition->Release();
-	    // currentThread->Yield();
 	}
 	DEBUG('s', "*** Thread `%s` finish\n", name);
 	done++;
@@ -49,19 +44,16 @@ void consumer(char *name) {
 	int iterations = 10;
 	for(int i = 0; i < iterations; i++) {
 		lockForCondition->Acquire();
-	    if (itemCount == 0) {
+	    while (itemCount == 0) {
 	    	DEBUG('s', "*** Thread `%s` is waiting to consume\n",name);
-	    	// Con esto explota, porque puede ejecutarse un Signal antes de que este thread esté escuchando
-	    	// currentThread->Yield();
 	        condConsumer->Wait();
 	    }
 		// consumeItem
 		itemCount--;
-		DEBUG('s', "*** Thread `%s` send signal. ItemCount < BUFFER_SIZE\n", name);
+		DEBUG('s', "*** Thread `%s`. Items Count %d. Iterations pending %d\n", name, itemCount, iterations - i - 1);
 	    condProducer->Signal();
-		DEBUG('s', "*** Items Count %d. Iterations pending %d\n", itemCount, iterations - i - 1);
+		DEBUG('s', "*** Thread `%s` send signal. ItemCount < BUFFER_SIZE\n", name);
 		lockForCondition->Release();
-		// currentThread->Yield();
 	}
 	DEBUG('s', "*** Thread `%s` finish\n", name);
 	done++;
@@ -107,7 +99,6 @@ void ThreadTestProdCons() {
 
 
 	// free memory
-	// Los destruye el condition
 	lockForCondition->~Lock();
 	condConsumer->~Condition();
 	condProducer->~Condition();

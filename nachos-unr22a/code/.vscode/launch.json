@@ -7,7 +7,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/threads/nachos",
-            "args": ["-tt", "-rs", "-d", "s"],
+            "args": ["-tt", "-rs", "0", "-d", "s"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/threads",
             "environment": [],
