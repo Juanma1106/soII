@@ -14,7 +14,6 @@ static int itemCount = 0;
 static const int NUM_PRODUCER = 3;
 static const int NUM_CONSUMER = 3;
 static int done = 0;
-
 const int BUFFER_SIZE = 3;
 
 void producer(char *name) {

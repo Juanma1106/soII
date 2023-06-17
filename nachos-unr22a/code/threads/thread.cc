@@ -250,7 +250,6 @@ void Thread::Sleep() {
 
 int Thread::Join() {
     ASSERT(joinable);
-    //semaphore->P();
     int returnValue;
     channel->Receive(&returnValue);
     //DEBUG('t', "message \"%d\"\n", message);
