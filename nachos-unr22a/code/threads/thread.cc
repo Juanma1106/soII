@@ -288,7 +288,7 @@ void Thread::setPriorityTemp(int p) {
 /// function.  So in order to do this, we create a dummy C function (which we
 /// can pass a pointer to), that then simply calls the member function.
 static void ThreadFinish() {
-    currentThread->Finish(FINISHED);
+    currentThread->Finish(0);
 }
 
 static void InterruptEnable() {

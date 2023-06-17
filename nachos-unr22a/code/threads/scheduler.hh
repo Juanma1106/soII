@@ -31,9 +31,6 @@ public:
     /// Thread can be dispatched.
     void ReadyToRun(Thread *thread);
 
-    /// Return a non empty queue with highest priority
-    List<Thread *>* findMaxPriority();
-
     /// Dequeue first thread on the ready list, if any, and return thread.
     Thread *FindNextToRun();
 
