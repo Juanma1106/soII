@@ -227,17 +227,7 @@ void Thread::Sleep() {
 }
 
 int Thread::Join() {
-/*
-Guardar la información de cuál es el thread padre es innecesario.
-De forma opcional, también podrían hacer que Finish reciba como argumento 
-el código de salida del thread, así no es siempre 5 y Join pueda retornar este valor. 
-Con una búsqueda rápida de Finish() y ThreadFinish() pueden encontrar cómo funciona.
-Después está bien, cumple con la idea de bloquear al hilo llamante hasta que 
-el thread "joineado" termine.
-*/
-
     ASSERT(joinable);
-    //semaphore->P();
     int returnValue;
     channel->Receive(&returnValue);
     //DEBUG('t', "message \"%d\"\n", message);
