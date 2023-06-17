@@ -55,7 +55,6 @@ Condition::Wait()
     cl->Release();
     sem->P();
     */
-    ASSERT(!IsHeldByCurrentThread()) ;
     cl->Release();
     countWaiters++;
     sem->P();
@@ -70,7 +69,7 @@ Condition::Signal()
     Signal y Broadcast están bien pero no deben tomar y soltar el lock, 
     solo deben verificar que el thread que llame a estas funciones ya lo posea
     */
-    ASSERT(!IsHeldByCurrentThread()) ;
+    ASSERT(cl->IsHeldByCurrentThread()) ;
     if(countWaiters > 0) {
 		sem->V();
 		countWaiters--;
@@ -89,7 +88,7 @@ Condition::Broadcast()
 	}
     cl->Release();
     */
-    ASSERT(!IsHeldByCurrentThread());
+    ASSERT(cl->IsHeldByCurrentThread());
     while(countWaiters > 0) {
         sem->V();
 		countWaiters--;

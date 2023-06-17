@@ -58,7 +58,7 @@ private:
     /// For debugging.
     const char *name;
     Semaphore *s;
-    Thread *myThread;
+    Thread *lockerThread;
 
     // Add other needed fields here.
 };
