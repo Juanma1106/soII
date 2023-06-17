@@ -24,23 +24,18 @@
 /// Note -- without a correct implementation of `Condition::Wait`, the test
 /// case in the network assignment will not work!
 
-Condition::Condition(const char *debugName, Lock *conditionLock)
-{
+Condition::Condition(const char *debugName, Lock *conditionLock) {
     name = debugName;
     cl = conditionLock;
     sem = new Semaphore(debugName, 0);
     countWaiters = 0;
 }
 
-Condition::~Condition()
-{
-    cl->~Lock();
+Condition::~Condition() {
     sem->~Semaphore();
 }
 
-const char *
-Condition::GetName() const
-{
+const char * Condition::GetName() const {
     return name;
 }
 
