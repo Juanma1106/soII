@@ -24,29 +24,22 @@
 /// Note -- without a correct implementation of `Condition::Wait`, the test
 /// case in the network assignment will not work!
 
-Condition::Condition(const char *debugName, Lock *conditionLock)
-{
+Condition::Condition(const char *debugName, Lock *conditionLock) {
     name = debugName;
     cl = conditionLock;
     sem = new Semaphore(debugName, 0);
     countWaiters = 0;
 }
 
-Condition::~Condition()
-{
-    cl->~Lock();
+Condition::~Condition() {
     sem->~Semaphore();
 }
 
-const char *
-Condition::GetName() const
-{
+const char * Condition::GetName() const {
     return name;
 }
 
-void
-Condition::Wait()
-{
+void Condition::Wait() {
     /*
     En Wait el proceso debe soltar el lock, esperar a una señal que lo despierte y 
     tomar el lock de nuevo antes de salir.
@@ -62,9 +55,7 @@ Condition::Wait()
 
 }
 
-void
-Condition::Signal()
-{
+void Condition::Signal() {
     /*
     Signal y Broadcast están bien pero no deben tomar y soltar el lock, 
     solo deben verificar que el thread que llame a estas funciones ya lo posea
@@ -76,9 +67,7 @@ Condition::Signal()
 	}
 }
 
-void
-Condition::Broadcast()
-{
+void Condition::Broadcast() {
     /* Signal y Broadcast están bien pero no deben tomar y soltar el lock, 
     solo deben verificar que el thread que llame a estas funciones ya lo posea
     cl->Acquire();

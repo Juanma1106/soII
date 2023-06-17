@@ -1,0 +1,19 @@
+{
+    "configurations": [
+        
+
+        {
+            "name": "Nachos debugging",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/threads/nachos",
+            "args": ["-tt", "-rs", "-d", "s"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/threads",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb"
+        }
+    ],
+    "version": "2.0.0"
+}

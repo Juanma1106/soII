@@ -34,6 +34,7 @@ const char * Lock::GetName() const {
 }
 
 void Lock::Acquire() {
+    DEBUG('s', "*** Thread `%s` acquired %s\n", currentThread->GetName(), GetName());
     ASSERT(!IsHeldByCurrentThread()) ;
     if(lockerThread != nullptr) {
         int priorityLockerThread = lockerThread->getPriority();
@@ -62,6 +63,7 @@ void Lock::Acquire() {
 
 
 void Lock::Release() {
+    DEBUG('s', "*** Thread `%s` released %s\n", currentThread->GetName(), GetName());
     ASSERT(IsHeldByCurrentThread()) ;
     if(lockerThread->getPriorityTemp() != -1) {
         // También tienen que tener en cuenta de restaurar la prioridad original una vez 
