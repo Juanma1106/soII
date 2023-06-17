@@ -18,6 +18,10 @@ static const int NUM_PRODUCER = 3;
 static const int NUM_CONSUMER = 3;
 static int done = 0;
 
+/*
+El uso de variables de condición y locks para proteger la región crítica y 
+para señalizar si el buffer se llenó o se vació es incorrecto.
+*/
 const int BUFFER_SIZE = 20;
 
 void producer(char *name) {

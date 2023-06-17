@@ -47,30 +47,53 @@ Condition::GetName() const
 void
 Condition::Wait()
 {
+    /*
+    En Wait el proceso debe soltar el lock, esperar a una señal que lo despierte y 
+    tomar el lock de nuevo antes de salir.
     cl->Acquire();
     countWaiters++;
     cl->Release();
     sem->P();
+    */
+    ASSERT(!IsHeldByCurrentThread()) ;
+    cl->Release();
+    countWaiters++;
+    sem->P();
+    cl->Acquire();
+
 }
 
 void
 Condition::Signal()
 {
-    cl->Acquire();
+    /*
+    Signal y Broadcast están bien pero no deben tomar y soltar el lock, 
+    solo deben verificar que el thread que llame a estas funciones ya lo posea
+    */
+    ASSERT(!IsHeldByCurrentThread()) ;
     if(countWaiters > 0) {
 		sem->V();
 		countWaiters--;
 	}
-    cl->Release();
 }
 
 void
 Condition::Broadcast()
 {
+    /* Signal y Broadcast están bien pero no deben tomar y soltar el lock, 
+    solo deben verificar que el thread que llame a estas funciones ya lo posea
     cl->Acquire();
     while(countWaiters > 0) {
 		sem->V();
 		countWaiters--;
 	}
     cl->Release();
+    */
+    ASSERT(!IsHeldByCurrentThread());
+    while(countWaiters > 0) {
+        sem->V();
+		countWaiters--;
+	}
+
+
 }

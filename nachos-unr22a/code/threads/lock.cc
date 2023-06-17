@@ -34,34 +34,46 @@ const char * Lock::GetName() const {
 }
 
 void Lock::Acquire() {
-
-    // if(myThread != nullptr) {
-    //     DEBUG('v', "Thread %s wants to acquired lock. Lock %s is acquired by %s\n", currentThread->GetName(), GetName(), myThread->GetName());
-    // } else {
-    //     DEBUG('v', "Thread %s wants to acquired lock. Lock %s is free\n", currentThread->GetName(), GetName());
-    // }
-    
-
     ASSERT(!IsHeldByCurrentThread()) ;
     if(myThread != nullptr) {
-        int priorityTheadLocked = myThread->getPriority();
+        int priorityThreadLocked = myThread->getPriority();
         int priorityCurrentThread = currentThread->getPriority();
-        if(priorityCurrentThread > priorityTheadLocked) {
+        if(priorityCurrentThread > priorityThreadLocked) {
+            /*
+            La solución al problema de inversión de prioridades está mal, 
+            modifican el valor numérico de la prioridad dentro de la estructura del thread, 
+            pero en el scheduler sigue estando en la misma cola de prioridad y 
+            la solución no es efectiva, tienen que sacar al thread de la cola de menor 
+            prioridad y ubicarlo en la cola de mayor prioridad. 
+            También tienen que tener en cuenta de restaurar la prioridad original una vez 
+            que el thread de menor prioridad suelte el lock.
+            */
             myThread->setPriorityTemp(priorityCurrentThread);
+            // tienen que sacar al thread de la cola de menor 
+            // prioridad y ubicarlo en la cola de mayor prioridad
+            scheduler->removeFromPriorityList(myThread, priorityThreadLocked);
+            scheduler->addToPriorityList(myThread, priorityCurrentThread);
+
         }
     }
     s->P();
     myThread = currentThread;
 }
 
+
 void Lock::Release() {
-    // if(myThread != nullptr) {
-    //     DEBUG('v', "Thread %s wants to release lock. Lock %s is acquired by %s\n", currentThread->GetName(), GetName(), myThread->GetName());
-    // } else {
-    //     DEBUG('v', "Thread %s wants to release lock. Lock %s is not acquired by anyone\n", currentThread->GetName(), GetName());
-    // }
     ASSERT(IsHeldByCurrentThread()) ;
     myThread = nullptr;
+    if(! (myThread->getPriorityTemp()== -1) ) {
+        // También tienen que tener en cuenta de restaurar la prioridad original una vez 
+        // que el thread de menor prioridad suelte el lock 
+        int priorityTemp = myThread->getPriorityTemp(); // original del thread
+        int priority     = myThread->getPriority();     // modificada por inversion
+        scheduler->removeFromPriorityList(myThread, priority );
+        scheduler->addToPriorityList(myThread, priorityTemp);
+        myThread->setPriority(priorityTemp);
+        myThread->setPriorityTemp(-1);
+    }
     s->V();
 }
 

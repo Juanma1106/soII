@@ -32,7 +32,7 @@ public:
     void ReadyToRun(Thread *thread);
 
     /// Return a non empty queue with highest priority
-    List<Thread *>* findMaxPriority();
+    /* Thread * findMaxPriority(); */
 
     /// Dequeue first thread on the ready list, if any, and return thread.
     Thread *FindNextToRun();
@@ -42,6 +42,10 @@ public:
 
     // Print contents of ready list.
     void Print();
+
+    void removeFromPriorityList(Thread *t, int priority);
+
+    void addToPriorityList(Thread *t, int priority);
 
 private:
 

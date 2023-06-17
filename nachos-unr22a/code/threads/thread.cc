@@ -38,7 +38,7 @@ static inline bool IsThreadStatus(ThreadStatus s) {
 /// `Thread::Fork`.
 ///
 /// * `threadName` is an arbitrary string, useful for debugging.
-Thread::Thread(const char *threadName, bool isJoinable, Thread *father, int thePriority) {
+Thread::Thread(const char *threadName, bool isJoinable, int thePriority) {
     name     = threadName;
     stackTop = nullptr;
     stack    = nullptr;
@@ -47,7 +47,6 @@ Thread::Thread(const char *threadName, bool isJoinable, Thread *father, int theP
     if(joinable) {
         channel = new Channel();
     }
-    _father  = father;
     priority = thePriority;
     priorityTemp = -1;
 #ifdef USER_PROGRAM
@@ -226,6 +225,15 @@ void Thread::Sleep() {
 }
 
 void Thread::Join() {
+/*
+Guardar la información de cuál es el thread padre es innecesario.
+De forma opcional, también podrían hacer que Finish reciba como argumento 
+el código de salida del thread, así no es siempre 5 y Join pueda retornar este valor. 
+Con una búsqueda rápida de Finish() y ThreadFinish() pueden encontrar cómo funciona.
+Después está bien, cumple con la idea de bloquear al hilo llamante hasta que 
+el thread "joineado" termine.
+*/
+
     ASSERT(joinable);
     //semaphore->P();
     int message;
@@ -249,7 +257,7 @@ void Thread::setPriority(int p) {
 }
 
 int Thread::getPriorityTemp() {
-    return priority;
+    return priorityTemp;
 }
 
 void Thread::setPriorityTemp(int p) {
