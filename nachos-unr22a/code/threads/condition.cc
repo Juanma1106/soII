@@ -44,19 +44,17 @@ Condition::GetName() const
     return name;
 }
 
-void
-Condition::Wait()
-{
-    cl->Acquire();
-    countWaiters++;
+
+void Condition::Wait() {
     cl->Release();
+    countWaiters++;
     sem->P();
+    cl->Acquire();
+
 }
 
-void
-Condition::Signal()
-{
-    cl->Acquire();
+void Condition::Signal() {
+    ASSERT(cl->IsHeldByCurrentThread()) ;
     if(countWaiters > 0) {
 		sem->V();
 		countWaiters--;
@@ -64,13 +62,11 @@ Condition::Signal()
     cl->Release();
 }
 
-void
-Condition::Broadcast()
-{
-    cl->Acquire();
+
+void Condition::Broadcast() {
+    ASSERT(cl->IsHeldByCurrentThread());
     while(countWaiters > 0) {
-		sem->V();
+        sem->V();
 		countWaiters--;
 	}
-    cl->Release();
 }

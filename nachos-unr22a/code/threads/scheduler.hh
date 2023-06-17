@@ -43,6 +43,12 @@ public:
     // Print contents of ready list.
     void Print();
 
+    bool isReady(Thread *t, int priority);
+
+    void removeFromPriorityList(Thread *t, int priority);
+
+    void addToPriorityList(Thread *t, int priority);
+
 #ifdef USER_PROGRAM
     void PrintAllThreads();
 #endif
