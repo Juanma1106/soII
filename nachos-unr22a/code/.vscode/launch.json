@@ -6,22 +6,8 @@
             "name": "Nachos debugging",
             "type": "cppdbg",
             "request": "launch",
-<<<<<<< HEAD
-<<<<<<< HEAD
             "program": "${workspaceFolder}/userprog/nachos",
             "args": ["-x", "${workspaceFolder}/userland/halt"],
-=======
-            "program": "${workspaceFolder}/threads/nachos",
-            "args": ["-tt", "-rs", "0", "-d", "s"],
->>>>>>> bdc630d (Terminada plancha 2)
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/userprog",
-=======
-            "program": "${workspaceFolder}/threads/nachos",
-            "args": ["-tt", "-rs", "0", "-d", "s"],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/threads",
->>>>>>> 19cfbdc (Fix)
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb"
