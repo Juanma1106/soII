@@ -6,8 +6,10 @@
             "name": "Nachos debugging",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/userprog/nachos",
-            "args": ["-x", "${workspaceFolder}/userland/halt"],
+            "program": "${workspaceFolder}/threads/nachos",
+            "args": ["-tt","-d", "t"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/userprog",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb"
