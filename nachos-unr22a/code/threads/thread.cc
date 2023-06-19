@@ -174,14 +174,16 @@ std::string Thread::ToString() {
 ///
 /// NOTE: we disable interrupts, so that we do not get a time slice between
 /// setting `threadToBeDestroyed`, and going to sleep.
-void Thread::Finish(int status) {
+
+// returnValue: nos indica el valor de retorno del thread (un 0 indica una salida normal)
+void Thread::Finish(int returnValue) {
     interrupt->SetLevel(INT_OFF);
     ASSERT(this == currentThread);
 
     DEBUG('t', "Finishing thread \"%s\"\n", GetName());
 
     if(joinable) {
-        channel->Send(status); // envía un valor que es un número de retorno.
+        channel->Send(returnValue);
     }
 
     #ifdef USER_PROGRAM
@@ -253,16 +255,12 @@ void Thread::Sleep() {
     scheduler->Run(nextThread);  // Returns when we have been signalled.
 }
 
-void Thread::Join() {
+int Thread::Join() {
     ASSERT(joinable);
-    //semaphore->P();
-    int message;
-    channel->Receive(&message);
-
-    ASSERT(message == FINISHED); //Siempre devuelve el mismo valor
-
+    int returnValue;
+    channel->Receive(&returnValue);
     //DEBUG('t', "message \"%d\"\n", message);
-
+    return returnValue;
 }
 
 int Thread::getPriority() {
@@ -296,7 +294,7 @@ void Thread::setPriorityTemp(int p) {
 /// function.  So in order to do this, we create a dummy C function (which we
 /// can pass a pointer to), that then simply calls the member function.
 static void ThreadFinish() {
-    currentThread->Finish(FINISHED);
+    currentThread->Finish(0);
 }
 
 static void InterruptEnable() {

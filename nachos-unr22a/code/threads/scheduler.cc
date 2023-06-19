@@ -39,15 +39,16 @@ Scheduler::~Scheduler() {
     
 }
 
-List<Thread *>* Scheduler::findMaxPriority() {
-    for(int i = PRIORITY_SIZE-1; i >= 0; i--) {
-        List<Thread *> *myList = &readyLists[i];
-        if(!myList->IsEmpty()) {
-            return myList;
-        }
-    }
-    // Si no tenemos ningun hilo listo para ejecutar, devolvemos una lista vacia
-    return new List<Thread *>;
+bool Scheduler::isReady(Thread *t, int priority) {
+    return (&readyLists[priority])->Has(t);
+}
+
+void Scheduler::removeFromPriorityList(Thread *t, int priority){
+    (&readyLists[priority])->Remove(t);
+}
+
+void Scheduler::addToPriorityList(Thread *t, int priority){
+    (&readyLists[priority])->Append(t);
 }
 
 /// Mark a thread as ready, but not running.
@@ -70,8 +71,14 @@ void Scheduler::ReadyToRun(Thread *thread) {
 /// If there are no ready threads, return null.
 ///
 /// Side effect: thread is removed from the ready list.
-Thread *Scheduler::FindNextToRun() {
-    return findMaxPriority()->Pop();
+Thread * Scheduler::FindNextToRun() {
+    for(int i = PRIORITY_SIZE-1; i >= 0; i--) {
+        List<Thread *> *myList = &readyLists[i];
+        if(!myList->IsEmpty()) {
+            return myList->Pop();
+        }
+    }
+    return nullptr;
 }
 
 /// Dispatch the CPU to `nextThread`.

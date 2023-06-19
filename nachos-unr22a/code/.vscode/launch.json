@@ -7,9 +7,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/userprog/nachos",
-            "args": ["-x", "${workspaceFolder}/userland/echo", "pepe"],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/userprog",
+            "args": ["-x", "${workspaceFolder}/userland/halt"],
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb"

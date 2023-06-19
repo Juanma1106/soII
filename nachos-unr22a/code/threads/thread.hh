@@ -129,10 +129,10 @@ public:
     void Sleep();
 
     // Main thread wait child finisih before continue.
-    void Join();
+    int Join();
 
     /// The thread is done executing.
-    void Finish(int status);
+    void Finish(int returnValue);
 
     /// Check if thread has overflowed its stack.
     void CheckOverflow() const;
