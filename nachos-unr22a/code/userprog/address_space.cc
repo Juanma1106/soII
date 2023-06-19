@@ -46,23 +46,42 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
     char *mainMemory = machine->GetMMU()->mainMemory;
 #endif
 
-    pageTable = new TranslationEntry[numPages];
-    for (unsigned i = 0; i < numPages; i++) {
-        DEBUG('a', "Page %d to %d\n", i, pageTable[i].physicalPage);
-        pageTable[i].virtualPage  = i;
-        pageTable[i].use          = false;
-        pageTable[i].dirty        = false;
-        pageTable[i].readOnly     = false;
-        pageTable[i].inSwap       = false;
-#ifdef DEMAND_LOADING
-        pageTable[i].physicalPage = -1; // todavía no se cargó
-        pageTable[i].valid        = false; /*3)*/
+#ifdef USE_TLB
+    TranslationEntry * table = new TranslationEntry[TLB_SIZE];
+    unsigned size = TLB_SIZE;
 #else
-        pageTable[i].physicalPage = bitmap->Find();
-        pageTable[i].valid        = true; 
-        memset(mainMemory, pageTable[i].physicalPage, PAGE_SIZE);
+    TranslationEntry * table = new TranslationEntry[numPages];
+    unsigned size = numPages;
+#endif
+
+    for (unsigned i = 0; i < size; i++) {
+        DEBUG('a', "Page %d to %d\n", i, table[i].physicalPage);
+        table[i].virtualPage  = i;
+        table[i].use          = false;
+        table[i].dirty        = false;
+        table[i].readOnly     = false;
+        table[i].inSwap       = false;
+#ifdef DEMAND_LOADING
+        table[i].physicalPage = -1; // todavía no se cargó
+        table[i].valid        = false; /*3)*/
+#else
+        int ppn = bitmap->Find();
+        if (ppn<0){
+            DEBUG('m',"There is no physical pages available");
+        }
+        table[i].physicalPage = ppn;
+        table[i].valid        = true; 
+        memset(mainMemory, table[i].physicalPage, PAGE_SIZE);
 #endif
     }
+
+#ifdef USE_TLB
+    tlb = table;
+#else
+    pageTable = table;
+#endif
+
+
 
 #ifdef SWAP
     const char * pid = std::to_string(currentThread->spaceId).c_str();
@@ -80,6 +99,12 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
     // Then, copy in the code and data segments into memory.
     uint32_t codeSize = exe.GetCodeSize();
     uint32_t initDataSize = exe.GetInitDataSize();
+
+    // Creo que esta inicialización deberíamos hacerla página por página
+    uint32_t numCodePages = DivRoundUp(codeSize,PAGE_SIZE);
+    uint32_t numDataPages = DivRoundUp(initDataSize,PAGE_SIZE);
+
+    
     if (codeSize > 0) {
         uint32_t virtualAddr = exe.GetCodeAddr();
         DEBUG('a', "Initializing code segment, at 0x%X, size %u\n",
@@ -133,6 +158,7 @@ TranslationEntry AddressSpace::loadPage(int posToFree, int physicalPage, int vpn
     } 
     //swapFile->ReadAt(&mainMemory[physicalAddr], PAGE_SIZE, vpn * PAGE_SIZE);
     #endif
+
     #ifdef DEMAND_LOADING
     // chequear si la pagina corresponde a codigo, datos o stack
     // con las funciones dentro del constructor, como GetCodeSize
@@ -173,19 +199,18 @@ TranslationEntry AddressSpace::loadPage(int posToFree, int physicalPage, int vpn
 }
 #endif
   
-unsigned AddressSpace::getPositionToReplace(){
-    return (toReplace++)%TLB_SIZE;
-}
-
+unsigned AddressSpace::getPositionToReplace(){ return (toReplace++)%TLB_SIZE; }
 
 /// Deallocate an address space.
 ///
 /// Nothing for now!
 AddressSpace::~AddressSpace() {
+#ifndef USE_TLB
     for(int i = 0; i < numPages; i++) {
         bitmap->Clear(pageTable[i].physicalPage);
     }
     delete [] pageTable;
+#endif
 }
 
 /// Set the initial values for the user-level register set.
@@ -218,9 +243,7 @@ void AddressSpace::InitRegisters() {
 /// space, that needs saving.
 ///
 /// For now, nothing!
-void
-AddressSpace::SaveState()
-{}
+void AddressSpace::SaveState() {}
 
 /// On a context switch, restore the machine state so that this address space
 /// can run.
@@ -228,7 +251,7 @@ AddressSpace::SaveState()
 /// For now, tell the machine where to find the page table.
 void AddressSpace::RestoreState() {
 #ifdef USE_TLB
-    machine->GetMMU()->pageTable     = machine->GetMMU()->tlb;
+    machine->GetMMU()->tlb     = tlb;
     machine->GetMMU()->pageTableSize = TLB_SIZE;
     machine->GetMMU()->InvalidateTLB();
 #else
@@ -237,13 +260,9 @@ void AddressSpace::RestoreState() {
 #endif
 }
 
-unsigned  AddressSpace::getNumPages() {
-    return numPages;
-}
+unsigned  AddressSpace::getNumPages() {return numPages;}
 
 #ifdef SWAP
-OpenFile * AddressSpace::getSwapFile() {
-    return swapFile;
-}
+OpenFile * AddressSpace::getSwapFile() {return swapFile;}
 #endif
 

@@ -148,18 +148,6 @@ static void PageFaultHandler(ExceptionType _et){
     // Como la pagetable está ordenada, sólo tenemos que hacer esto.
     physicalPage = pageTable[vpn].physicalPage;
 
-/* ESTO NO VA MÁS
-	unsigned physicalPage = -2;
-    int numPages = currentThread->space->getNumPages();
-    int i = 0;
-    while(physicalPage != -2 || i < numPages){
-		if (vpn == pageTable[i].virtualPage){
-			physicalPage = pageTable[i].physicalPage; 
-		}
-        i++;
-	}
-
-*/
 	// actualizo TLB
     machine->GetMMU()->tlb[posToFree] = 
         currentThread->space->loadPage(posToFree, physicalPage, vpn);
