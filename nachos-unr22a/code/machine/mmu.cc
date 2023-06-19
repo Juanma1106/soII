@@ -81,7 +81,7 @@ MMU::MMU() {
 #ifdef USE_TLB
     tlb = new TranslationEntry[TLB_SIZE];
     /*seba: aca deberiamos poner el count de cual reemplazar*/
-//    unsigned toReplace = 0;
+    unsigned toReplace = 0;
     InvalidateTLB();
     pageTable = nullptr;
 #endif
@@ -123,6 +123,9 @@ MMU::~MMU() {
         delete [] tlb;
     }
 }
+
+unsigned MMU::getToReplace() {return toReplace;} 
+
 
 void MMU::PrintTLB() const {
 #ifdef USE_TLB
@@ -341,7 +344,8 @@ MMU::Translate(unsigned virtAddr, unsigned *physAddr,unsigned size, bool writing
 
 void MMU::InvalidateTLB() {
     for (unsigned i = 0; i < TLB_SIZE; i++) {
-        machine->GetMMU()->tlb[i].valid = false;
+        // TranslationEntry * tlb = machine->GetMMU()->tlb;
+        tlb[i].valid = false;
     }
 }
 

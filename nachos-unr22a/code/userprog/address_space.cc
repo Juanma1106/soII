@@ -46,15 +46,15 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
     char *mainMemory = machine->GetMMU()->mainMemory;
 #endif
 
+unsigned tableSize ;
 #ifdef USE_TLB
-    TranslationEntry * table = new TranslationEntry[TLB_SIZE];
-    unsigned size = TLB_SIZE;
+    tableSize = TLB_SIZE;
 #else
-    TranslationEntry * table = new TranslationEntry[numPages];
-    unsigned size = numPages;
+    tableSize = numPages;
 #endif
+    TranslationEntry * table = new TranslationEntry[tableSize];
 
-    for (unsigned i = 0; i < size; i++) {
+    for (unsigned i = 0; i < tableSize; i++) {
         DEBUG('a', "Page %d to %d\n", i, table[i].physicalPage);
         table[i].virtualPage  = i;
         table[i].use          = false;
@@ -76,9 +76,9 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
     }
 
 #ifdef USE_TLB
-    tlb = table;
+    machine->GetMMU()->tlb = table;
 #else
-    pageTable = table;
+    machine->GetMMU()->pageTable = table;
 #endif
 
 
@@ -199,7 +199,9 @@ TranslationEntry AddressSpace::loadPage(int posToFree, int physicalPage, int vpn
 }
 #endif
   
-unsigned AddressSpace::getPositionToReplace(){ return (toReplace++)%TLB_SIZE; }
+unsigned AddressSpace::getPositionToReplace(){ 
+    return (machine->GetMMU()->getToReplace()+1)%TLB_SIZE; 
+}
 
 /// Deallocate an address space.
 ///
@@ -251,8 +253,6 @@ void AddressSpace::SaveState() {}
 /// For now, tell the machine where to find the page table.
 void AddressSpace::RestoreState() {
 #ifdef USE_TLB
-    machine->GetMMU()->tlb     = tlb;
-    machine->GetMMU()->pageTableSize = TLB_SIZE;
     machine->GetMMU()->InvalidateTLB();
 #else
     machine->GetMMU()->pageTable     = pageTable;

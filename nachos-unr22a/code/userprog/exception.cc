@@ -146,7 +146,7 @@ static void PageFaultHandler(ExceptionType _et){
     // buscamos la entrada que no estaba en la TLB, en la tabla de paginación
 	TranslationEntry *pageTable = currentThread->space->pageTable;
     // Como la pagetable está ordenada, sólo tenemos que hacer esto.
-    physicalPage = pageTable[vpn].physicalPage;
+    unsigned physicalPage = pageTable[vpn].physicalPage;
 
 	// actualizo TLB
     machine->GetMMU()->tlb[posToFree] = 
