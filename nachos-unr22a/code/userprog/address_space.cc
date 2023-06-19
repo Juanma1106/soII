@@ -84,9 +84,10 @@ unsigned tableSize ;
 
 
 #ifdef SWAP
-    const char * pid = std::to_string(currentThread->spaceId).c_str();
-    const char * fileName = 'SWAP.'+ pid ;
-    if (fileSystem->Create(fileName, currentThread->space->getNumPages() * PAGE_SIZE))
+    std::string fileNameStr = std::to_string(currentThread->spaceId);
+    fileNameStr = "SWAP." + fileNameStr;
+    const char *fileName = fileNameStr.c_str();
+    if (fileSystem->Create(fileName, numPages * PAGE_SIZE))
         swapFile = fileSystem->Open(fileName);
     else
         DEBUG('a', "Error al crear el archivo %s \n", fileName);
@@ -271,7 +272,9 @@ void AddressSpace::RestoreState() {
 #endif
 }
 
-unsigned  AddressSpace::getNumPages() {return numPages;}
+unsigned  AddressSpace::getNumPages() {
+    return numPages;
+}
 
 #ifdef SWAP
 OpenFile * AddressSpace::getSwapFile() {return swapFile;}
