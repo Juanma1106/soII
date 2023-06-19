@@ -16,8 +16,7 @@
 /// First, set up the translation from program memory to physical memory.
 /// For now, this is really simple (1:1), since we are only uniprogramming,
 /// and we have a single unsegmented page table.
-AddressSpace::AddressSpace(OpenFile *executable_file)
-{
+AddressSpace::AddressSpace(OpenFile *executable_file) {
     ASSERT(executable_file != nullptr);
 
     Executable exe (executable_file);
@@ -101,34 +100,31 @@ unsigned tableSize ;
     uint32_t codeSize = exe.GetCodeSize();
     uint32_t initDataSize = exe.GetInitDataSize();
 
-    // Creo que esta inicialización deberíamos hacerla página por página
-    uint32_t numCodePages = DivRoundUp(codeSize,PAGE_SIZE);
-    uint32_t numDataPages = DivRoundUp(initDataSize,PAGE_SIZE);
-
-    
     if (codeSize > 0) {
         uint32_t virtualAddr = exe.GetCodeAddr();
-
-        int offset = 0;
-        for(unsigned i = 0; i < DivRoundUp(codeSize, PAGE_SIZE); i++) {
-            DEBUG('a', "Initializing code segment, at 0x%X, size %u\n",
-                pageTable[i].physicalPage, PAGE_SIZE);
-            exe.ReadCodeBlock(&mainMemory[pageTable[i].physicalPage], PAGE_SIZE, offset);
-            offset += PAGE_SIZE;
+        DEBUG('a', "Initializing code segment, at 0x%X, size %u\n",
+              virtualAddr, codeSize);
+        // exe.ReadCodeBlock(&mainMemory[virtualAddr], codeSize, 0);
+        for (uint32_t i = 0; i < codeSize; i++) {
+            uint32_t frame = pageTable[DivRoundDown(virtualAddr + i, PAGE_SIZE)].physicalPage;
+            uint32_t offset = (virtualAddr + i) % PAGE_SIZE;
+            uint32_t physicalAddr = frame * PAGE_SIZE + offset;
+            exe.ReadCodeBlock(&mainMemory[physicalAddr], 1, i);
         }
-        //exe.ReadCodeBlock(&mainMemory[virtualAddr], codeSize, 0);
     }
     if (initDataSize > 0) {
         uint32_t virtualAddr = exe.GetInitDataAddr();
-        int offset = 0;
-        for(unsigned i = 0; i < DivRoundUp(initDataSize, PAGE_SIZE); i++) {
-            DEBUG('a', "Initializing data segment, at 0x%X, size %u\n",
-                pageTable[i].physicalPage, PAGE_SIZE);
-            exe.ReadDataBlock(&mainMemory[pageTable[i].physicalPage], PAGE_SIZE, offset);
-            offset += PAGE_SIZE;
+        DEBUG('a', "Initializing data segment, at 0x%X, size %u\n",
+              virtualAddr, initDataSize);
+        // exe.ReadDataBlock(&mainMemory[virtualAddr], initDataSize, 0);
+        for (uint32_t i = 0; i < initDataSize; i++) {
+          uint32_t frame = pageTable[DivRoundDown(virtualAddr + i, PAGE_SIZE)].physicalPage;
+          uint32_t offset = (virtualAddr + i) % PAGE_SIZE;
+          uint32_t physicalAddr = frame * PAGE_SIZE + offset;
+          exe.ReadDataBlock(&mainMemory[physicalAddr], 1, i);
         }
-        //exe.ReadDataBlock(&mainMemory[virtualAddr], initDataSize, 0);
     }
+<<<<<<< HEAD
 #endif
 }
 
@@ -213,6 +209,8 @@ TranslationEntry AddressSpace::loadPage(int posToFree, int physicalPage, int vpn
   
 unsigned AddressSpace::getPositionToReplace(){ 
     return (machine->GetMMU()->getToReplace()+1)%TLB_SIZE; 
+=======
+>>>>>>> 61a2ed4963605f5554004c99c97845e43ef74d68
 }
 
 /// Deallocate an address space.
