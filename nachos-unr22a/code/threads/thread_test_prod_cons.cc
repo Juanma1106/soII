@@ -93,12 +93,6 @@ void ThreadTestProdCons() {
 	lockForCondition->~Lock();
 	condConsumer->~Condition();
 	condProducer->~Condition();
-	for(int i = 0; i < NUM_CONSUMER - 1; i++){
-		threadsConsumers[i]->~Thread();
-	}
-	for(int i = 0; i < NUM_PRODUCER; i++){
-		threadsProducers[i]->~Thread();
-	}
 	delete threadsProducers;
 	delete threadsConsumers;
 }
