@@ -40,7 +40,7 @@ public:
     // Print contents of ready list.
     void Print();
 
-    bool Scheduler::isReady(Thread *t, int priority);
+    bool isReady(Thread *t, int priority);
 
     void removeFromPriorityList(Thread *t, int priority);
 
