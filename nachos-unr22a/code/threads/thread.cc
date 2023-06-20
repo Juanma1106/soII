@@ -271,7 +271,7 @@ void Thread::setPriority(int p) {
 }
 
 int Thread::getPriorityTemp() {
-    return priority;
+    return priorityTemp;
 }
 
 void Thread::setPriorityTemp(int p) {

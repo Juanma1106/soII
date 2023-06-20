@@ -134,8 +134,23 @@ static void SyscallHandler(ExceptionType _et) {
             // SpaceId Exec(char *name, int argc, char** argv);
             //int filenameAddr = machine->ReadRegister(4);
             int filenameAddr = machine->ReadRegister(4);
+            char filename[FILE_NAME_MAX_LEN + 1];
+            if (!ReadStringFromUser(filenameAddr, filename, sizeof filename)) {
+                DEBUG('e', "Error: filename string too long (maximum is %u bytes).\n",
+                    FILE_NAME_MAX_LEN);
+            } else {
+                DEBUG('e', "`Exec` requested for file `%s`.\n", filename);
+            }
+
             int argc = machine->ReadRegister(5);
             int argsAddr = machine->ReadRegister(6);
+            char param[FILE_NAME_MAX_LEN + 1];
+            if (!ReadStringFromUser(argsAddr, param, sizeof param)) {
+                DEBUG('e', "Error: filename string too long (maximum is %u bytes).\n",
+                    FILE_NAME_MAX_LEN);
+            } else {
+                DEBUG('e', "`Exec` requested for file `%s`.\n", param);
+            }
             char** argv = SaveArgs(argsAddr);
 
             if (filenameAddr == 0) {
@@ -146,8 +161,8 @@ static void SyscallHandler(ExceptionType _et) {
                     DEBUG('e', "Error: filename string too long (maximum is %u bytes).\n",
                         FILE_NAME_MAX_LEN);
                 } else {
-                    DEBUG('e', "`Exec` requested for file `%s`.\n", argv[0]);
-                    Thread *thread = new Thread(argv[0]);
+                    DEBUG('e', "`Exec` requested for file `%s`.\n", filename);
+                    Thread *thread = new Thread(filename);
                     struct args myArgs;
                     myArgs.argc=argc;
                     myArgs.argv=argv;
