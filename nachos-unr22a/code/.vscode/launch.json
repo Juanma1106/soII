@@ -9,7 +9,7 @@
             "program": "${workspaceFolder}/userprog/nachos",
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/userprog",
-            "args": ["-x", "${workspaceFolder}/userland/echo", "pepe"],
+            "args": ["-x", "${workspaceFolder}/userland/echo", "lala"],
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb"

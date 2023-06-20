@@ -92,6 +92,7 @@ void Copy(const char *unixFile, const char *nachosFile);
 void Print(const char *file);
 void PerformanceTest(void);
 void StartProcess(const char *file);
+void StartProcess(int argc, char** argv, int sizeArgs);
 void ConsoleTest(const char *in, const char *out);
 void MailTest(int networkID);
 
@@ -141,8 +142,21 @@ main(int argc, char **argv)
 #ifdef USER_PROGRAM
         if (!strcmp(*argv, "-x")) {          // Run a user program.
             ASSERT(argc > 1);
-            StartProcess(*(argv + 1));
-            argCount = 2;
+            int otherArgc = argc;
+            int argCount = 1;
+            int sizeArgs = 0;
+            char *args[100] = {};
+            while (otherArgc > 1) {
+                otherArgc--;
+                char *nextArg = *(argv + argCount);
+                if (nextArg[0] == '-') {
+                    break;
+                }
+                args[argCount-1] = nextArg;
+                sizeArgs += sizeof(nextArg);
+                argCount++;
+            }
+            StartProcess(argCount-1, args, sizeArgs);
             interrupt->Halt();
         } else if (!strcmp(*argv, "-tc")) {  // Test the console.
             if (argc == 1) {

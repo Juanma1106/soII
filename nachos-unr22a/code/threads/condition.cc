@@ -54,7 +54,6 @@ void Condition::Signal() {
 		sem->V();
 		countWaiters--;
 	}
-    cl->Release();
 }
 
 

@@ -43,6 +43,8 @@ public:
     void InitRegisters();
     TranslationEntry loadPage(int posToFree, int physicalPage, int vpn); 
 
+    void InitRegisters(int argc, char** argv, int sizeArgs);
+
     /// Save/restore address space-specific info on a context switch.
 
     void SaveState();

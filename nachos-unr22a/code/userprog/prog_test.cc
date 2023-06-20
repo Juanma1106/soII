@@ -22,6 +22,7 @@
 /// Run a user program.
 ///
 /// Open the executable, load it into memory, and jump to it.
+
 void StartProcess(const char *filename) {
     ASSERT(filename != nullptr);
 
@@ -37,6 +38,33 @@ void StartProcess(const char *filename) {
     delete executable;
 
     space->InitRegisters();  // Set the initial register values.
+    space->RestoreState();   // Load page table register.
+
+    machine->Run();  // Jump to the user progam.
+    ASSERT(false);   // `machine->Run` never returns; the address space
+                     // exits by doing the system call `Exit`.
+}
+
+/// Run a user program.
+///
+/// Open the executable, load it into memory, and jump to it.
+void StartProcess(int argc, char** argv, int sizeArgs) {
+    const char *filename = argv[0];
+
+    ASSERT(filename != nullptr);
+
+    OpenFile *executable = fileSystem->Open(filename);
+    if (executable == nullptr) {
+        printf("Unable to open file %s\n", filename);
+        return;
+    }
+
+    AddressSpace *space = new AddressSpace(executable);
+    currentThread->space = space;
+
+    delete executable;
+
+    space->InitRegisters(argc, argv, sizeArgs);  // Set the initial register values.
     space->RestoreState();   // Load page table register.
 
     machine->Run();  // Jump to the user progam.
