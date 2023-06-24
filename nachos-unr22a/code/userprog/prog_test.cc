@@ -22,16 +22,19 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct args {
+class Args {
+public:
+    Args(){};
     int argc;
     char** argv;
     int sizeArgs;
-} myArgs;
+};
 
 void StartProcess2(void * args) {
     AddressSpace *space = currentThread->space;
     if(args != nullptr){
-        struct args *myArgs = (struct args *)args;
+        Args *myArgs = (Args *) args;
+        //struct args *myArgs = (struct args *)args;
         space->InitRegisters(myArgs->argc, myArgs->argv, myArgs->sizeArgs);  // Set the initial register values.
     } else {
         space->InitRegisters();  // Set the initial register values.
@@ -72,8 +75,8 @@ void StartProcess(const char *filename) {
 /// Run a user program.
 ///
 /// Open the executable, load it into memory, and jump to it.
-SpaceId StartProcess(char** args, bool joinable) {
-    const char *filename = args[0];
+SpaceId StartProcess(char* &args, bool joinable) {
+    const char *filename = &args[0];
 
     ASSERT(filename != nullptr);
 
@@ -87,7 +90,7 @@ SpaceId StartProcess(char** args, bool joinable) {
     int sizeArgs = 0;
     char *argv[argc] = {};
     for (int i = 0; i < argc; i++) {
-        argv[i] = args[i+1];
+        argv[i] = &args[i+1];
         sizeArgs += sizeof(argv[i]);
     }
 
@@ -97,11 +100,12 @@ SpaceId StartProcess(char** args, bool joinable) {
     newThread->space = space;
     delete executable;
 
-    myArgs.argc=argc;
-    myArgs.argv=argv;
-    myArgs.sizeArgs=sizeArgs;
+    Args * myArgs = new Args();
+    myArgs->argc=argc;
+    myArgs->argv=argv;
+    myArgs->sizeArgs=sizeArgs;
 
-    newThread->Fork(StartProcess2, (void *) &myArgs);
+    newThread->Fork(StartProcess2, (void *) myArgs);
 
     return newThread->spaceId;
 }

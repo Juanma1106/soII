@@ -31,7 +31,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-SpaceId StartProcess(char** args, bool joinable);
+SpaceId StartProcess(char* &args, bool joinable);
 
 static void IncrementPC() {
     unsigned pc;
@@ -110,7 +110,7 @@ static void SyscallHandler(ExceptionType _et) {
                 } else {
                     DEBUG('e', "`Exec` requested for file `%s`.\n", filename);
                     char ** args = SaveArgs(argsAddr);
-                    SpaceId sp = StartProcess(args, joinable);
+                    SpaceId sp = StartProcess(*args, joinable);
                     machine->WriteRegister(2, sp);
                 }
             }
