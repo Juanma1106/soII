@@ -41,8 +41,15 @@ const char * Condition::GetName() const {
 
 
 void Condition::Wait() {
-    cl->Release();
+    /*
+    En la función Wait() de variables de condición están soltando el lock 
+    antes de incrementar countWaiters, 
+    es un detalle menor pero esta variable no está protegida por el lock 
+    y dos threads pueden llegar a modificarla al mismo tiempo y se pierda 
+    uno de esos incrementos.
+    */
     countWaiters++;
+    cl->Release();
     sem->P();
     cl->Acquire();
 

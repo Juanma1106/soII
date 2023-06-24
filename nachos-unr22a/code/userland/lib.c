@@ -2,10 +2,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "echo.c"
+
+
+unsigned StringLength(const char *s) {
+    // What if `s` is null?
+
+    unsigned i;
+    for (i = 0; s[i] != '\0'; i++) {}
+    return i;
+}
 
 unsigned strlen(const char *s) {
     return StringLength(s);
+}
+
+int PrintString(const char *s) {
+    // What if `s` is null?
+
+    unsigned len = StringLength(s);
+    return Write(s, len, CONSOLE_OUTPUT);
 }
 
 int puts(const char *s) {
@@ -28,9 +43,15 @@ void itoa (int n , char *s) {
 }
 
 
-int main(int argc, char *argv[]) {
+
+int PrintChar(char c) {
+    return Write(&c, 1, CONSOLE_OUTPUT);
+}
+
 
 /*
+int main(int argc, char *argv[]) {
+
     for (unsigned i = 1; i < argc; i++) {
 
         if (i != 1) {
@@ -39,9 +60,9 @@ int main(int argc, char *argv[]) {
         PrintString(argv[i]);
     }
     PrintChar('\n');
-*/    
     char *s;
     itoa(65841,s );
     puts(s);
 }
+*/    
 

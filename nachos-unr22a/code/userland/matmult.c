@@ -8,6 +8,7 @@
 
 // #include "syscall.h"
 #include "../userprog/syscall.h"
+#include "lib.c"
 
 
 /// Sum total of the arrays does not fit in physical memory.
@@ -41,5 +42,7 @@ main(void)
     }
 
     // And then we are done.
-    return C[DIM - 1][DIM - 1];
+    int ret = C[DIM - 1][DIM - 1];
+    PrintChar(digitToChar( ret%10 ) );
+    return ret;
 }
