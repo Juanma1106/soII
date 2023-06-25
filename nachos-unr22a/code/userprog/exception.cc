@@ -26,16 +26,12 @@
 #include "syscall.h"
 #include "filesys/directory_entry.hh"
 #include "threads/system.hh"
-#include "machine.hh"
 #include "args.hh"
 
 #include <stdio.h>
 #include <unistd.h>
 
-typedef struct args {
-    int argc;
-    char** argv;
-};
+SpaceId StartProcess(char** args, bool joinable);
 
 static void IncrementPC() {
     unsigned pc;
@@ -63,39 +59,6 @@ static void DefaultHandler(ExceptionType et) {
             ExceptionTypeToString(et), exceptionArg);
     ASSERT(false);
 }
-
-/// Run a user program.
-///
-/// Open the executable, load it into memory, and jump to it.
-void StartProcess2(void *a) {
-    struct args *myArgs = (args*) a;
-    int argc = myArgs->argc;
-    char** argv = myArgs->argv;
-
-    char *filename = argv[0];
-    ASSERT(filename != nullptr);
-
-    OpenFile *executable = fileSystem->Open(filename);
-    if (executable == nullptr) {
-        printf("Unable to open file %s\n", filename);
-        return;
-    }
-
-    AddressSpace *space = new AddressSpace(executable);
-    currentThread->space = space;
-
-    delete executable;
-
-    space->InitRegisters();  // Set the initial register values.
-    space->RestoreState();   // Load page table register.
-
-    machine->Run();  // Jump to the user progam.
-    ASSERT(false);   // `machine->Run` never returns; the address space
-                     // exits by doing the system call `Exit`.
-}
-
-
-
 
 /// Handle a system call exception.
 ///
@@ -131,43 +94,24 @@ static void SyscallHandler(ExceptionType _et) {
         }
 
         case SC_EXEC: {
-            // SpaceId Exec(char *name, int argc, char** argv);
-            //int filenameAddr = machine->ReadRegister(4);
+            // Seteo -1 en el registro por cualquier fallo que pueda salir.
+            machine->WriteRegister(2, -1);
+
             int filenameAddr = machine->ReadRegister(4);
-            char filename[FILE_NAME_MAX_LEN + 1];
-            if (!ReadStringFromUser(filenameAddr, filename, sizeof filename)) {
-                DEBUG('e', "Error: filename string too long (maximum is %u bytes).\n",
-                    FILE_NAME_MAX_LEN);
-            } else {
-                DEBUG('e', "`Exec` requested for file `%s`.\n", filename);
-            }
-
-            int argc = machine->ReadRegister(5);
-            int argsAddr = machine->ReadRegister(6);
-            char param[FILE_NAME_MAX_LEN + 1];
-            if (!ReadStringFromUser(argsAddr, param, sizeof param)) {
-                DEBUG('e', "Error: filename string too long (maximum is %u bytes).\n",
-                    FILE_NAME_MAX_LEN);
-            } else {
-                DEBUG('e', "`Exec` requested for file `%s`.\n", param);
-            }
-            char** argv = SaveArgs(argsAddr);
-
+            int argsAddr = machine->ReadRegister(5);
+            bool joinable = machine->ReadRegister(6) ? true : false;
+            
             if (filenameAddr == 0) {
                 DEBUG('e', "Error: address to filename string is null.\n");
-            }  else {
+            } else {
                 char filename[FILE_NAME_MAX_LEN + 1];
                 if (!ReadStringFromUser(filenameAddr, filename, sizeof filename)) {
-                    DEBUG('e', "Error: filename string too long (maximum is %u bytes).\n",
-                        FILE_NAME_MAX_LEN);
+                    DEBUG('e', "Error: filename string too long (maximum is %u bytes).\n", FILE_NAME_MAX_LEN);
                 } else {
                     DEBUG('e', "`Exec` requested for file `%s`.\n", filename);
-                    Thread *thread = new Thread(filename);
-                    struct args myArgs;
-                    myArgs.argc=argc;
-                    myArgs.argv=argv;
-                    thread->Fork(StartProcess2, (void *) &myArgs);
-                    machine->WriteRegister(2, thread->spaceId);
+                    char ** args = SaveArgs(argsAddr);
+                    SpaceId sp = StartProcess(args, joinable);
+                    machine->WriteRegister(2, sp);
                 }
             }
             break;
@@ -407,7 +351,6 @@ static void SyscallHandler(ExceptionType _et) {
 
     IncrementPC();
 }
-
 
 /// By default, only system calls have their own handler.  All other
 /// exception types are assigned the default handler.

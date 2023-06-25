@@ -8,6 +8,10 @@
 /// All rights reserved.  See `copyright.h` for copyright notice and
 /// limitation of liability and disclaimer of warranty provisions.
 
+#ifndef NACHOS_USEPROG_PROG_TEST__CC
+#define NACHOS_USEPROG_PROG_TEST__CC
+
+
 #include "address_space.hh"
 #include "machine/console.hh"
 #include "threads/semaphore.hh"
@@ -18,6 +22,26 @@
 #include <stdlib.h>
 #include <string.h>
 
+struct args {
+    int argc;
+    char** argv;
+    int sizeArgs;
+} myArgs;
+
+void StartProcess2(void * args) {
+    AddressSpace *space = currentThread->space;
+    if(args != nullptr){
+        struct args *myArgs = (struct args *)args;
+        space->InitRegisters(myArgs->argc, myArgs->argv, myArgs->sizeArgs);  // Set the initial register values.
+    } else {
+        space->InitRegisters();  // Set the initial register values.
+    }
+    space->RestoreState();   // Load page table register.
+
+    machine->Run();  // Jump to the user progam.
+    ASSERT(false);   // `machine->Run` never returns; the address space
+                    // exits by doing the system call `Exit`.
+}
 
 /// Run a user program.
 ///
@@ -48,28 +72,38 @@ void StartProcess(const char *filename) {
 /// Run a user program.
 ///
 /// Open the executable, load it into memory, and jump to it.
-void StartProcess(int argc, char** argv, int sizeArgs) {
-    const char *filename = argv[0];
+SpaceId StartProcess(char** args, bool joinable) {
+    const char *filename = args[0];
 
     ASSERT(filename != nullptr);
 
     OpenFile *executable = fileSystem->Open(filename);
     if (executable == nullptr) {
-        printf("Unable to open file %s\n", filename);
-        return;
+        DEBUG('e', "Unable to open file %s\n", filename);
+        return -1;
     }
 
-    AddressSpace *space = new AddressSpace(executable);
-    currentThread->space = space;
+    int argc =  sizeof(args) / sizeof(args[0]);// - 1;
+    int sizeArgs = 0;
+    char *argv[argc] = {};
+    for (int i = 0; i < argc; i++) {
+        argv[i] = args[i+1];
+        sizeArgs += sizeof(argv[i]);
+    }
 
+    Thread * newThread = new Thread(filename, joinable, 0);
+
+    AddressSpace *space = new AddressSpace(executable);
+    newThread->space = space;
     delete executable;
 
-    space->InitRegisters(argc, argv, sizeArgs);  // Set the initial register values.
-    space->RestoreState();   // Load page table register.
+    myArgs.argc=argc;
+    myArgs.argv=argv;
+    myArgs.sizeArgs=sizeArgs;
 
-    machine->Run();  // Jump to the user progam.
-    ASSERT(false);   // `machine->Run` never returns; the address space
-                     // exits by doing the system call `Exit`.
+    newThread->Fork(StartProcess2, (void *) &myArgs);
+
+    return newThread->spaceId;
 }
 
 /// Data structures needed for the console test.
@@ -112,3 +146,5 @@ void ConsoleTest(const char *in, const char *out) {
         }
     }
 }
+
+#endif

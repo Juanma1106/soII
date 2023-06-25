@@ -7,7 +7,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/userprog/nachos",
-            "args": ["-x", "${workspaceFolder}/userland/echo", "lala\0"],
+            "args": ["-x", "${workspaceFolder}/userland/echo", "lala"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/userprog",
             "environment": [],
