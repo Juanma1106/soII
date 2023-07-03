@@ -75,8 +75,8 @@ void StartProcess(const char *filename) {
 /// Run a user program.
 ///
 /// Open the executable, load it into memory, and jump to it.
-SpaceId StartProcess(char* &args, bool joinable) {
-    const char *filename = &args[0];
+SpaceId StartProcess(char** args, bool joinable) {
+    const char *filename = args[0];
 
     ASSERT(filename != nullptr);
 
@@ -90,7 +90,7 @@ SpaceId StartProcess(char* &args, bool joinable) {
     int sizeArgs = 0;
     char *argv[argc] = {};
     for (int i = 0; i < argc; i++) {
-        argv[i] = &args[i+1];
+        argv[i] = args[i+1];
         sizeArgs += sizeof(argv[i]);
     }
 
