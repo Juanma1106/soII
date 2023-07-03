@@ -147,9 +147,19 @@ void AddressSpace::InitRegisters(int argc, char** argv, int sizeArgs) {
     // accidentally reference off the end!
     machine->WriteRegister(ARGC, argc);
     machine->WriteRegister(ARGV, numPages * PAGE_SIZE - 16);
+
     machine->WriteRegister(STACK_REG, numPages * PAGE_SIZE - 16 - sizeArgs);
     DEBUG('a', "Initializing stack register to %u\n",
           numPages * PAGE_SIZE - 16);
+
+    for(int i = 0; i < argc; i++) {
+        char* arg = argv[i];
+        for(int j = 0; j != '\0'; j++) {
+            machine->WriteMem(numPages * PAGE_SIZE - 16, 1, arg[j]);
+        }
+        
+    }
+    
 }
 
 /// On a context switch, save any machine state, specific to this address
