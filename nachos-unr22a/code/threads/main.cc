@@ -92,7 +92,7 @@ void Copy(const char *unixFile, const char *nachosFile);
 void Print(const char *file);
 void PerformanceTest(void);
 void StartProcess(const char *file);
-void StartProcess(int argc, char** argv, int sizeArgs);
+SpaceId StartProcess(char** args, bool joinable);
 void ConsoleTest(const char *in, const char *out);
 void MailTest(int networkID);
 
@@ -143,21 +143,22 @@ main(int argc, char **argv)
         if (!strcmp(*argv, "-x")) {          // Run a user program.
             ASSERT(argc > 1);
             int otherArgc = argc;
-            int argCount = 1;
-            int sizeArgs = 0;
-            char *args[100] = {};
-            while (otherArgc > 1) {
-                otherArgc--;
+            char *args[argc-1] = {};
+            args[0] = argv[1]; // filename
+            int argCount;
+            for(argCount = 2; argCount < otherArgc; argCount++) {
                 char *nextArg = *(argv + argCount);
                 if (nextArg[0] == '-') {
                     break;
                 }
                 args[argCount-1] = nextArg;
-                sizeArgs += sizeof(nextArg);
-                argCount++;
             }
-            StartProcess(argCount-1, args, sizeArgs);
-            interrupt->Halt();
+            if(argCount == 2) {
+                StartProcess(args[0]);
+            } else {
+                StartProcess(args, true);
+            }
+            // interrupt->Halt();
         } else if (!strcmp(*argv, "-tc")) {  // Test the console.
             if (argc == 1) {
                 ConsoleTest(nullptr, nullptr);

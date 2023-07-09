@@ -60,8 +60,19 @@ void Lock::Release() {
         int priority     = lockerThread->getPriority();     // modificada por inversion
         // No hace falta chequear si el hilo está ready, ya que lockerThread es currentThread
         // y por lo tanto está ejecutando (es decir está ready)
+
+        /*
+        Un detalle que les quiero comentar es en la función Release() de Lock: 
+        Cuando restauran la prioridad original del thread lo están agregando 
+        de nuevo a la cola de prioridad en ese momento cuando ese mismo thread 
+        está ejecutando, esto va a provocar que cuando se haga el cambio de contexto 
+        y este thread se duerma, se va a agregar de nuevo al scheduler 
+        y va a estar duplicado. 
+        Además, al intentar de quitarlo de su cola de prioridad no debería suceder nada, 
+        ya que al ser el thread actual no debería estar ahí.
         scheduler->removeFromPriorityList(lockerThread, priority);
         scheduler->addToPriorityList(lockerThread, priorityTemp);
+        */
         lockerThread->setPriority(priorityTemp);
         lockerThread->setPriorityTemp(-1);
     }
