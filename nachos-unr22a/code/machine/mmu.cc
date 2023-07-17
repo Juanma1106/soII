@@ -61,6 +61,13 @@ MMU::~MMU()
     }
 }
 
+void MMU::sumHit(){
+    total++;
+}
+void MMU::sumMiss(){
+    miss++;
+}
+
 void
 MMU::PrintTLB() const
 {
@@ -170,7 +177,7 @@ MMU::WriteMem(unsigned addr, unsigned size, int value)
 }
 
 ExceptionType
-MMU::RetrievePageEntry(unsigned vpn, TranslationEntry **entry) const
+MMU::RetrievePageEntry(unsigned vpn, TranslationEntry **entry) 
 {
     ASSERT(entry != nullptr);
 
@@ -200,6 +207,7 @@ MMU::RetrievePageEntry(unsigned vpn, TranslationEntry **entry) const
             TranslationEntry *e = &tlb[i];
             if (e->valid && e->virtualPage == vpn) {
                 *entry = e;  // FOUND!
+                sumHit();
                 return NO_EXCEPTION;
             }
         }

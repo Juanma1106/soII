@@ -7,6 +7,7 @@
 #include "lib/utility.hh"
 #include "threads/system.hh"
 
+#define MAX_RETRY 3
 
 void ReadBufferFromUser(int userAddress, char *outBuffer,
                         unsigned byteCount) {
@@ -18,7 +19,11 @@ void ReadBufferFromUser(int userAddress, char *outBuffer,
     do {
         int temp;
         count++;
-        ASSERT(machine->ReadMem(userAddress++, 1, &temp));
+        int retry=0;
+        while(machine->ReadMem(userAddress++, 1, &temp) == false || retry>MAX_RETRY){
+            retry++;
+            DEBUG('a', "Fallo en el acceso. ReadBufferFromUser\n");
+        }
         *outBuffer = (unsigned char) temp;
     } while (count < byteCount);
 }
@@ -33,7 +38,11 @@ bool ReadStringFromUser(int userAddress, char *outString,
     do {
         int temp;
         count++;
-        ASSERT(machine->ReadMem(userAddress++, 1, &temp));
+        int retry=0;
+        while(machine->ReadMem(userAddress++, 1, &temp) == false || retry>MAX_RETRY){
+            retry++;
+            DEBUG('a', "Fallo en el acceso. ReadStringFromUser\n");
+        }
         *outString = (unsigned char) temp;
     } while (*outString++ != '\0' && count < maxByteCount);
 
@@ -54,7 +63,11 @@ void WriteBufferToUser(const char *buffer, int userAddress,
 
     int temp = 0;
     do {
-        ASSERT(machine->WriteMem(userAddress++, 1, buffer[temp]));
+        int retry=0;
+        while(machine->WriteMem(userAddress++, 1, buffer[temp]) == false || retry>MAX_RETRY){
+            retry++;
+            DEBUG('a', "Fallo en el acceso. WriteBufferToUser\n");
+        }
         temp++;
     } while (temp < byteCount);
 }
@@ -63,7 +76,11 @@ void WriteStringToUser(const char *string, int userAddress) {
     ASSERT(userAddress != 0);
     int temp = 0;
     do {
-        ASSERT(machine->WriteMem(userAddress++, 1, string[temp]));
+        int retry=0;
+        while(machine->WriteMem(userAddress++, 1, string[temp]) == false || retry>MAX_RETRY) {
+            retry++;
+            DEBUG('a', "Fallo en el acceso. WriteStringToUser\n");
+        }
         temp++;
     } while (*string++ != '\0');
 }

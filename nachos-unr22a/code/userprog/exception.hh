@@ -13,5 +13,7 @@
 /// call, or generates an addressing or arithmetic exception.
 void SetExceptionHandlers();
 
+int getToReplace();
+
 
 #endif

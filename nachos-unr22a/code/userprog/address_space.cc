@@ -12,11 +12,16 @@
 
 #include <string.h>
 
+int AddressSpace::getToReplace(){
+    return (toReplace++)%TLB_SIZE;
+}
+
 
 /// First, set up the translation from program memory to physical memory.
 /// For now, this is really simple (1:1), since we are only uniprogramming,
 /// and we have a single unsegmented page table.
 AddressSpace::AddressSpace(OpenFile *executable_file) {
+    toReplace = 0;
     ASSERT(executable_file != nullptr);
 
     Executable exe (executable_file);
@@ -96,7 +101,7 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
 ///
 /// Nothing for now!
 AddressSpace::~AddressSpace() {
-    for(int i = 0; i < numPages; i++) {
+    for(unsigned i = 0; i < numPages; i++) {
         bitmap->Clear(pageTable[i].physicalPage);
     }
     delete [] pageTable;
@@ -177,6 +182,17 @@ AddressSpace::SaveState()
 void
 AddressSpace::RestoreState()
 {
-    machine->GetMMU()->pageTable     = pageTable;
-    machine->GetMMU()->pageTableSize = numPages;
+//    machine->GetMMU()->pageTable     = pageTable;
+//    machine->GetMMU()->pageTableSize = numPages;
+    invalidateTLB();
+    toReplace = 0;
+}
+
+void AddressSpace::invalidateTLB(){
+    for(unsigned i=0; i<TLB_SIZE; i++)
+        machine->GetMMU()->tlb[i].valid = false;
+}
+
+TranslationEntry* AddressSpace::getPageTable(){
+    return pageTable;
 }

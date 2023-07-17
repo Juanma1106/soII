@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
+
 SpaceId StartProcess(char** args, bool joinable);
 
 static void IncrementPC() {
@@ -52,6 +53,24 @@ static void IncrementPC() {
 ///
 /// * `et` is the kind of exception.  The list of possible exceptions is in
 ///   `machine/exception_type.hh`.
+static void PageFaultHandler(ExceptionType _et) {
+    int virtAddr = machine->ReadRegister(BAD_VADDR_REG);
+    unsigned vpn = (unsigned) virtAddr / PAGE_SIZE;
+    DEBUG('v', "Fallo de paginación con vpn %d.\n", vpn);
+    int indexTLB = currentThread->space->getToReplace();
+    DEBUG('v', "virtAddr: %u / PAGE_SIZE: %u. indexTLB: %d \n", virtAddr, PAGE_SIZE, indexTLB);
+    machine->GetMMU()->tlb[indexTLB] = currentThread->space->getPageTable()[vpn];
+    machine->GetMMU()->tlb[indexTLB].valid = true;
+    machine->GetMMU()->sumMiss();
+}
+
+static void ReadOnlyHandler(ExceptionType _et){ 
+    int virtAddr = machine->ReadRegister(BAD_VADDR_REG);
+    unsigned vpn = (unsigned) virtAddr / PAGE_SIZE;
+    DEBUG('v', "La entrada %d se quiso modificar y es ReadOnly.\n", vpn);
+}
+
+
 static void DefaultHandler(ExceptionType et) {
     int exceptionArg = machine->ReadRegister(2);
 
@@ -357,8 +376,8 @@ static void SyscallHandler(ExceptionType _et) {
 void SetExceptionHandlers() {
     machine->SetHandler(NO_EXCEPTION,            &DefaultHandler);
     machine->SetHandler(SYSCALL_EXCEPTION,       &SyscallHandler);
-    machine->SetHandler(PAGE_FAULT_EXCEPTION,    &DefaultHandler);
-    machine->SetHandler(READ_ONLY_EXCEPTION,     &DefaultHandler);
+    machine->SetHandler(PAGE_FAULT_EXCEPTION,    &PageFaultHandler);
+    machine->SetHandler(READ_ONLY_EXCEPTION,     &ReadOnlyHandler);
     machine->SetHandler(BUS_ERROR_EXCEPTION,     &DefaultHandler);
     machine->SetHandler(ADDRESS_ERROR_EXCEPTION, &DefaultHandler);
     machine->SetHandler(OVERFLOW_EXCEPTION,      &DefaultHandler);

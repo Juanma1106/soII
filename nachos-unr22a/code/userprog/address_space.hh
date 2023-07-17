@@ -48,6 +48,10 @@ public:
 
     void SaveState();
     void RestoreState();
+    void invalidateTLB();
+    TranslationEntry *getPageTable();
+    int getToReplace();
+
 
 private:
 
@@ -57,6 +61,7 @@ private:
     /// Number of pages in the virtual address space.
     unsigned numPages;
 
+    int toReplace;
 };
 
 

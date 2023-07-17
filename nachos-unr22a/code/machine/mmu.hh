@@ -81,12 +81,16 @@ public:
 
     TranslationEntry *pageTable;
     unsigned pageTableSize;
+    void sumHit() ;
+    void sumMiss() ;
 
 private:
 
+    int miss;
+    int total;
     /// Retrieve a page entry either from a page table or the TLB.
     ExceptionType RetrievePageEntry(unsigned vpn,
-                                    TranslationEntry **entry) const;
+                                    TranslationEntry **entry) ;
 
     /// Translate an address, and check for alignment.
     ///
@@ -95,6 +99,7 @@ private:
     /// completed.
     ExceptionType Translate(unsigned virtAddr, unsigned *physAddr,
                             unsigned size, bool writing);
+
 };
 
 
