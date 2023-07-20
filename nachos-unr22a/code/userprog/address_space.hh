@@ -16,6 +16,7 @@
 
 #include "filesys/file_system.hh"
 #include "machine/translation_entry.hh"
+#include "executable.hh"
 
 
 const unsigned USER_STACK_SIZE = 1024;  ///< Increase this as necessary!
@@ -51,6 +52,7 @@ public:
     void invalidateTLB();
     TranslationEntry *getPageTable();
     int getToReplace();
+    TranslationEntry loadPage(int vpn);
 
 
 private:
@@ -62,6 +64,7 @@ private:
     unsigned numPages;
 
     int toReplace;
+    OpenFile *file;
 };
 
 

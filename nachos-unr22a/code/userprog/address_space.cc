@@ -7,7 +7,6 @@
 
 
 #include "address_space.hh"
-#include "executable.hh"
 #include "threads/system.hh"
 
 #include <string.h>
@@ -24,9 +23,9 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
     toReplace = 0;
     ASSERT(executable_file != nullptr);
 
-    Executable exe (executable_file);
+    file = executable_file;
+    Executable exe (file);
     ASSERT(exe.CheckMagic());
-
     // How big is address space?
 
     unsigned size = exe.GetSize() + USER_STACK_SIZE;
@@ -49,10 +48,19 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
     for (unsigned i = 0; i < numPages; i++) {
         pageTable[i].virtualPage  = i;
           // For now, virtual page number = physical page number.
+#ifdef DEMAND_LOADING
+        pageTable[i].physicalPage = -1; // ponemos el -1 así no hace la búsqueda
+#else
         pageTable[i].physicalPage = bitmap->Find();
-        ASSERT(pageTable[i].physicalPage >= 0);
+        ASSERT(pageTable[i].physicalPage >= 0); // debería haber espacio
+#endif
         DEBUG('a', "Page %d to %d\n", i, pageTable[i].physicalPage);
+#ifdef DEMAND_LOADING
+        pageTable[i].valid        = false;
+        // DEBUG('d', "La vpn %d/%d  es se crea como inválida.\n", i, numPages);
+#else
         pageTable[i].valid        = true;
+#endif
         pageTable[i].use          = false;
         pageTable[i].dirty        = false;
         pageTable[i].readOnly     = false;
@@ -65,8 +73,9 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
         memset(mainMemory, pageTable[i].physicalPage, PAGE_SIZE);
     }
 
-    // memset(mainMemory, 0, size);
-    
+#ifndef DEMAND_LOADING
+    memset(mainMemory, 0, size);
+
     // Then, copy in the code and data segments into memory.
     uint32_t codeSize = exe.GetCodeSize();
     uint32_t initDataSize = exe.GetInitDataSize();
@@ -95,6 +104,56 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
           exe.ReadDataBlock(&mainMemory[physicalAddr], 1, i);
         }
     }
+#endif
+}
+
+
+TranslationEntry AddressSpace::loadPage(int vpn){
+    // chequear si la pagina corresponde a codigo, datos o stack
+    // con las funciones dentro del constructor, como GetCodeSize
+    int ppn = bitmap->Find();
+    ASSERT(ppn >= 0); // debería haber espacio
+
+    TranslationEntry newPage = TranslationEntry();
+    newPage.virtualPage  = vpn;
+    newPage.physicalPage = ppn;
+    newPage.valid        = true;
+    newPage.use          = false;
+    newPage.dirty        = false;
+    newPage.readOnly     = false;
+
+    char frame = machine->GetMMU()->mainMemory[ppn * PAGE_SIZE];
+
+    
+    Executable executable (file);
+    DEBUG('v', "Cargando la página virtual %d en la física %d.\n", vpn, ppn);
+
+    uint32_t codeSize = executable.GetCodeSize();
+    int codePages = (unsigned) codeSize / PAGE_SIZE;
+    uint32_t initDataSize = executable.GetInitDataSize();
+    int dataPages = (unsigned) initDataSize / PAGE_SIZE;
+
+    DEBUG('v', "Páginas de código: %d.\n", codePages);
+    DEBUG('v', "Páginas de datos: %d.\n", dataPages);
+
+    if (vpn > codePages+dataPages) { 
+        // es stack
+        newPage.readOnly = false;
+        DEBUG('v', "DemandLoading. La vpn %d es un segmento del STACK.\n", vpn);
+        memset(&frame , 0, PAGE_SIZE);
+    } else if(vpn < codePages){
+        // es codigo
+        newPage.readOnly = true;
+        DEBUG('v', "DemandLoading. La vpn %d es un segmento de CODIGO.\n", vpn);
+        executable.ReadCodeBlock(&frame, PAGE_SIZE, 0); 
+    } else if(vpn < codeSize+initDataSize){
+        // es dato
+        newPage.readOnly = false;
+        DEBUG('v', "DemandLoading. La vpn %d es un segmento de DATOS.\n", vpn);
+        executable.ReadDataBlock(&frame, PAGE_SIZE, 0);
+    }
+
+    return newPage;
 }
 
 /// Deallocate an address space.

@@ -68,6 +68,10 @@ void MMU::sumMiss(){
     miss++;
 }
 
+double MMU::printRatio(){
+    return miss/total;
+}
+
 void
 MMU::PrintTLB() const
 {

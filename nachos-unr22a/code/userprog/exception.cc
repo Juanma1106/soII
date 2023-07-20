@@ -58,8 +58,14 @@ static void PageFaultHandler(ExceptionType _et) {
     unsigned vpn = (unsigned) virtAddr / PAGE_SIZE;
     DEBUG('v', "Fallo de paginación con vpn %d.\n", vpn);
     int indexTLB = currentThread->space->getToReplace();
-    DEBUG('v', "virtAddr: %u / PAGE_SIZE: %u. indexTLB: %d \n", virtAddr, PAGE_SIZE, indexTLB);
-    machine->GetMMU()->tlb[indexTLB] = currentThread->space->getPageTable()[vpn];
+    DEBUG('v', "virtAddr: %u . indexTLB: %d \n", virtAddr, indexTLB);
+    if(currentThread->space->getPageTable()[vpn].valid){
+        DEBUG('d', "vpn: %u . Válida \n", vpn);
+        machine->GetMMU()->tlb[indexTLB] = currentThread->space->getPageTable()[vpn];
+    } else {
+        DEBUG('d', "vpn: %u . Inválida \n", vpn);
+        machine->GetMMU()->tlb[indexTLB] = currentThread->space->loadPage(vpn);
+    }
     machine->GetMMU()->tlb[indexTLB].valid = true;
     machine->GetMMU()->sumMiss();
 }

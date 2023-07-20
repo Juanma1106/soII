@@ -83,11 +83,12 @@ public:
     unsigned pageTableSize;
     void sumHit() ;
     void sumMiss() ;
+    double printRatio();
 
 private:
 
-    int miss;
-    int total;
+    double miss;
+    double total;
     /// Retrieve a page entry either from a page table or the TLB.
     ExceptionType RetrievePageEntry(unsigned vpn,
                                     TranslationEntry **entry) ;

@@ -158,7 +158,9 @@ main(int argc, char **argv)
             } else {
                 StartProcess(args, true);
             }
-            // interrupt->Halt();
+            // Nunca se llega a esto, no entiendo porqué 
+            DEBUG('v', "Ratio: %d\n", machine->GetMMU()->printRatio());
+            interrupt->Halt();
         } else if (!strcmp(*argv, "-tc")) {  // Test the console.
             if (argc == 1) {
                 ConsoleTest(nullptr, nullptr);
@@ -167,6 +169,7 @@ main(int argc, char **argv)
                 ConsoleTest(*(argv + 1), *(argv + 2));
                 argCount = 3;
             }
+
             interrupt->Halt();  // Once we start the console, then Nachos
                                 // will loop forever waiting for console
                                 // input.
