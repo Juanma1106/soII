@@ -55,7 +55,7 @@ static void IncrementPC() {
 ///   `machine/exception_type.hh`.
 static void PageFaultHandler(ExceptionType _et) {
     int virtAddr = machine->ReadRegister(BAD_VADDR_REG);
-    unsigned vpn = (unsigned) virtAddr / PAGE_SIZE;
+    uint32_t vpn = (unsigned) virtAddr / PAGE_SIZE;
     DEBUG('v', "Fallo de paginación con vpn %d.\n", vpn);
     int indexTLB = currentThread->space->getToReplace();
     DEBUG('v', "virtAddr: %u . indexTLB: %d \n", virtAddr, indexTLB);

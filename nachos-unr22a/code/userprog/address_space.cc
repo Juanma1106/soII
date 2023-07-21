@@ -25,6 +25,7 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
 
     file = executable_file;
     Executable exe (file);
+
     ASSERT(exe.CheckMagic());
     // How big is address space?
 
@@ -112,6 +113,8 @@ TranslationEntry AddressSpace::loadPage(int vpn){
     // chequear si la pagina corresponde a codigo, datos o stack
     // con las funciones dentro del constructor, como GetCodeSize
     int ppn = bitmap->Find();
+    Executable exec = Executable(file);
+
     ASSERT(ppn >= 0); // debería haber espacio
 
     TranslationEntry newPage = TranslationEntry();
@@ -124,13 +127,13 @@ TranslationEntry AddressSpace::loadPage(int vpn){
 
     char frame = machine->GetMMU()->mainMemory[ppn * PAGE_SIZE];
 
-    
-    Executable executable (file);
+
     DEBUG('v', "Cargando la página virtual %d en la física %d.\n", vpn, ppn);
 
-    uint32_t codeSize = executable.GetCodeSize();
+    // esta línea es la que da el error
+    uint32_t codeSize = exec.GetCodeSize();
     int codePages = (unsigned) codeSize / PAGE_SIZE;
-    uint32_t initDataSize = executable.GetInitDataSize();
+    uint32_t initDataSize = exec.GetInitDataSize();
     int dataPages = (unsigned) initDataSize / PAGE_SIZE;
 
     DEBUG('v', "Páginas de código: %d.\n", codePages);
@@ -145,12 +148,12 @@ TranslationEntry AddressSpace::loadPage(int vpn){
         // es codigo
         newPage.readOnly = true;
         DEBUG('v', "DemandLoading. La vpn %d es un segmento de CODIGO.\n", vpn);
-        executable.ReadCodeBlock(&frame, PAGE_SIZE, 0); 
+        exec.ReadCodeBlock(&frame, PAGE_SIZE, 0); 
     } else if(vpn < codeSize+initDataSize){
         // es dato
         newPage.readOnly = false;
         DEBUG('v', "DemandLoading. La vpn %d es un segmento de DATOS.\n", vpn);
-        executable.ReadDataBlock(&frame, PAGE_SIZE, 0);
+        exec.ReadDataBlock(&frame, PAGE_SIZE, 0);
     }
 
     return newPage;
