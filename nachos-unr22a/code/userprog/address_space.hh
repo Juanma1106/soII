@@ -64,7 +64,8 @@ private:
     unsigned numPages;
 
     int toReplace;
-    OpenFile *file;
+    OpenFile *addressSpaceFile ;
+    // Executable *addressSpaceExecutable ;
 };
 
 

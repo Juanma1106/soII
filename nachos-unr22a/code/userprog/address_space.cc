@@ -23,10 +23,11 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
     toReplace = 0;
     ASSERT(executable_file != nullptr);
 
-    file = executable_file;
-    Executable exe (file);
+    addressSpaceFile = executable_file;
+    Executable exe (executable_file);
 
     ASSERT(exe.CheckMagic());
+    // addressSpaceExecutable = &exe;
     // How big is address space?
 
     unsigned size = exe.GetSize() + USER_STACK_SIZE;
@@ -49,13 +50,13 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
     for (unsigned i = 0; i < numPages; i++) {
         pageTable[i].virtualPage  = i;
           // For now, virtual page number = physical page number.
-#ifdef DEMAND_LOADING
-        pageTable[i].physicalPage = -1; // ponemos el -1 así no hace la búsqueda
-#else
+// #ifdef DEMAND_LOADING
+//         pageTable[i].physicalPage = -2; // ponemos el -1 así no hace la búsqueda
+// #else
         pageTable[i].physicalPage = bitmap->Find();
         ASSERT(pageTable[i].physicalPage >= 0); // debería haber espacio
-#endif
-        DEBUG('a', "Page %d to %d\n", i, pageTable[i].physicalPage);
+// #endif
+        // DEBUG('a', "Page %d to %d\n", i, pageTable[i].physicalPage);
 #ifdef DEMAND_LOADING
         pageTable[i].valid        = false;
         // DEBUG('d', "La vpn %d/%d  es se crea como inválida.\n", i, numPages);
@@ -73,6 +74,7 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
         // Ya no podemos inicializar todas las paginas juntas.
         memset(mainMemory, pageTable[i].physicalPage, PAGE_SIZE);
     }
+
 
 #ifndef DEMAND_LOADING
     memset(mainMemory, 0, size);
@@ -110,10 +112,13 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
 
 
 TranslationEntry AddressSpace::loadPage(int vpn){
+    // DEBUG('d', "En el loadPage con thread %s \n",currentThread->GetName());
+
     // chequear si la pagina corresponde a codigo, datos o stack
     // con las funciones dentro del constructor, como GetCodeSize
     int ppn = bitmap->Find();
-    Executable exec = Executable(file);
+    // Executable exec = *addressSpaceExecutable;
+    Executable exec (addressSpaceFile);
 
     ASSERT(ppn >= 0); // debería haber espacio
 
@@ -125,37 +130,48 @@ TranslationEntry AddressSpace::loadPage(int vpn){
     newPage.dirty        = false;
     newPage.readOnly     = false;
 
-    char frame = machine->GetMMU()->mainMemory[ppn * PAGE_SIZE];
+    char * mainMemory = machine->GetMMU()->mainMemory;
+    char frame = mainMemory[ppn * PAGE_SIZE];
 
 
-    DEBUG('v', "Cargando la página virtual %d en la física %d.\n", vpn, ppn);
+    DEBUG('d', "Cargando la página virtual %d en la física %d.\n", vpn, ppn);
 
     // esta línea es la que da el error
     uint32_t codeSize = exec.GetCodeSize();
-    int codePages = (unsigned) codeSize / PAGE_SIZE;
+    int codePages = DivRoundUp(codeSize, PAGE_SIZE);
     uint32_t initDataSize = exec.GetInitDataSize();
-    int dataPages = (unsigned) initDataSize / PAGE_SIZE;
+    int dataPages = DivRoundUp(initDataSize, PAGE_SIZE);
+    // ver si es tan trivial como asumir la siguiente
 
-    DEBUG('v', "Páginas de código: %d.\n", codePages);
-    DEBUG('v', "Páginas de datos: %d.\n", dataPages);
+    DEBUG('d', "Páginas de código: %d.\n", codePages);
+    DEBUG('d', "Páginas de datos: %d.\n", dataPages);
 
     if (vpn > codePages+dataPages) { 
         // es stack
         newPage.readOnly = false;
-        DEBUG('v', "DemandLoading. La vpn %d es un segmento del STACK.\n", vpn);
+        DEBUG('d', "DemandLoading. La vpn %d es un segmento del STACK.\n", vpn);
         memset(&frame , 0, PAGE_SIZE);
     } else if(vpn < codePages){
-        // es codigo
-        newPage.readOnly = true;
-        DEBUG('v', "DemandLoading. La vpn %d es un segmento de CODIGO.\n", vpn);
-        exec.ReadCodeBlock(&frame, PAGE_SIZE, 0); 
-    } else if(vpn < codeSize+initDataSize){
-        // es dato
-        newPage.readOnly = false;
-        DEBUG('v', "DemandLoading. La vpn %d es un segmento de DATOS.\n", vpn);
-        exec.ReadDataBlock(&frame, PAGE_SIZE, 0);
+        if (codePages>0){
+            // es codigo
+            newPage.readOnly = true;
+            DEBUG('d', "DemandLoading. La vpn %d es un segmento de CODIGO.\n", vpn);
+            for (uint32_t alreadyRead=0; alreadyRead<PAGE_SIZE; alreadyRead++){
+                exec.ReadCodeBlock(&frame, 1, alreadyRead); 
+            }
+        }
+    } else if(vpn < codePages+dataPages){
+        if (dataPages>0){
+            // es dato
+            newPage.readOnly = false;
+            DEBUG('d', "DemandLoading. La vpn %d es un segmento de DATOS.\n", vpn);
+            for (uint32_t alreadyRead=0; alreadyRead<PAGE_SIZE; alreadyRead++){
+                exec.ReadDataBlock(&frame, 1, alreadyRead);
+            }
+        }
     }
 
+    DEBUG('d', "DemandLoading. La vpn %d cargó OK.\n", vpn);
     return newPage;
 }
 

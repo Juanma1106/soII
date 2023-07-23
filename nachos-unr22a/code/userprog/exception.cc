@@ -54,7 +54,7 @@ static void IncrementPC() {
 /// * `et` is the kind of exception.  The list of possible exceptions is in
 ///   `machine/exception_type.hh`.
 static void PageFaultHandler(ExceptionType _et) {
-    DEBUG('d', "Hilo que está manejando la excepción: %s . \n", currentThread->GetName());
+    // DEBUG('d', "Hilo que está manejando la excepción: %s . \n", currentThread->GetName());
     int virtAddr = machine->ReadRegister(BAD_VADDR_REG);
     uint32_t vpn = (unsigned) virtAddr / PAGE_SIZE;
     DEBUG('v', "Fallo de paginación con vpn %d.\n", vpn);
@@ -65,6 +65,7 @@ static void PageFaultHandler(ExceptionType _et) {
         machine->GetMMU()->tlb[indexTLB] = currentThread->space->getPageTable()[vpn];
     } else {
         DEBUG('d', "vpn: %u . Inválida \n", vpn);
+        DEBUG('v', "Llamando al loadPage con thread %s \n",currentThread->GetName());
         machine->GetMMU()->tlb[indexTLB] = currentThread->space->loadPage(vpn);
     }
     machine->GetMMU()->sumMiss();

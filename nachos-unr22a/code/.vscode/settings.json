@@ -52,6 +52,11 @@
         "streambuf": "cpp",
         "cinttypes": "cpp",
         "stdlib.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "cerrno": "cpp",
+        "climits": "cpp",
+        "cstdbool": "cpp",
+        "ios": "cpp",
+        "queue": "cpp"
     }
 }
