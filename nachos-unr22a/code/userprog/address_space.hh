@@ -54,7 +54,9 @@ public:
     int getToReplace();
     TranslationEntry loadPage(int vpn);
 
-
+    #ifdef SWAP
+        OpenFile * getSwapFile();
+    #endif
 private:
 
     /// Assume linear page table translation for now!
@@ -65,6 +67,9 @@ private:
 
     int toReplace;
     OpenFile *addressSpaceFile ;
+    #ifdef SWAP
+        OpenFile * swapFile;
+    #endif
 };
 
 

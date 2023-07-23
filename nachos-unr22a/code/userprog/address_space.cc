@@ -35,7 +35,17 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
     numPages = DivRoundUp(size, PAGE_SIZE);
     size = numPages * PAGE_SIZE;
 
-    ASSERT(numPages <= NUM_PHYS_PAGES);
+    #ifndef SWAP
+        ASSERT(numPages <= NUM_PHYS_PAGES);
+    #else
+        std::string fileNameStr = "SWAP." + std::to_string(currentThread->spaceId);
+        const char *fileName = fileNameStr.c_str();
+        if (fileSystem->Create(fileName, numPages * PAGE_SIZE)){
+            swapFile = fileSystem->Open(fileName);
+            DEBUG('s', "Archivo %s creado OK \n", fileName);
+        } else
+            DEBUG('s', "Error al crear el archivo %s \n", fileName);
+    #endif
       // Check we are not trying to run anything too big -- at least until we
       // have virtual memory.
 
@@ -49,10 +59,10 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
     pageTable = new TranslationEntry[numPages];
     for (unsigned i = 0; i < numPages; i++) {
         pageTable[i].virtualPage  = i;
-          // For now, virtual page number = physical page number.
-// #ifdef DEMAND_LOADING
-//         pageTable[i].physicalPage = -2; // ponemos el -1 así no hace la búsqueda
-// #else
+        // For now, virtual page number = physical page number.
+        // #ifdef DEMAND_LOADING
+        //         pageTable[i].physicalPage = -2; // ponemos el -1 así no hace la búsqueda
+        // #else
         pageTable[i].physicalPage = bitmap->Find();
         ASSERT(pageTable[i].physicalPage >= 0); // debería haber espacio
 // #endif
@@ -274,3 +284,10 @@ void AddressSpace::invalidateTLB(){
 TranslationEntry* AddressSpace::getPageTable(){
     return pageTable;
 }
+
+
+#ifdef SWAP
+        OpenFile * AddressSpace::getSwapFile(){
+            return swapFile;
+        }
+#endif
