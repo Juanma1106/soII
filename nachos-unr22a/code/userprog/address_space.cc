@@ -141,10 +141,14 @@ TranslationEntry AddressSpace::loadPage(int vpn){
     int codePages = DivRoundUp(codeSize, PAGE_SIZE);
     uint32_t initDataSize = exec.GetInitDataSize();
     int dataPages = DivRoundUp(initDataSize, PAGE_SIZE);
+    uint32_t totalSize = exec.GetSize();
+    int totalPages = DivRoundUp(totalSize, PAGE_SIZE);
     // ver si es tan trivial como asumir la siguiente
 
     DEBUG('d', "Páginas de código: %d.\n", codePages);
     DEBUG('d', "Páginas de datos: %d.\n", dataPages);
+
+    ASSERT(vpn < totalPages);
 
     if (vpn > codePages+dataPages) { 
         // es stack
