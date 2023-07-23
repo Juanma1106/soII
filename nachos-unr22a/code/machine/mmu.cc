@@ -207,19 +207,21 @@ MMU::RetrievePageEntry(unsigned vpn, TranslationEntry **entry)
     } else {
         // Use the TLB.
 
+        DEBUG ('y', "Buscando la página %d!\n", vpn);
         unsigned i;
         for (i = 0; i < TLB_SIZE; i++) {
             TranslationEntry *e = &tlb[i];
             if (e->valid && e->virtualPage == vpn) {
                 *entry = e;  // FOUND!
                 sumHit();
+                // DEBUG ('v', "Encontrada la página %d!\n", vpn);
+
                 return NO_EXCEPTION;
             }
         }
 
         // Not found.
         DEBUG_CONT('a', "no valid TLB entry found for this virtual page!\n");
-        // DEBUG_CONT('v', "PFHandler para el hilo %s\n", currentThread->GetName());
         return PAGE_FAULT_EXCEPTION;  // Really, this is a TLB fault, the
                                       // page may be in memory, but not in
                                       // the TLB.

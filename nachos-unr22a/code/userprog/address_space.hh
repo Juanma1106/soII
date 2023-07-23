@@ -65,7 +65,6 @@ private:
 
     int toReplace;
     OpenFile *addressSpaceFile ;
-    // Executable *addressSpaceExecutable ;
 };
 
 

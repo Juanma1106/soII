@@ -75,9 +75,9 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
         memset(mainMemory, pageTable[i].physicalPage, PAGE_SIZE);
     }
 
+    memset(mainMemory, 0, size);
 
 #ifndef DEMAND_LOADING
-    memset(mainMemory, 0, size);
 
     // Then, copy in the code and data segments into memory.
     uint32_t codeSize = exe.GetCodeSize();
@@ -112,12 +112,10 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
 
 
 TranslationEntry AddressSpace::loadPage(int vpn){
-    // DEBUG('d', "En el loadPage con thread %s \n",currentThread->GetName());
 
     // chequear si la pagina corresponde a codigo, datos o stack
-    // con las funciones dentro del constructor, como GetCodeSize
     int ppn = bitmap->Find();
-    // Executable exec = *addressSpaceExecutable;
+
     Executable exec (addressSpaceFile);
 
     ASSERT(ppn >= 0); // debería haber espacio
@@ -136,21 +134,24 @@ TranslationEntry AddressSpace::loadPage(int vpn){
 
     DEBUG('d', "Cargando la página virtual %d en la física %d.\n", vpn, ppn);
 
-    // esta línea es la que da el error
     uint32_t codeSize = exec.GetCodeSize();
     int codePages = DivRoundUp(codeSize, PAGE_SIZE);
     uint32_t initDataSize = exec.GetInitDataSize();
     int dataPages = DivRoundUp(initDataSize, PAGE_SIZE);
+    uint32_t totalSize = exec.GetSize();
+    int totalPages = DivRoundUp(totalSize, PAGE_SIZE);
     // ver si es tan trivial como asumir la siguiente
 
     DEBUG('d', "Páginas de código: %d.\n", codePages);
     DEBUG('d', "Páginas de datos: %d.\n", dataPages);
 
+    ASSERT(vpn < totalPages);
+
     if (vpn > codePages+dataPages) { 
         // es stack
         newPage.readOnly = false;
         DEBUG('d', "DemandLoading. La vpn %d es un segmento del STACK.\n", vpn);
-        memset(&frame , 0, PAGE_SIZE);
+        // memset(&frame , 0, PAGE_SIZE);
     } else if(vpn < codePages){
         if (codePages>0){
             // es codigo
@@ -171,7 +172,6 @@ TranslationEntry AddressSpace::loadPage(int vpn){
         }
     }
 
-    DEBUG('d', "DemandLoading. La vpn %d cargó OK.\n", vpn);
     return newPage;
 }
 

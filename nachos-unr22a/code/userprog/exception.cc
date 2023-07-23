@@ -59,16 +59,19 @@ static void PageFaultHandler(ExceptionType _et) {
     uint32_t vpn = (unsigned) virtAddr / PAGE_SIZE;
     DEBUG('v', "Fallo de paginación con vpn %d.\n", vpn);
     int indexTLB = currentThread->space->getToReplace();
-    DEBUG('v', "virtAddr: %u . indexTLB: %d \n", virtAddr, indexTLB);
+    // DEBUG('v', "virtAddr: %u . indexTLB: %d \n", virtAddr, indexTLB);
     if(currentThread->space->getPageTable()[vpn].valid){
-        DEBUG('d', "vpn: %u . Válida \n", vpn);
+        // DEBUG('d', "vpn: %u . Válida \n", vpn);
+        DEBUG('d', "NO-DemandLoading. La vpn %d la saco de la tabla de paginación.\n", vpn);
         machine->GetMMU()->tlb[indexTLB] = currentThread->space->getPageTable()[vpn];
     } else {
-        DEBUG('d', "vpn: %u . Inválida \n", vpn);
-        DEBUG('v', "Llamando al loadPage con thread %s \n",currentThread->GetName());
+        // DEBUG('d', "vpn: %u . Inválida \n", vpn);
+        // DEBUG('v', "Llamando al loadPage con thread %s \n",currentThread->GetName());
         machine->GetMMU()->tlb[indexTLB] = currentThread->space->loadPage(vpn);
+        DEBUG('d', "DemandLoading. La vpn %d cargó OK.\n", vpn);
     }
     machine->GetMMU()->sumMiss();
+    // machine->GetMMU()->PrintTLB();
 }
 
 static void ReadOnlyHandler(ExceptionType _et){ 
@@ -257,7 +260,6 @@ static void SyscallHandler(ExceptionType _et) {
         }
 
         case SC_READ: {
-            // int Read(char *buffer, int size, OpenFileId id);
             bool errorOcurred = false;
             int bufferAddr = machine->ReadRegister(4);
             if (bufferAddr == 0) {
@@ -307,7 +309,6 @@ static void SyscallHandler(ExceptionType _et) {
         }
 
         case SC_WRITE: {
-            //int Write(const char *buffer, int size, OpenFileId id);
             bool errorOcurred = false;
 
             int bufferAddr = machine->ReadRegister(4);

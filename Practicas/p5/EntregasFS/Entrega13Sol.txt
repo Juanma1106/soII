@@ -1,0 +1,12 @@
+1) Una solución posible, como plantea el enunciado, es dejar al menos los metadatos en un estado consistente. De esta forma se mantiene la información necesaria para poder manipular los archivos, pero se perdió su contenido. Esto puede ser beneficioso si la información almacenada era de poco tamaño o puede ser reescrita con facilidad, pero si era información que no puede ser recuperada entonces perdemos lo guardado.
+
+Otra solución posible, y mucho más extrema, es eliminar completamente toda referencia a ambos archivos. Si bien esto es muy sencillo, no es lo ideal pues perdemos toda la información almacenada
+
+2) Los cross-linked files podrían darse en UNIX por la forma en la que está estructurado el sistema de archivos. En este caso, en lugar de ser un espacio en la cadena el que causa el problema, se podría dar cuando dos inodos tienen un fragmento que apunta al mismo sector
+
+3) 
+Una de las ventajas del ext3 es el uso del espacio. Si lo guardamos en un espacio separado, tiene la posibilidad de crecer descontroladamente. En un sistema basado en logs esto no sucede, pues los logs son parte intrínseca del sistema. En ext3, al tener bloques de tamaño fijo, este descontrol no se da.
+
+Otra ventaja es el uso de las tags para acceder a momentos de la historia del sistema. Como ext3 esta formado por un numero fijo de bloques, cada uno de ellos puede ser asociado a un tag y el acceso a ellos se vuelve mucho más ordenado
+
+Una desventaja, por otro lado, viene cuando se realizan muchos cambios. Como los bloques del journal se sobreescriben, los datos pueden perderse
