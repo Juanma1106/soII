@@ -52,10 +52,11 @@ public:
     void invalidateTLB();
     TranslationEntry *getPageTable();
     int getToReplace();
-    TranslationEntry loadPage(int vpn);
+    TranslationEntry loadPage(uint32_t vpn);
 
     #ifdef SWAP
         OpenFile * getSwapFile();
+        void saveInSwap(uint32_t ppn);
     #endif
 private:
 

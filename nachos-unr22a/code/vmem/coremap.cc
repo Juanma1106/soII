@@ -7,7 +7,7 @@ Coremap::Coremap(unsigned pages){
    numPages = pages;
    physicals = new Bitmap(pages);
    order = new List<unsigned>();
-   entries = new Entry[pages];
+   entries = new CoremapEntry[pages];
 }
 
 Coremap::~Coremap() {
@@ -19,37 +19,41 @@ Coremap::~Coremap() {
 
 }
 
-unsigned Coremap::Find(unsigned virtualPage){
-   int page = physicals->Find();
-   if(page < 0) { // no hay espacio en physicals
-      page = order->Pop();
-      DEBUG('v', "El proceso es %s\n",entries[page].process->GetName());
-      DEBUG('v', "La ppn %d y la vpn %d\n", page, entries[page].virtualPage);
-      ASSERT(entries[page].process->space != nullptr);
-      entries[page].process->space->SwapPage(entries[page].virtualPage);
+CoremapEntry Coremap::Find(unsigned virtualPage){
+   int ppn = physicals->Find();
+   if(ppn < 0) { 
+      // no hay espacio en memoria
+      ppn = order->Pop();
+      DEBUG('v', "El proceso es %s\n",entries[ppn].process->GetName());
+      DEBUG('v', "La ppn %d y la vpn %d\n", ppn, entries[ppn].vpn);
+      ASSERT(entries[ppn].process->space != nullptr);
+      // hay que swappear
+      entries[ppn].process->space->saveInSwap(ppn);
    }
-   entries[page].process = currentThread;
-   entries[page].virtualPage = virtualPage;
-   order->Append(page);
-   return page;
+   // habia lugar, o se hizo lugar con swap
+   entries[ppn].process = currentThread;
+   entries[ppn].vpn = virtualPage;
+   order->Append(ppn);
+   return entries[ppn];
 }
 
-void Coremap::Clear(unsigned physicalPage){
-   if(!physicals->Test(physicalPage)){
+void Coremap::Clear(unsigned ppn){
+   if(!physicals->Test(ppn)){
       return;
    }
-   order->Remove(physicalPage);
-   physicals->Clear(physicalPage);
+   // si estaba ocupada, se libera
+   order->Remove(ppn);
+   physicals->Clear(ppn);
 }
 
-void Coremap::Get(unsigned physicalPage){
-   if(!physicals->Test(physicalPage)){
+void Coremap::Get(unsigned ppn){
+   if(!physicals->Test(ppn)){
       return;
    }
-   #ifdef COREMAP_LRU
-   order->Remove(physicalPage);
-   order->Append(physicalPage);
-   #endif
+   // #ifdef COREMAP_LRU
+   // order->Remove(ppn);
+   // order->Append(ppn);
+   // #endif
 
    return;
 }

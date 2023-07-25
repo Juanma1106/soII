@@ -121,10 +121,14 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
 }
 
 
-TranslationEntry AddressSpace::loadPage(int vpn){
+TranslationEntry AddressSpace::loadPage(unsigned vpn){
 
     // chequear si la pagina corresponde a codigo, datos o stack
-    int ppn = bitmap->Find();
+    #ifdef SWAP
+        int ppn = coremap->Find(vpn);
+    #else
+        int ppn = bitmap->Find();
+    #endif
 
     Executable exec (addressSpaceFile);
 
@@ -136,7 +140,6 @@ TranslationEntry AddressSpace::loadPage(int vpn){
     newPage.valid        = true;
     newPage.use          = false;
     newPage.dirty        = false;
-    newPage.readOnly     = false;
 
     char * mainMemory = machine->GetMMU()->mainMemory;
     char frame = mainMemory[ppn * PAGE_SIZE];
@@ -184,6 +187,19 @@ TranslationEntry AddressSpace::loadPage(int vpn){
 
     return newPage;
 }
+
+void saveInSwap(uint32_t ppn){
+    char *mainMemory = machine->GetMMU()->mainMemory;
+
+
+    CoremapEntry *entry = coremap->Find(ppn);
+    OpenFile * swapfile = entry->thread->space->getSwapFile();
+    unsigned position = entry->vpn * PAGE_SIZE;
+    unsigned numBytes = PAGE_SIZE;
+    const char *from = &(machine->GetMMU()->mainMemory[ppn]);
+    swapfile->WriteAt(from, numBytes, position);
+}
+
 
 /// Deallocate an address space.
 ///

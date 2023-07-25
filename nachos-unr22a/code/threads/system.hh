@@ -43,6 +43,13 @@ extern SynchConsole *synchConsole;
 extern Table<Thread*> *threads;
 #include "lib/bitmap.hh"
 extern Bitmap *bitmap;
+
+#ifdef SWAP
+#include "vmem/coremap.hh"
+extern Coremap *coremap;
+#endif
+
+
 #endif
 
 #ifdef FILESYS_NEEDED  // *FILESYS* or *FILESYS_STUB*.

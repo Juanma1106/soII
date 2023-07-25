@@ -61,7 +61,7 @@ static void PageFaultHandler(ExceptionType _et) {
     int indexTLB = currentThread->space->getToReplace();
     // DEBUG('v', "virtAddr: %u . indexTLB: %d \n", virtAddr, indexTLB);
     uint32_t ppnToSaveInSwap = machine->GetMMU()->tlb[indexTLB].physicalPage;
-    // saveInSwap(ppn);
+    currentThread->space->saveInSwap(ppnToSaveInSwap);
 
     if(currentThread->space->getPageTable()[vpn].valid){
         // DEBUG('d', "vpn: %u . Válida \n", vpn);
@@ -77,16 +77,6 @@ static void PageFaultHandler(ExceptionType _et) {
     // machine->GetMMU()->PrintTLB();
 }
 
-// void saveInSwap(uint32_t ppn){
-//     CoremapEntry * entry = coremap(ppn);
-//     Thread * ppnOwner = entry->getThread();
-//     uint32_t vpn = entry->getVPN();
-//     OpenFile * swapfile = ppnOwner->space->getSwapFile();
-//     unsigned position = vpn * PAGE_SIZE;
-//     unsigned numBytes = PAGE_SIZE;
-//     const char *from = &(machine->GetMMU()->mainMemory[ppn]);
-//     swapfile->WriteAt(from, numBytes, position);
-// }
 
 static void ReadOnlyHandler(ExceptionType _et){ 
     int virtAddr = machine->ReadRegister(BAD_VADDR_REG);

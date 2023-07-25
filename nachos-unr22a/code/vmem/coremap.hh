@@ -4,9 +4,9 @@
 #include "lib/bitmap.hh"
 #include "threads/thread.hh"
 #include "lib/list.hh"
-#ifdef USE_SWAP
+#ifdef SWAP
 
-class Entry {
+class CoremapEntry {
    public:
       // nos falta un constructor y un destructor
       Thread *thread;
@@ -20,17 +20,17 @@ class Coremap {
 
       ~Coremap();
       
-      unsigned Find(unsigned virtualPage);
+      CoremapEntry Find(unsigned virtualPage);
       
       void Clear(unsigned virtualPage);
       
       void Get(unsigned physicalPage);
    
    private:
-      Bitmap *physicals;
-      Entry *entries;
-      List<unsigned> *order;
-      unsigned numPages;
+      Bitmap *physicals;      // bitmap de páginas físicas
+      CoremapEntry *entries;  // par <thread,vpn> al que pertenece cada ppn
+      List<unsigned> *order;  // orden en el que vamos a ir liberando las páginas
+      unsigned numPages;      // cantidad de páginas físicas (NUM_PAGES)
 };
 
 
