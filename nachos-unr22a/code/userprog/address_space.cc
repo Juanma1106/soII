@@ -148,11 +148,11 @@ TranslationEntry AddressSpace::loadPage(unsigned vpn){
     DEBUG('d', "Cargando la página virtual %d en la física %d.\n", vpn, ppn);
 
     uint32_t codeSize = exec.GetCodeSize();
-    int codePages = DivRoundUp(codeSize, PAGE_SIZE);
+    uint32_t codePages = DivRoundUp(codeSize, PAGE_SIZE);
     uint32_t initDataSize = exec.GetInitDataSize();
-    int dataPages = DivRoundUp(initDataSize, PAGE_SIZE);
+    uint32_t dataPages = DivRoundUp(initDataSize, PAGE_SIZE);
     uint32_t totalSize = exec.GetSize();
-    int totalPages = DivRoundUp(totalSize, PAGE_SIZE);
+    uint32_t totalPages = DivRoundUp(totalSize, PAGE_SIZE);
     // ver si es tan trivial como asumir la siguiente
 
     DEBUG('d', "Páginas de código: %d.\n", codePages);
@@ -189,12 +189,9 @@ TranslationEntry AddressSpace::loadPage(unsigned vpn){
 }
 
 void saveInSwap(uint32_t ppn){
-    char *mainMemory = machine->GetMMU()->mainMemory;
-
-
-    CoremapEntry *entry = coremap->Find(ppn);
-    OpenFile * swapfile = entry->thread->space->getSwapFile();
-    unsigned position = entry->vpn * PAGE_SIZE;
+    CoremapEntry entry = coremap->GetEntry(ppn);
+    OpenFile * swapfile = entry.thread->space->getSwapFile();
+    unsigned position = entry.vpn * PAGE_SIZE;
     unsigned numBytes = PAGE_SIZE;
     const char *from = &(machine->GetMMU()->mainMemory[ppn]);
     swapfile->WriteAt(from, numBytes, position);

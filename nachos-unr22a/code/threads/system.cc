@@ -246,6 +246,10 @@ Initialize(int argc, char **argv)
     SetExceptionHandlers();
 #endif
 
+#ifdef SWAP
+    coremap = new Coremap(NUM_PHYS_PAGES);
+#endif
+
 #ifdef FILESYS
     synchDisk = new SynchDisk("DISK");
 #endif
@@ -257,6 +261,8 @@ Initialize(int argc, char **argv)
 #ifdef NETWORK
     postOffice = new PostOffice(netname, rely, 10);
 #endif
+
+
 }
 
 /// Nachos is halting.  De-allocate global data structures.
@@ -283,6 +289,10 @@ Cleanup()
 
 #ifdef FILESYS
     delete synchDisk;
+#endif
+
+#ifdef SWAP
+    delete coremap;
 #endif
 
     delete timer;

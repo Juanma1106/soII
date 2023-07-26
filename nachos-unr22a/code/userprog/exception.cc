@@ -22,14 +22,7 @@
 /// limitation of liability and disclaimer of warranty provisions.
 
 
-#include "transfer.hh"
-#include "syscall.h"
-#include "filesys/directory_entry.hh"
-#include "threads/system.hh"
-#include "args.hh"
-
-#include <stdio.h>
-#include <unistd.h>
+#include "exception.hh"
 
 
 SpaceId StartProcess(char** args, bool joinable);
@@ -60,8 +53,8 @@ static void PageFaultHandler(ExceptionType _et) {
     DEBUG('v', "Fallo de paginación con vpn %d.\n", vpn);
     int indexTLB = currentThread->space->getToReplace();
     // DEBUG('v', "virtAddr: %u . indexTLB: %d \n", virtAddr, indexTLB);
-    uint32_t ppnToSaveInSwap = machine->GetMMU()->tlb[indexTLB].physicalPage;
-    currentThread->space->saveInSwap(ppnToSaveInSwap);
+    // uint32_t ppnToSaveInSwap = machine->GetMMU()->tlb[indexTLB].physicalPage;
+    // currentThread->space->saveInSwap(ppnToSaveInSwap);
 
     if(currentThread->space->getPageTable()[vpn].valid){
         // DEBUG('d', "vpn: %u . Válida \n", vpn);

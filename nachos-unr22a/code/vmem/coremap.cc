@@ -1,8 +1,6 @@
 #include "coremap.hh"
-#include <limits.h>
-#include "threads/system.hh"
 
-#ifdef USE_SWAP
+#ifdef SWAP
 Coremap::Coremap(unsigned pages){
    numPages = pages;
    physicals = new Bitmap(pages);
@@ -13,28 +11,28 @@ Coremap::Coremap(unsigned pages){
 Coremap::~Coremap() {
    delete physicals;
    delete [] entries;
-   for (int i=0; i<numPages; i++){
+   for (unsigned int i=0; i<numPages; i++){
       // borrar entries
    } 
 
 }
 
-CoremapEntry Coremap::Find(unsigned virtualPage){
+unsigned Coremap::Find(unsigned virtualPage){
    int ppn = physicals->Find();
    if(ppn < 0) { 
       // no hay espacio en memoria
       ppn = order->Pop();
-      DEBUG('v', "El proceso es %s\n",entries[ppn].process->GetName());
+      DEBUG('v', "El proceso es %s\n",entries[ppn].thread->GetName());
       DEBUG('v', "La ppn %d y la vpn %d\n", ppn, entries[ppn].vpn);
-      ASSERT(entries[ppn].process->space != nullptr);
+      ASSERT(entries[ppn].thread->space != nullptr);
       // hay que swappear
-      entries[ppn].process->space->saveInSwap(ppn);
+      entries[ppn].thread->space->saveInSwap(ppn);
    }
    // habia lugar, o se hizo lugar con swap
-   entries[ppn].process = currentThread;
+   entries[ppn].thread = currentThread;
    entries[ppn].vpn = virtualPage;
    order->Append(ppn);
-   return entries[ppn];
+   return ppn;
 }
 
 void Coremap::Clear(unsigned ppn){
@@ -44,6 +42,11 @@ void Coremap::Clear(unsigned ppn){
    // si estaba ocupada, se libera
    order->Remove(ppn);
    physicals->Clear(ppn);
+}
+
+CoremapEntry Coremap::GetEntry(unsigned ppn){
+   ASSERT(ppn<numPages);
+   return entries[ppn];
 }
 
 void Coremap::Get(unsigned ppn){
