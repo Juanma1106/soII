@@ -17,8 +17,8 @@ Coremap::~Coremap() {
 
 }
 
-unsigned Coremap::Find(unsigned virtualPage){
-   int ppn = physicals->Find();
+unsigned Coremap::Find(unsigned virtualPage, Thread *currentThread){
+   unsigned int ppn = physicals->Find();
    if(ppn < 0) { 
       // no hay espacio en memoria
       ppn = order->Pop();

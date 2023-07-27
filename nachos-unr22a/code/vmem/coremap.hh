@@ -3,10 +3,11 @@
 
 #include "lib/bitmap.hh"
 #include "lib/list.hh"
-#include <limits.h>
-#include "threads/system.hh"
+#include "threads/thread.hh"
+#include "userprog/address_space.hh"
 
 
+#ifdef SWAP
 class CoremapEntry {
    public:
       // nos falta un constructor y un destructor ?
@@ -14,7 +15,6 @@ class CoremapEntry {
       unsigned vpn;
 };
 
-#ifdef SWAP
 
 class Coremap {
    public:
@@ -22,7 +22,7 @@ class Coremap {
 
       ~Coremap();
       
-      unsigned Find(unsigned virtualPage);
+      unsigned Find(unsigned virtualPage, Thread *currentThread);
       
       void Clear(unsigned virtualPage);
       

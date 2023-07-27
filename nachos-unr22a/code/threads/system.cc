@@ -55,6 +55,11 @@ Bitmap *bitmap;
 PostOffice *postOffice;
 #endif
 
+#ifdef SWAP
+Coremap *coremap;
+#endif
+
+
 // External definition, to allow us to take a pointer to this function.
 extern void Cleanup();
 

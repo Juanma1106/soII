@@ -125,7 +125,7 @@ TranslationEntry AddressSpace::loadPage(unsigned vpn){
 
     // chequear si la pagina corresponde a codigo, datos o stack
     #ifdef SWAP
-        int ppn = coremap->Find(vpn);
+        int ppn = coremap->Find(vpn, currentThread);
     #else
         int ppn = bitmap->Find();
     #endif
@@ -188,7 +188,7 @@ TranslationEntry AddressSpace::loadPage(unsigned vpn){
     return newPage;
 }
 
-void saveInSwap(uint32_t ppn){
+void saveInSwap(unsigned int ppn){
     CoremapEntry entry = coremap->GetEntry(ppn);
     OpenFile * swapfile = entry.thread->space->getSwapFile();
     unsigned position = entry.vpn * PAGE_SIZE;
