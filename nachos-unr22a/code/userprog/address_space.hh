@@ -18,7 +18,6 @@
 #include "machine/translation_entry.hh"
 #include "executable.hh"
 
-
 const unsigned USER_STACK_SIZE = 1024;  ///< Increase this as necessary!
 
 

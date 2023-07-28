@@ -188,6 +188,7 @@ TranslationEntry AddressSpace::loadPage(unsigned vpn){
     return newPage;
 }
 
+#ifdef SWAP
 void saveInSwap(unsigned int ppn){
     CoremapEntry entry = coremap->GetEntry(ppn);
     OpenFile * swapfile = entry.thread->space->getSwapFile();
@@ -196,7 +197,7 @@ void saveInSwap(unsigned int ppn){
     const char *from = &(machine->GetMMU()->mainMemory[ppn]);
     swapfile->WriteAt(from, numBytes, position);
 }
-
+#endif
 
 /// Deallocate an address space.
 ///
@@ -300,7 +301,7 @@ TranslationEntry* AddressSpace::getPageTable(){
 
 
 #ifdef SWAP
-        OpenFile * AddressSpace::getSwapFile(){
-            return swapFile;
-        }
+OpenFile * AddressSpace::getSwapFile(){
+    return swapFile;
+}
 #endif
