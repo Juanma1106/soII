@@ -85,7 +85,7 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
         memset(mainMemory, pageTable[i].physicalPage, PAGE_SIZE);
     }
 
-    memset(mainMemory, 0, size);
+    // memset(mainMemory, 0, size);
 
 #ifndef DEMAND_LOADING
 
@@ -122,6 +122,7 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
 
 
 TranslationEntry AddressSpace::loadPage(unsigned vpn){
+    DEBUG('d', "Empezando con el loadpagede la vpn: %d.\n", vpn);
 
     // chequear si la pagina corresponde a codigo, datos o stack
     #ifdef SWAP
