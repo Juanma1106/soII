@@ -22,7 +22,7 @@ class Coremap {
 
       ~Coremap();
       
-      int Find(int virtualPage, Thread *currentThread);
+      int Find(int virtualPage, Thread *currentThread, OpenFile * currentSwapFile, TranslationEntry *pageTable);
       
       void Clear(int virtualPage);
       

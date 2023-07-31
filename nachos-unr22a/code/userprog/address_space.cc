@@ -64,7 +64,7 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
         //         pageTable[i].physicalPage = -2; // ponemos el -1 así no hace la búsqueda
         // #else
         #ifdef SWAP
-            pageTable[i].physicalPage = coremap->Find(i, currentThread);
+            pageTable[i].physicalPage = coremap->Find(i, currentThread, swapFile, pageTable);
         #else
             pageTable[i].physicalPage = bitmap->Find();
         #endif
@@ -126,11 +126,12 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
 
 
 TranslationEntry AddressSpace::loadPage(unsigned vpn){
-    DEBUG('d', "Empezando con el loadpagede la vpn: %d.\n", vpn);
+    DEBUG('d', "Empezando con el loadpage de la vpn: %d.\n", vpn);
 
     // chequear si la pagina corresponde a codigo, datos o stack
     #ifdef SWAP
-        int ppn = coremap->Find(vpn, currentThread);
+        int ppn = coremap->Find(vpn, currentThread, swapFile, pageTable);
+        // coremap->Replace();
     #else
         int ppn = bitmap->Find();
     #endif
@@ -156,14 +157,14 @@ TranslationEntry AddressSpace::loadPage(unsigned vpn){
     uint32_t codePages = DivRoundUp(codeSize, PAGE_SIZE);
     uint32_t initDataSize = exec.GetInitDataSize();
     uint32_t dataPages = DivRoundUp(initDataSize, PAGE_SIZE);
-    uint32_t totalSize = exec.GetSize();
+    uint32_t totalSize = exec.GetSize() + USER_STACK_SIZE;
     uint32_t totalPages = DivRoundUp(totalSize, PAGE_SIZE);
     // ver si es tan trivial como asumir la siguiente
 
     DEBUG('d', "Páginas de código: %d.\n", codePages);
     DEBUG('d', "Páginas de datos: %d.\n", dataPages);
 
-    ASSERT(vpn < totalPages);
+    ASSERT(vpn <= totalPages);
 
     if (vpn > codePages+dataPages) { 
         // es stack
@@ -193,15 +194,14 @@ TranslationEntry AddressSpace::loadPage(unsigned vpn){
     return newPage;
 }
 
-void saveInSwap(int ppn){
-    CoremapEntry entry = coremap->GetEntry(ppn);
-    OpenFile * swapfile = entry.thread->space->getSwapFile();
-    unsigned position = entry.vpn * PAGE_SIZE;
-    unsigned numBytes = PAGE_SIZE;
-    const char *from = &(machine->GetMMU()->mainMemory[ppn]);
-    swapfile->WriteAt(from, numBytes, position);
-}
 #ifdef SWAP
+void AddressSpace::saveInSwap(int ppn, OpenFile * swapFile, TranslationEntry *pgtable){
+    CoremapEntry entry = coremap->GetEntry(ppn);
+    unsigned position = entry.vpn * PAGE_SIZE;
+    const char *from = &(machine->GetMMU()->mainMemory[ppn]);
+    swapFile->WriteAt(from, PAGE_SIZE, position);
+    pgtable[entry.vpn].valid = false;
+}
 #endif
 
 /// Deallocate an address space.

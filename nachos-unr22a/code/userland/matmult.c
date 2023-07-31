@@ -12,7 +12,7 @@
 
 
 /// Sum total of the arrays does not fit in physical memory.
-#define DIM 3 
+#define DIM 3
 
 static int A[DIM][DIM];
 static int B[DIM][DIM];

@@ -213,8 +213,9 @@ MMU::RetrievePageEntry(unsigned vpn, TranslationEntry **entry)
             TranslationEntry *e = &tlb[i];
             if (e->valid && e->virtualPage == vpn) {
                 *entry = e;  // FOUND!
+                // PrintTLB();
                 sumHit();
-                // DEBUG ('v', "Encontrada la página %d!\n", vpn);
+                DEBUG ('v', "Encontrada la página %d!\n", vpn);
 
                 return NO_EXCEPTION;
             }
