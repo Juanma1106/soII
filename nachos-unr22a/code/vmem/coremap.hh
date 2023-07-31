@@ -22,18 +22,18 @@ class Coremap {
 
       ~Coremap();
       
-      unsigned Find(unsigned virtualPage, Thread *currentThread);
+      int Find(int virtualPage, Thread *currentThread);
       
-      void Clear(unsigned virtualPage);
+      void Clear(int virtualPage);
       
-      void Get(unsigned physicalPage);
+      void Get(int physicalPage);
    
-      CoremapEntry GetEntry(unsigned ppn);
+      CoremapEntry GetEntry(int ppn);
 
    private:
       Bitmap *physicals;      // bitmap de páginas físicas
       CoremapEntry *entries;  // par <thread,vpn> al que pertenece cada ppn
-      List<unsigned> *order;  // orden en el que vamos a ir liberando las páginas
+      List<int> *order;  // orden en el que vamos a ir liberando las páginas
       unsigned numPages;      // cantidad de páginas físicas (NUM_PHYS_PAGES)
 };
 

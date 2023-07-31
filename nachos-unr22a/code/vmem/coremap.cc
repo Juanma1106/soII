@@ -4,7 +4,7 @@
 Coremap::Coremap(unsigned pages){
    numPages = pages;
    physicals = new Bitmap(pages);
-   order = new List<unsigned>();
+   order = new List<int>();
    entries = new CoremapEntry[pages];
 }
 
@@ -17,16 +17,16 @@ Coremap::~Coremap() {
 
 }
 
-unsigned Coremap::Find(unsigned virtualPage, Thread *currentThread){
-   unsigned int ppn = physicals->Find();
+int Coremap::Find(int virtualPage, Thread *currentThread){
+   int ppn = physicals->Find();
    if(ppn < 0) { 
       // no hay espacio en memoria
       ppn = order->Pop();
       DEBUG('v', "El proceso es %s\n",entries[ppn].thread->GetName());
       DEBUG('v', "La ppn %d y la vpn %d\n", ppn, entries[ppn].vpn);
-      ASSERT(entries[ppn].thread->space != nullptr);
+      ASSERT((entries[ppn].thread)->space != nullptr);
       // hay que swappear
-      entries[ppn].thread->space->saveInSwap(ppn);
+      (entries[ppn].thread)->space->saveInSwap(ppn);
    }
    // habia lugar, o se hizo lugar con swap
    entries[ppn].thread = currentThread;
@@ -35,7 +35,7 @@ unsigned Coremap::Find(unsigned virtualPage, Thread *currentThread){
    return ppn;
 }
 
-void Coremap::Clear(unsigned ppn){
+void Coremap::Clear(int ppn){
    if(!physicals->Test(ppn)){
       return;
    }
@@ -44,12 +44,8 @@ void Coremap::Clear(unsigned ppn){
    physicals->Clear(ppn);
 }
 
-CoremapEntry Coremap::GetEntry(unsigned ppn){
-   ASSERT(ppn<numPages);
-   return entries[ppn];
-}
 
-void Coremap::Get(unsigned ppn){
+void Coremap::Get(int ppn){
    if(!physicals->Test(ppn)){
       return;
    }
@@ -61,4 +57,8 @@ void Coremap::Get(unsigned ppn){
    return;
 }
 
+CoremapEntry Coremap::GetEntry(int ppn){
+   ASSERT((unsigned) ppn<numPages);
+   return entries[ppn];
+}
 #endif

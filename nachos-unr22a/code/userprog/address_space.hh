@@ -53,9 +53,9 @@ public:
     int getToReplace();
     TranslationEntry loadPage(uint32_t vpn);
 
-    #ifdef SWAP
         OpenFile * getSwapFile();
-        void saveInSwap(uint32_t ppn);
+        void saveInSwap(int ppn);
+    #ifdef SWAP
     #endif
 private:
 

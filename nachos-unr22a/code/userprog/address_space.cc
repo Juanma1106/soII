@@ -63,7 +63,11 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
         // #ifdef DEMAND_LOADING
         //         pageTable[i].physicalPage = -2; // ponemos el -1 así no hace la búsqueda
         // #else
-        pageTable[i].physicalPage = bitmap->Find();
+        #ifdef SWAP
+            pageTable[i].physicalPage = coremap->Find(i, currentThread);
+        #else
+            pageTable[i].physicalPage = bitmap->Find();
+        #endif
         ASSERT(pageTable[i].physicalPage >= 0); // debería haber espacio
 // #endif
         // DEBUG('a', "Page %d to %d\n", i, pageTable[i].physicalPage);
@@ -189,8 +193,7 @@ TranslationEntry AddressSpace::loadPage(unsigned vpn){
     return newPage;
 }
 
-#ifdef SWAP
-void saveInSwap(unsigned int ppn){
+void saveInSwap(int ppn){
     CoremapEntry entry = coremap->GetEntry(ppn);
     OpenFile * swapfile = entry.thread->space->getSwapFile();
     unsigned position = entry.vpn * PAGE_SIZE;
@@ -198,6 +201,7 @@ void saveInSwap(unsigned int ppn){
     const char *from = &(machine->GetMMU()->mainMemory[ppn]);
     swapfile->WriteAt(from, numBytes, position);
 }
+#ifdef SWAP
 #endif
 
 /// Deallocate an address space.
