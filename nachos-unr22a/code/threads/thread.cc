@@ -24,7 +24,6 @@
 #include <inttypes.h>
 #include <stdio.h>
 
-
 /// This is put at the top of the execution stack, for detecting stack
 /// overflows.
 const unsigned STACK_FENCEPOST = 0xDEADBEEF;

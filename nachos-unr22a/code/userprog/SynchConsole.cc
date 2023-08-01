@@ -15,6 +15,7 @@ SynchConsole::SynchConsole(const char *in, const char *out) {
 /// Console interrupt handlers.
 ///
 /// Wake up the thread that requested the I/O.
+#ifdef USER_PROGRAM
 static void ReadAvail(void *arg) {
     readAvail->V();
 }
@@ -22,7 +23,7 @@ static void ReadAvail(void *arg) {
 static void WriteDone(void *arg) {
     writeDone->V();
 }
-
+#endif
 /// De-allocate data structures needed for the synchronous console abstraction.
 SynchConsole::~SynchConsole() {
     readLock->~Lock();
