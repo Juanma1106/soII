@@ -40,8 +40,9 @@ class Channel;
 #ifndef NACHOS_THREADS_THREAD__HH
 #define NACHOS_THREADS_THREAD__HH
 
-// #include "channel.hh"
-static int PRIORITY_SIZE = 5;
+#ifndef PRIORITY_SIZE
+#define PRIORITY_SIZE 5
+#endif
 
 #include "lib/table.hh"
 #include "filesys/file_system.hh"

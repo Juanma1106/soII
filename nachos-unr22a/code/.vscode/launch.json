@@ -4,15 +4,15 @@
             "name": "Nachos debugging",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/vmem/nachos",
+            "program": "${workspaceFolder}/userprog/nachos",
             "args": [
                 "-d",
                 "vdsy",
                 "-x",
-                "${workspaceFolder}/userland/matmult"
+                "${workspaceFolder}/userland/shell"
             ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/vmem",
+            "cwd": "${workspaceFolder}/userprog",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb"

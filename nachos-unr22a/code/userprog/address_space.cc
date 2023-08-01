@@ -131,10 +131,9 @@ TranslationEntry AddressSpace::loadPage(unsigned vpn){
     DEBUG('d', "Empezando con el loadpage de la vpn: %d.\n", vpn);
 
     // chequear si la pagina corresponde a codigo, datos o stack
-    char * mainMemory = machine->GetMMU()->mainMemory;
     #ifdef SWAP
         int ppn = coremap->Find(vpn, currentThread, swapFile, 
-                        pageTable, mainMemory);
+                        pageTable, machine->GetMMU()->mainMemory);
     #else
         int ppn = bitmap->Find();
         Executable exec (addressSpaceFile);
@@ -145,11 +144,11 @@ TranslationEntry AddressSpace::loadPage(unsigned vpn){
     ASSERT(ppn >= 0); // debería haber espacio
 
 
-    char frame = mainMemory[ppn * PAGE_SIZE];
+    // char * frame = mainMemory[ppn * PAGE_SIZE];
 
     #ifdef SWAP
         unsigned position = vpn * PAGE_SIZE;
-        swapFile->ReadAt(&frame, PAGE_SIZE, position);
+        swapFile->ReadAt(&machine->GetMMU()->mainMemory[ppn * PAGE_SIZE], PAGE_SIZE, position);
     
     #else
         DEBUG('d', "Cargando la página virtual %d en la física %d.\n", vpn, ppn);
@@ -178,7 +177,7 @@ TranslationEntry AddressSpace::loadPage(unsigned vpn){
                 pageTable[vpn].readOnly = true;
                 DEBUG('d', "DemandLoading. La vpn %d es un segmento de CODIGO.\n", vpn);
                 for (uint32_t alreadyRead=0; alreadyRead<PAGE_SIZE; alreadyRead++){
-                    exec.ReadCodeBlock(&frame, 1, alreadyRead); 
+                    exec.ReadCodeBlock(&machine->GetMMU()->mainMemory[ppn * PAGE_SIZE], 1, alreadyRead); 
                 }
             }
         } else if(vpn < codePages+dataPages){
@@ -187,7 +186,7 @@ TranslationEntry AddressSpace::loadPage(unsigned vpn){
                 pageTable[vpn].readOnly = false;
                 DEBUG('d', "DemandLoading. La vpn %d es un segmento de DATOS.\n", vpn);
                 for (uint32_t alreadyRead=0; alreadyRead<PAGE_SIZE; alreadyRead++){
-                    exec.ReadDataBlock(&frame, 1, alreadyRead);
+                    exec.ReadDataBlock(&machine->GetMMU()->mainMemory[ppn * PAGE_SIZE], 1, alreadyRead);
                 }
             }
         }
@@ -294,8 +293,10 @@ AddressSpace::RestoreState()
 }
 
 void AddressSpace::invalidateTLB(){
+    #ifdef USE_TLB
     for(unsigned i=0; i<TLB_SIZE; i++)
         machine->GetMMU()->tlb[i].valid = false;
+    #endif
 }
 
 TranslationEntry* AddressSpace::getPageTable(){

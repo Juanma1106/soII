@@ -56,10 +56,11 @@ int Coremap::Find(int virtualPage,  Thread *currentThread,
 }
 
 void Coremap::saveInSwap(int ppn, OpenFile * swapFile, TranslationEntry *pgtable, char *from){
-    CoremapEntry entry = GetEntry(ppn);
-    unsigned position = entry.vpn * PAGE_SIZE;
-    swapFile->WriteAt(from, PAGE_SIZE, position);
-    pgtable[entry.vpn].valid = false;
+   CoremapEntry entry = GetEntry(ppn);
+   unsigned position = entry.vpn * PAGE_SIZE;
+   swapFile->WriteAt(from, PAGE_SIZE, position);
+   pgtable[entry.vpn].valid = false;
+   DEBUG('v', "SWAP - VPN: %d guardada en swap \n", entry.vpn);
 }
 
 
