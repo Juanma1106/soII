@@ -202,7 +202,13 @@ static void SyscallHandler(ExceptionType _et) {
                         DEBUG('e', "Error: file does not exist with name %s.\n", filename);
                     } else {
                         OpenFileId fileId = currentThread->openFile(fileOpened);
-                        machine->WriteRegister(2, fileId);
+                        if (fileId < 0){
+                            DEBUG('e', "No hay espacio en la tabla de archivos %s.\n", filename);
+                            fileOpened->~OpenFile();
+                        } else {
+                            machine->WriteRegister(2, fileId);
+                        }
+                            
                     }
                 }
             }
@@ -235,12 +241,6 @@ static void SyscallHandler(ExceptionType _et) {
         }
 
         case SC_READ: {
-            /*
-            No es necesario darle tamaño 100 al buffer si ya tienen el tamaño dado como argumento. 
-            Especialmente en Write,ya que leen 100 caracteres del espacio de usuario, ¿Y si size era menor a 100? ¿O mayor?.
-            No limpian el espacio en memoria utilizado por buffer en ambas funciones, 
-            con muchas lecturas y escrituras este espacio se puede acumular fácilmente.
-            */
             bool errorOcurred = false;
             int bufferAddr = machine->ReadRegister(4);
             if (bufferAddr == 0) {
@@ -255,8 +255,8 @@ static void SyscallHandler(ExceptionType _et) {
             OpenFileId fileId = machine->ReadRegister(6);
 
             if(!errorOcurred) {
-                char *buffer = new char[100]; 
-                DEBUG('e', "fileId %d. CONSOLE_OUTPUT %d. ONSOLE_INTPUT %d. Compare wit OUT\n", fileId, CONSOLE_OUTPUT, CONSOLE_INPUT);
+                char *buffer = new char[size]; 
+                DEBUG('e', "fileId %d. CONSOLE_OUTPUT %d. CONSOLE_INPUT %d. Compare wit OUT\n", fileId, CONSOLE_OUTPUT, CONSOLE_INPUT);
                 if(fileId == CONSOLE_INPUT) {
                     int temp = 0;
                     char c;
@@ -266,10 +266,12 @@ static void SyscallHandler(ExceptionType _et) {
                         temp++;
                     } while (temp < size || c != '\0');
                     buffer[temp]='\0';
+                    WriteBufferToUser(buffer, bufferAddr, size);
                 } else if (fileId > CONSOLE_OUTPUT) {
                     if (currentThread->isOpenedFile(fileId)) {
                         OpenFile *file = currentThread->getFileOpened(fileId);
-                        file->Read(buffer, size);
+                        int sizeRead = file->Read(buffer, size);
+                        WriteBufferToUser(buffer, bufferAddr, sizeRead);
                     } else {
                         DEBUG('e', "Error: file is not opened.\n");
                         errorOcurred=true;
@@ -278,7 +280,7 @@ static void SyscallHandler(ExceptionType _et) {
                     DEBUG('e', "Error: Invalid fileId %d.\n", fileId);
                     errorOcurred=true;
                 }
-                WriteStringToUser(buffer, bufferAddr);
+                delete buffer;
             }
             
             if(errorOcurred) {
@@ -290,12 +292,6 @@ static void SyscallHandler(ExceptionType _et) {
         }
 
         case SC_WRITE: {
-            /*
-            No es necesario darle tamaño 100 al buffer si ya tienen el tamaño dado como argumento. 
-            Especialmente en Write,ya que leen 100 caracteres del espacio de usuario, ¿Y si size era menor a 100? ¿O mayor?.
-            No limpian el espacio en memoria utilizado por buffer en ambas funciones, 
-            con muchas lecturas y escrituras este espacio se puede acumular fácilmente.
-            */
             bool errorOcurred = false;
 
             int bufferAddr = machine->ReadRegister(4);
@@ -309,7 +305,7 @@ static void SyscallHandler(ExceptionType _et) {
                 errorOcurred=true;
             }
             OpenFileId fileId = machine->ReadRegister(6);
-            char *buffer = new char[100];
+            char *buffer = new char[size];
 
             if(!errorOcurred) {
                 if (!ReadStringFromUser(bufferAddr, buffer, 100)) {
@@ -317,6 +313,8 @@ static void SyscallHandler(ExceptionType _et) {
                     FILE_NAME_MAX_LEN);
                     errorOcurred=true;
                 }
+            }
+            if(!errorOcurred) {
                 DEBUG('e', "buffer : %s\n", buffer);
                 
                 if(fileId == CONSOLE_OUTPUT) {
@@ -326,7 +324,7 @@ static void SyscallHandler(ExceptionType _et) {
                         c = buffer[temp];
                         synchConsole->putChar(c);
                         temp++;
-                    } while (temp < size && c != '\0'); //!(temp > size || c == '\0')
+                    } while (temp < size && c != '\0'); 
                 } else if(fileId > CONSOLE_OUTPUT) {
                     if (currentThread->isOpenedFile(fileId)) {
                         OpenFile *file = currentThread->getFileOpened(fileId);
@@ -343,6 +341,7 @@ static void SyscallHandler(ExceptionType _et) {
                     errorOcurred=true;
                 }
             }
+            delete buffer;
             
             if(errorOcurred) {
                 machine->WriteRegister(2, -1);
