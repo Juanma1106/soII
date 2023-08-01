@@ -1,8 +1,7 @@
 #include "write_read_mem_test.hh"
 
 void WriteReadMemTest() {
-    //char* j;
-    char *i;
+    char i[50] = {} ;
     WriteStringToUser("hola\0", 10);
 
     ReadStringFromUser(10, i, 50);

@@ -86,7 +86,7 @@ SpaceId StartProcess(char** args, bool joinable) {
         return -1;
     }
 
-    int argc =  sizeof(args) / sizeof(args[0]);// - 1;
+    int argc =  sizeof(args) / sizeof(args[0]); // - 1;
     int sizeArgs = 0;
     char *argv[argc] = {};
     for (int i = 0; i < argc; i++) {

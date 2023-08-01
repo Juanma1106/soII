@@ -29,7 +29,7 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
     numPages = DivRoundUp(size, PAGE_SIZE);
     size = numPages * PAGE_SIZE;
 
-    ASSERT(numPages <= NUM_PHYS_PAGES);
+    ASSERT(numPages <= bitmap->CountClear());
       // Check we are not trying to run anything too big -- at least until we
       // have virtual memory.
 
@@ -96,7 +96,7 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
 ///
 /// Nothing for now!
 AddressSpace::~AddressSpace() {
-    for(int i = 0; i < numPages; i++) {
+    for(unsigned int i = 0; i < numPages; i++) {
         bitmap->Clear(pageTable[i].physicalPage);
     }
     delete [] pageTable;
