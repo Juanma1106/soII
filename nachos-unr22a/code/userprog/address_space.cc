@@ -20,7 +20,7 @@ int AddressSpace::getToReplace(){
 /// For now, this is really simple (1:1), since we are only uniprogramming,
 /// and we have a single unsegmented page table.
 AddressSpace::AddressSpace(OpenFile *executable_file) {
-    toReplace = 0;
+DEBUG('v', "Inició el constructor de address space del proceso %s\n", currentThread->GetName());    toReplace = 0;
     ASSERT(executable_file != nullptr);
 
     addressSpaceFile = executable_file;
@@ -64,7 +64,7 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
         //         pageTable[i].physicalPage = -2; // ponemos el -1 así no hace la búsqueda
         // #else
         #ifdef SWAP
-            pageTable[i].physicalPage = coremap->Find(i, currentThread, swapFile, pageTable);
+            pageTable[i].physicalPage = coremap->Find(i, currentThread, swapFile, pageTable, mainMemory);
         #else
             pageTable[i].physicalPage = bitmap->Find();
         #endif
@@ -122,6 +122,8 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
         }
     }
 #endif
+DEBUG('v', "Terminó el constructor de address space del proceso %s\n", currentThread->GetName());
+
 }
 
 
@@ -129,80 +131,76 @@ TranslationEntry AddressSpace::loadPage(unsigned vpn){
     DEBUG('d', "Empezando con el loadpage de la vpn: %d.\n", vpn);
 
     // chequear si la pagina corresponde a codigo, datos o stack
+    char * mainMemory = machine->GetMMU()->mainMemory;
     #ifdef SWAP
-        int ppn = coremap->Find(vpn, currentThread, swapFile, pageTable);
-        // coremap->Replace();
+        int ppn = coremap->Find(vpn, currentThread, swapFile, 
+                        pageTable, mainMemory);
     #else
         int ppn = bitmap->Find();
+        Executable exec (addressSpaceFile);
     #endif
 
-    Executable exec (addressSpaceFile);
+
 
     ASSERT(ppn >= 0); // debería haber espacio
 
-    TranslationEntry newPage = TranslationEntry();
-    newPage.virtualPage  = vpn;
-    newPage.physicalPage = ppn;
-    newPage.valid        = true;
-    newPage.use          = false;
-    newPage.dirty        = false;
 
-    char * mainMemory = machine->GetMMU()->mainMemory;
     char frame = mainMemory[ppn * PAGE_SIZE];
 
+    #ifdef SWAP
+        unsigned position = vpn * PAGE_SIZE;
+        swapFile->ReadAt(&frame, PAGE_SIZE, position);
+    
+    #else
+        DEBUG('d', "Cargando la página virtual %d en la física %d.\n", vpn, ppn);
 
-    DEBUG('d', "Cargando la página virtual %d en la física %d.\n", vpn, ppn);
+        uint32_t codeSize = exec.GetCodeSize();
+        uint32_t codePages = DivRoundUp(codeSize, PAGE_SIZE);
+        uint32_t initDataSize = exec.GetInitDataSize();
+        uint32_t dataPages = DivRoundUp(initDataSize, PAGE_SIZE);
+        uint32_t totalSize = exec.GetSize() + USER_STACK_SIZE;
+        uint32_t totalPages = DivRoundUp(totalSize, PAGE_SIZE);
+        // ver si es tan trivial como asumir la siguiente
 
-    uint32_t codeSize = exec.GetCodeSize();
-    uint32_t codePages = DivRoundUp(codeSize, PAGE_SIZE);
-    uint32_t initDataSize = exec.GetInitDataSize();
-    uint32_t dataPages = DivRoundUp(initDataSize, PAGE_SIZE);
-    uint32_t totalSize = exec.GetSize() + USER_STACK_SIZE;
-    uint32_t totalPages = DivRoundUp(totalSize, PAGE_SIZE);
-    // ver si es tan trivial como asumir la siguiente
+        DEBUG('d', "Páginas de código: %d.\n", codePages);
+        DEBUG('d', "Páginas de datos: %d.\n", dataPages);
 
-    DEBUG('d', "Páginas de código: %d.\n", codePages);
-    DEBUG('d', "Páginas de datos: %d.\n", dataPages);
+        ASSERT(vpn <= totalPages);
 
-    ASSERT(vpn <= totalPages);
-
-    if (vpn > codePages+dataPages) { 
-        // es stack
-        newPage.readOnly = false;
-        DEBUG('d', "DemandLoading. La vpn %d es un segmento del STACK.\n", vpn);
-        // memset(&frame , 0, PAGE_SIZE);
-    } else if(vpn < codePages){
-        if (codePages>0){
-            // es codigo
-            newPage.readOnly = true;
-            DEBUG('d', "DemandLoading. La vpn %d es un segmento de CODIGO.\n", vpn);
-            for (uint32_t alreadyRead=0; alreadyRead<PAGE_SIZE; alreadyRead++){
-                exec.ReadCodeBlock(&frame, 1, alreadyRead); 
+        if (vpn > codePages+dataPages) { 
+            // es stack
+            pageTable[vpn].readOnly = false;
+            DEBUG('d', "DemandLoading. La vpn %d es un segmento del STACK.\n", vpn);
+            // memset(&frame , 0, PAGE_SIZE);
+        } else if(vpn < codePages){
+            if (codePages>0){
+                // es codigo
+                pageTable[vpn].readOnly = true;
+                DEBUG('d', "DemandLoading. La vpn %d es un segmento de CODIGO.\n", vpn);
+                for (uint32_t alreadyRead=0; alreadyRead<PAGE_SIZE; alreadyRead++){
+                    exec.ReadCodeBlock(&frame, 1, alreadyRead); 
+                }
+            }
+        } else if(vpn < codePages+dataPages){
+            if (dataPages>0){
+                // es dato
+                pageTable[vpn].readOnly = false;
+                DEBUG('d', "DemandLoading. La vpn %d es un segmento de DATOS.\n", vpn);
+                for (uint32_t alreadyRead=0; alreadyRead<PAGE_SIZE; alreadyRead++){
+                    exec.ReadDataBlock(&frame, 1, alreadyRead);
+                }
             }
         }
-    } else if(vpn < codePages+dataPages){
-        if (dataPages>0){
-            // es dato
-            newPage.readOnly = false;
-            DEBUG('d', "DemandLoading. La vpn %d es un segmento de DATOS.\n", vpn);
-            for (uint32_t alreadyRead=0; alreadyRead<PAGE_SIZE; alreadyRead++){
-                exec.ReadDataBlock(&frame, 1, alreadyRead);
-            }
-        }
-    }
+    #endif
 
-    return newPage;
+    pageTable[vpn].physicalPage = ppn;
+    pageTable[vpn].valid        = true;
+    pageTable[vpn].use          = false;
+    pageTable[vpn].dirty        = false;
+
+    return pageTable[vpn];
 }
 
-#ifdef SWAP
-void AddressSpace::saveInSwap(int ppn, OpenFile * swapFile, TranslationEntry *pgtable){
-    CoremapEntry entry = coremap->GetEntry(ppn);
-    unsigned position = entry.vpn * PAGE_SIZE;
-    const char *from = &(machine->GetMMU()->mainMemory[ppn]);
-    swapFile->WriteAt(from, PAGE_SIZE, position);
-    pgtable[entry.vpn].valid = false;
-}
-#endif
 
 /// Deallocate an address space.
 ///

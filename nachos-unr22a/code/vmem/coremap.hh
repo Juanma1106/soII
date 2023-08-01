@@ -22,13 +22,14 @@ class Coremap {
 
       ~Coremap();
       
-      int Find(int virtualPage, Thread *currentThread, OpenFile * currentSwapFile, TranslationEntry *pageTable);
+      int Find(int virtualPage, Thread *currentThread, OpenFile * currentSwapFile, TranslationEntry *pageTable, char *from);
       
       void Clear(int virtualPage);
       
       void Get(int physicalPage);
    
       CoremapEntry GetEntry(int ppn);
+      void saveInSwap(int ppn, OpenFile * swapFile, TranslationEntry *pgtable, char *from);
 
    private:
       Bitmap *physicals;      // bitmap de páginas físicas

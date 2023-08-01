@@ -55,7 +55,7 @@ public:
 
     #ifdef SWAP
         OpenFile * getSwapFile();
-        void saveInSwap(int ppn, OpenFile * swapFile, TranslationEntry *pgtable);
+        // void saveInSwap(int ppn, OpenFile * swapFile, TranslationEntry *pgtable);
     #endif
 private:
 

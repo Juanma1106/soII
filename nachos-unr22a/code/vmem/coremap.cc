@@ -18,13 +18,15 @@ Coremap::~Coremap() {
 }
 
 int Coremap::Find(int virtualPage,  Thread *currentThread, 
-               OpenFile * currentSwapFile, TranslationEntry *pageTable){
+               OpenFile * currentSwapFile, TranslationEntry *pageTable,
+               char * mainMemory ){
    int ppn = physicals->Find();
    if(ppn < 0) { 
       // no hay espacio en memoria
       ppn = order->Pop();
-      DEBUG('v', "El proceso es %s\n",entries[ppn].thread->GetName());
-      DEBUG('v', "La ppn %d y la vpn %d\n", ppn, entries[ppn].vpn);
+      DEBUG('v', "SWAP - Thread: %s, PPN: %d, VPN: %d\n",
+         entries[ppn].thread->GetName(),
+         ppn, virtualPage);
       CoremapEntry entry = GetEntry(ppn);
       OpenFile * swapFile;
       TranslationEntry *pgtable;
@@ -38,8 +40,13 @@ int Coremap::Find(int virtualPage,  Thread *currentThread,
 
       // ASSERT((entries[ppn].thread)->space != nullptr);
       // hay que swappear
-      (entries[ppn].thread)->space->saveInSwap(ppn, swapFile, pgtable);
-      currentThread->space->loadFromSwap(ppn, virtualPage);
+      char from = mainMemory[ppn];
+      saveInSwap(ppn, swapFile, pgtable, &from);
+      // currentThread->space->loadFromSwap(ppn, virtualPage);
+   } else {
+      DEBUG('v', "No hizo falta SWAP - Thread: %s, PPN: %d, VPN: %d\n",
+         currentThread->GetName(),
+         ppn, virtualPage);
    }
    // habia lugar, o se hizo lugar con swap
    entries[ppn].thread = currentThread;
@@ -47,6 +54,14 @@ int Coremap::Find(int virtualPage,  Thread *currentThread,
    order->Append(ppn);
    return ppn;
 }
+
+void Coremap::saveInSwap(int ppn, OpenFile * swapFile, TranslationEntry *pgtable, char *from){
+    CoremapEntry entry = GetEntry(ppn);
+    unsigned position = entry.vpn * PAGE_SIZE;
+    swapFile->WriteAt(from, PAGE_SIZE, position);
+    pgtable[entry.vpn].valid = false;
+}
+
 
 void Coremap::Clear(int ppn){
    if(!physicals->Test(ppn)){
