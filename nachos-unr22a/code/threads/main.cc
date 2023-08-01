@@ -145,7 +145,6 @@ main(int argc, char **argv)
             int otherArgc = argc;
             char *args[argc-1] = {};
             args[0] = argv[1]; // filename
-            int argCount;
             for(argCount = 2; argCount < otherArgc; argCount++) {
                 char *nextArg = *(argv + argCount);
                 if (nextArg[0] == '-') {

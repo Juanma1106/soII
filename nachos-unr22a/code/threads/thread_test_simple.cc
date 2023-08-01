@@ -7,7 +7,10 @@
 
 #include "thread_test_simple.hh"
 
-static Semaphore *mySemaphore;
+#ifdef SEMAPHORE_TEST
+	static Semaphore *mySemaphore;
+#endif
+
 /// Loop 10 times, yielding the CPU to another ready thread each iteration.
 ///
 /// * `name` points to a string with a thread name, just for debugging

@@ -5,12 +5,12 @@
 #include "threads/semaphore.hh"
 #include "threads/lock.hh"
 
-#ifndef READ_AVAIL__WRITE_DONE
-#define READ_AVAIL__WRITE_DONE
-static void ReadAvail(void *arg);
+// #ifndef READ_AVAIL__WRITE_DONE
+// #define READ_AVAIL__WRITE_DONE
+// void ReadAvail(void *arg);
 
-static void WriteDone(void *arg);
-#endif
+// void WriteDone(void *arg);
+// #endif
 
 class SynchConsole {
 public:

@@ -3,6 +3,17 @@
 static Semaphore *readAvail;
 static Semaphore *writeDone;
 
+/// Console interrupt handlers.
+///
+/// Wake up the thread that requested the I/O.
+static void ReadAvail(void *arg) {
+    readAvail->V();
+}
+
+static void WriteDone(void *arg) {
+    writeDone->V();
+}
+
 /// Initialize Synch Console
 SynchConsole::SynchConsole(const char *in, const char *out) {
     readLock = new Lock("synch disk lock");
@@ -12,18 +23,7 @@ SynchConsole::SynchConsole(const char *in, const char *out) {
     writeDone = new Semaphore("write done", 0);
 }
 
-/// Console interrupt handlers.
-///
-/// Wake up the thread that requested the I/O.
-#ifdef USER_PROGRAM
-static void ReadAvail(void *arg) {
-    readAvail->V();
-}
 
-static void WriteDone(void *arg) {
-    writeDone->V();
-}
-#endif
 /// De-allocate data structures needed for the synchronous console abstraction.
 SynchConsole::~SynchConsole() {
     readLock->~Lock();

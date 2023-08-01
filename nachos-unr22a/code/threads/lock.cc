@@ -57,7 +57,7 @@ void Lock::Release() {
     ASSERT(IsHeldByCurrentThread()) ;
     if(lockerThread->getPriorityTemp() != -1) {
         int priorityTemp = lockerThread->getPriorityTemp(); // original del thread
-        int priority     = lockerThread->getPriority();     // modificada por inversion
+        // int priority     = lockerThread->getPriority();     // modificada por inversion
         // No hace falta chequear si el hilo está ready, ya que lockerThread es currentThread
         // y por lo tanto está ejecutando (es decir está ready)
 

@@ -205,6 +205,10 @@ static void SyscallHandler(ExceptionType _et) {
         }
 
         case SC_OPEN: {
+            /*
+            Cuando abren correctamente el archivo, puede darse el caso de que no haya lugar en la tabla
+             de archivos abiertos, además de que el OpenFile seguiría abierto ocupando espacio en memoria
+            */
             int filenameAddr = machine->ReadRegister(4);
 
             // Seteo -1 en el registro por cualquier fallo que pueda salir.
@@ -257,6 +261,12 @@ static void SyscallHandler(ExceptionType _et) {
         }
 
         case SC_READ: {
+            /*
+            No es necesario darle tamaño 100 al buffer si ya tienen el tamaño dado como argumento. 
+            Especialmente en Write,ya que leen 100 caracteres del espacio de usuario, ¿Y si size era menor a 100? ¿O mayor?.
+            No limpian el espacio en memoria utilizado por buffer en ambas funciones, 
+            con muchas lecturas y escrituras este espacio se puede acumular fácilmente.
+            */
             bool errorOcurred = false;
             int bufferAddr = machine->ReadRegister(4);
             if (bufferAddr == 0) {
@@ -306,6 +316,12 @@ static void SyscallHandler(ExceptionType _et) {
         }
 
         case SC_WRITE: {
+            /*
+            No es necesario darle tamaño 100 al buffer si ya tienen el tamaño dado como argumento. 
+            Especialmente en Write,ya que leen 100 caracteres del espacio de usuario, ¿Y si size era menor a 100? ¿O mayor?.
+            No limpian el espacio en memoria utilizado por buffer en ambas funciones, 
+            con muchas lecturas y escrituras este espacio se puede acumular fácilmente.
+            */
             bool errorOcurred = false;
 
             int bufferAddr = machine->ReadRegister(4);

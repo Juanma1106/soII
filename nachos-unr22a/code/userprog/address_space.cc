@@ -205,7 +205,7 @@ TranslationEntry AddressSpace::loadPage(unsigned vpn){
 ///
 /// Nothing for now!
 AddressSpace::~AddressSpace() {
-    for(unsigned i = 0; i < numPages; i++) {
+    for(unsigned int i = 0; i < numPages; i++) {
         bitmap->Clear(pageTable[i].physicalPage);
     }
     delete [] pageTable;
