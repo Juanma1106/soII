@@ -19,5 +19,7 @@ code/userland/tiny_shell
 code/userland/tiny_shell.coff
 code/userland/touch
 code/userland/touch.coff
+code/userland/ps
+code/userland/ps.coff
 Makefile.depends
 nachos
