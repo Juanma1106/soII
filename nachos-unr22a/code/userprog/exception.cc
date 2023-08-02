@@ -223,8 +223,10 @@ static void SyscallHandler(ExceptionType _et) {
             // Seteo -1 en el registro por cualquier fallo que pueda salir.
             machine->WriteRegister(2, -1);
 
-            if(fileId == 0) {
+            if(fileId < 0) {
                 DEBUG('e', "Error: fileId is null.\n");
+            } else if(fileId < 2) {
+                DEBUG('e', "Error: fileId %d is reserved and can't be closed.\n", fileId);
             } else {
                 DEBUG('e', "`Close` requested for fileId `%d`.\n", fileId);
                 bool isOpenedFile = currentThread->isOpenedFile(fileId);
