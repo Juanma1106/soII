@@ -121,7 +121,10 @@ static void SyscallHandler(ExceptionType _et) {
             SpaceId pid = machine->ReadRegister(4);
             if(threads->HasKey(pid)) {
                 Thread *thread = threads->Get(pid);
-                thread->Join();
+                int returnValue = thread->Join();
+                machine->WriteRegister(2, returnValue);
+            } else {
+                machine->WriteRegister(2, -1);
             }
             break;
         }
