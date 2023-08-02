@@ -327,19 +327,24 @@ void Thread::StackAllocate(VoidFunctionPtr func, void *arg) {
 }
 
 OpenFileId Thread::openFile(OpenFile* file) {
-    return openedFiles->Add(file);
+    OpenFileId realFileId = openedFiles->Add(file);
+    // Incrementamos en 2 el fileId para esquivar los FD 0 y 1 reservados para salidas ERR y OUT
+    return realFileId + 2;
 }
 
 OpenFile* Thread::closeFile(OpenFileId fileId) {
-    return openedFiles->Remove(fileId);
+    OpenFileId realFileId = fileId -2;
+    return openedFiles->Remove(realFileId);
 }
 
 bool Thread::isOpenedFile(OpenFileId fileId) {
-    return openedFiles->HasKey(fileId);
+    OpenFileId realFileId = fileId -2;
+    return openedFiles->HasKey(realFileId);
 }
 
 OpenFile* Thread::getFileOpened(OpenFileId fileId) {
-    return openedFiles->Get(fileId);
+    OpenFileId realFileId = fileId -2;
+    return openedFiles->Get(realFileId);
 }
 
 #ifdef USER_PROGRAM

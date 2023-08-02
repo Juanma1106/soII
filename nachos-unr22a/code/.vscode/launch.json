@@ -7,12 +7,16 @@
             "program": "${workspaceFolder}/userprog/nachos",
             "args": [
                 "-d",
+<<<<<<< HEAD
                 "vdsy",
+=======
+                "vde",
+>>>>>>> 77c6be1d6a1b50da6272f703ba4239f0d0d478e2
                 "-x",
                 "${workspaceFolder}/userland/shell"
             ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/userprog",
+            "cwd": "${workspaceFolder}/userland/",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb"

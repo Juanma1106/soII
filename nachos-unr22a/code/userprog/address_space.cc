@@ -239,37 +239,38 @@ AddressSpace::InitRegisters()
           numPages * PAGE_SIZE - 16);
 }
 
-void AddressSpace::InitRegisters(int argc, char** argv, int sizeArgs) {
-    for (unsigned i = 0; i < NUM_TOTAL_REGS; i++) {
-        machine->WriteRegister(i, 0);
-    }
+/////////// VER MAIL DE CORRECCIONES ////////////
+// void AddressSpace::InitRegisters(int argc, char** argv, int sizeArgs) {
+//     for (unsigned i = 0; i < NUM_TOTAL_REGS; i++) {
+//         machine->WriteRegister(i, 0);
+//     }
 
-    // Initial program counter -- must be location of `Start`.
-    machine->WriteRegister(PC_REG, 0);
+//     // Initial program counter -- must be location of `Start`.
+//     machine->WriteRegister(PC_REG, 0);
 
-    // Need to also tell MIPS where next instruction is, because of branch
-    // delay possibility.
-    machine->WriteRegister(NEXT_PC_REG, 4);
+//     // Need to also tell MIPS where next instruction is, because of branch
+//     // delay possibility.
+//     machine->WriteRegister(NEXT_PC_REG, 4);
 
-    // Set the stack register to the end of the address space, where we
-    // allocated the stack; but subtract off a bit, to make sure we do not
-    // accidentally reference off the end!
-    machine->WriteRegister(ARGC, argc);
-    machine->WriteRegister(ARGV, numPages * PAGE_SIZE - 16);
+//     // Set the stack register to the end of the address space, where we
+//     // allocated the stack; but subtract off a bit, to make sure we do not
+//     // accidentally reference off the end!
+//     machine->WriteRegister(ARGC, argc);
+//     machine->WriteRegister(ARGV, numPages * PAGE_SIZE - 16);
 
-    machine->WriteRegister(STACK_REG, numPages * PAGE_SIZE - 16 - sizeArgs);
-    DEBUG('a', "Initializing stack register to %u\n",
-          numPages * PAGE_SIZE - 16);
+//     machine->WriteRegister(STACK_REG, numPages * PAGE_SIZE - 16 - sizeArgs);
+//     DEBUG('a', "Initializing stack register to %u\n",
+//           numPages * PAGE_SIZE - 16);
 
-    for(int i = 0; i < argc; i++) {
-        char* arg = argv[i];
-        for(int j = 0; j != '\0'; j++) {
-            machine->WriteMem(numPages * PAGE_SIZE - 16, 1, arg[j]);
-        }
+//     for(int i = 0; i < argc; i++) {
+//         char* arg = argv[i];
+//         for(int j = 0; j != '\0'; j++) {
+//             machine->WriteMem(numPages * PAGE_SIZE - 16, 1, arg[j]);
+//         }
         
-    }
+//     }
     
-}
+// }
 
 /// On a context switch, save any machine state, specific to this address
 /// space, that needs saving.

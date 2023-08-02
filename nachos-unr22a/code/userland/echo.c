@@ -9,14 +9,6 @@
 
 
 int main(int argc, char *argv[]) {
-    PrintString("3");
-    // char s[1];
-    // itoa(5, s);
-    // PrintString(s);
-    PrintString("hola");
-    // PrintChar(argc);
-    PrintString(argv[0]);
-
     for (unsigned i = 1; i < argc; i++) {
 
         if (i != 1) {

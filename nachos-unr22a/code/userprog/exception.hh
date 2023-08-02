@@ -10,6 +10,7 @@
 #include "filesys/directory_entry.hh"
 #include "threads/system.hh"
 #include "args.hh"
+#include "address_space.hh"
 
 #include <stdio.h>
 #include <unistd.h>

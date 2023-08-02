@@ -29,6 +29,10 @@ void ReadBufferFromUser(int userAddress, char *outBuffer,
     } while (count < byteCount);
 }
 
+bool checkEndString(char outString){
+    return (outString != '\0' && outString != '\n');
+}
+
 bool ReadStringFromUser(int userAddress, char *outString, 
                         unsigned maxByteCount) {
     ASSERT(userAddress != 0);
@@ -45,9 +49,9 @@ bool ReadStringFromUser(int userAddress, char *outString,
             DEBUG('a', "Fallo en el acceso. ReadStringFromUser\n");
         }
         *outString = (unsigned char) temp;
-    } while (*outString++ != '\0' && count < maxByteCount);
+    } while (checkEndString(*outString++) && count < maxByteCount);
 
-    return *(outString - 1) == '\0';
+    return *(outString - 1) == '\0'  || *(outString - 1) == '\n';
 }
 
 
