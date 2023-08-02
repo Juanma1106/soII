@@ -9,9 +9,9 @@
             "program": "${workspaceFolder}/userprog/nachos",
             "args": [
                 "-d",
-                "vdsy",
+                "vde",
                 "-x",
-                "${workspaceFolder}/userland/shell"
+                "${workspaceFolder}/userland/halt"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/userprog",

@@ -22,14 +22,7 @@
 /// limitation of liability and disclaimer of warranty provisions.
 
 
-#include "transfer.hh"
-#include "syscall.h"
-#include "filesys/directory_entry.hh"
-#include "threads/system.hh"
-#include "args.hh"
-
-#include <stdio.h>
-#include <unistd.h>
+#include "exception.hh"
 
 SpaceId StartProcess(char** args, bool joinable);
 
@@ -42,6 +35,21 @@ static void IncrementPC() {
     machine->WriteRegister(PC_REG, pc);
     pc += 4;
     machine->WriteRegister(NEXT_PC_REG, pc);
+}
+
+void StartProcess2(void *args) {
+	currentThread->space->InitRegisters();
+    if(args != nullptr){
+		machine->WriteRegister(4, WriteArgs((char**) args));
+		int sp = machine->ReadRegister(STACK_REG);
+		machine->WriteRegister(5, sp);
+		machine->WriteRegister(STACK_REG, sp - 16);
+    }
+	currentThread->space->RestoreState();
+
+    machine->Run();  // Jump to the user progam.
+    ASSERT(false);   // `machine->Run` never returns; the address space
+                    // exits by doing the system call `Exit`.
 }
 
 /// Do some default behavior for an unexpected exception.
@@ -100,20 +108,36 @@ static void SyscallHandler(ExceptionType _et) {
             int filenameAddr = machine->ReadRegister(4);
             int argsAddr = machine->ReadRegister(5);
             bool joinable = machine->ReadRegister(6) ? true : false;
+            DEBUG('e', "Arranca el exec.\n");
             
             if (filenameAddr == 0) {
                 DEBUG('e', "Error: address to filename string is null.\n");
-            } else {
-                char filename[FILE_NAME_MAX_LEN + 1];
-                if (!ReadStringFromUser(filenameAddr, filename, sizeof filename)) {
-                    DEBUG('e', "Error: filename string too long (maximum is %u bytes).\n", FILE_NAME_MAX_LEN);
-                } else {
-                    DEBUG('e', "`Exec` requested for file `%s`.\n", filename);
-                    char **args = SaveArgs(argsAddr);
-                    SpaceId sp = StartProcess(args, joinable);
-                    machine->WriteRegister(2, sp);
-                }
+                break;
+            } 
+            char filename[FILE_NAME_MAX_LEN + 1];
+            if (!ReadStringFromUser(filenameAddr, filename, sizeof filename)) {
+                DEBUG('e', "Error: filename string too long (maximum is %u bytes).\n", FILE_NAME_MAX_LEN);
+                break;
+            } 
+            
+            OpenFile *exe = fileSystem->Open(filename);
+            if (exe == nullptr) {
+                DEBUG('e', "No se pudo abrir el archivo\n");
+                break;
             }
+
+            // Caso feliz
+            DEBUG('e', "`Exec` requested for file `%s`.\n", filename);
+            Thread *execThread = new Thread(filename, joinable, currentThread, currentThread->getPriority());
+            #ifdef USER_PROGRAM
+                AddressSpace *execSpace = new AddressSpace(exe);
+	    	    execThread->space = execSpace;
+                threads->Add(execThread);
+            #endif
+
+            char **args = SaveArgs(argsAddr);
+            execThread->Fork(StartProcess2, (void *) args);            
+
             break;
         }
 
@@ -121,7 +145,8 @@ static void SyscallHandler(ExceptionType _et) {
             SpaceId pid = machine->ReadRegister(4);
             if(threads->HasKey(pid)) {
                 Thread *thread = threads->Get(pid);
-                thread->Join();
+                int joinned = thread->Join();
+                machine->WriteRegister(2, joinned);
             }
             break;
         }
