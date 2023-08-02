@@ -11,10 +11,10 @@
                 "-d",
                 "vde",
                 "-x",
-                "${workspaceFolder}/userland/halt"
+                "${workspaceFolder}/userland/shell"
             ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/userprog",
+            "cwd": "${workspaceFolder}/userland/",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb"

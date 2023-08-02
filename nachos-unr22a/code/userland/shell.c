@@ -44,14 +44,19 @@ ReadLine(char *buffer, unsigned size, OpenFileId input)
     // TODO: how to make sure that `buffer` is not `NULL`?
 
     unsigned i;
+    // Write("Empieza a leer la linea\n", 50, 1);
 
     for (i = 0; i < size; i++) {
+        // Write("A leer un caracter\n", 50, 1);
         Read(&buffer[i], 1, input);
+
         // TODO: what happens when the input ends?
         if (buffer[i] == '\n') {
             buffer[i] = '\0';
+            // Write("Salgo con break\n", 50, 1);
             break;
         }
+        // Write("Caracter leído\n", 50, 1);
     }
     return i;
 }
@@ -108,8 +113,16 @@ main(void)
 
     for (;;) {
         WritePrompt(OUTPUT);
+        // Write("Leido\n", 10, OUTPUT);
+        // Write("Leido\n", 10, OUTPUT);
+        // Write("Leido\n", 10, OUTPUT);
+        // Write("Leido\n", 10, OUTPUT);
+        // Write("Leido\n", 10, OUTPUT);
+        // Write("Leido\n", 10, OUTPUT);
         const unsigned lineSize = ReadLine(line, MAX_LINE_SIZE, INPUT);
+        // Write("Linea leida\n", 20, OUTPUT);
         if (lineSize == 0) {
+            WriteError("No se leyo nada.", OUTPUT);
             continue;
         }
 
@@ -121,8 +134,8 @@ main(void)
         // Comment and uncomment according to whether command line arguments
         // are given in the system call or not.
         int argc = 0;
-        const SpaceId newProc = Exec(line, argc, argv);
-        //const SpaceId newProc = Exec(line, argv);
+        const SpaceId newProc = Exec(line, argv, 1);
+        // 1 == joinable
 
         // TODO: check for errors when calling `Exec`; this depends on how
         //       errors are reported.

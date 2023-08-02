@@ -24,6 +24,10 @@ void ReadBufferFromUser(int userAddress, char *outBuffer,
     } while (count < byteCount);
 }
 
+bool checkEndString(char outString){
+    return (outString != '\0' && outString != '\n');
+}
+
 bool ReadStringFromUser(int userAddress, char *outString, 
                         unsigned maxByteCount) {
     ASSERT(userAddress != 0);
@@ -36,9 +40,9 @@ bool ReadStringFromUser(int userAddress, char *outString,
         count++;
         ASSERT(machine->ReadMem(userAddress++, 1, &temp));
         *outString = (unsigned char) temp;
-    } while (*outString++ != '\0' && count < maxByteCount);
+    } while (checkEndString(*outString++) && count < maxByteCount);
 
-    return *(outString - 1) == '\0';
+    return *(outString - 1) == '\0'  || *(outString - 1) == '\n';
 }
 
 
@@ -55,6 +59,7 @@ void WriteBufferToUser(const char *buffer, int userAddress,
 
     unsigned int temp = 0;
     do {
+        // DEBUG('e', "Escribiendo %d de %d .\n", temp, byteCount );
         ASSERT(machine->WriteMem(userAddress++, 1, buffer[temp]));
         temp++;
     } while (temp < byteCount);

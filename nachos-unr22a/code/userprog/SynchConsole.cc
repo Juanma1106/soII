@@ -43,9 +43,13 @@ void SynchConsole::putChar(char ch) {
 
 /// Getchar from console
 char SynchConsole::getChar() {
+    // DEBUG('e', "Obteniendo char\n");
     readLock->Acquire();
     readAvail->P();
+    // DEBUG('e', "Leyendo de consola\n");
     char ch = console->GetChar();
+    // DEBUG('e', "Leído de consola\n");
     readLock->Release();
+    // DEBUG('e', "Char obtenido\n");
     return ch;
 }
