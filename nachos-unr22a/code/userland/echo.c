@@ -9,6 +9,7 @@
 
 
 int main(int argc, char *argv[]) {
+    //Halt();
     for (unsigned i = 1; i < argc; i++) {
 
         if (i != 1) {
@@ -17,5 +18,5 @@ int main(int argc, char *argv[]) {
         PrintString(argv[i]);
     }
     PrintChar('\n');
-    Halt();
+    // Halt();
 }

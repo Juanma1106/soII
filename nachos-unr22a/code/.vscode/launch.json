@@ -9,7 +9,7 @@
                 "-d",
                 "vdsy",
                 "-x",
-                "${workspaceFolder}/userland/halt"
+                "shell"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/userland/",
