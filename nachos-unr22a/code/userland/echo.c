@@ -18,5 +18,5 @@ int main(int argc, char *argv[]) {
         PrintString(argv[i]);
     }
     PrintChar('\n');
-    Halt();
+    // Halt();
 }

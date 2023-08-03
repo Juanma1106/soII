@@ -185,26 +185,26 @@ static void SyscallHandler(ExceptionType _et) {
         }
         
         case SC_REMOVE: {
-            int filenameAddr = machine->ReadRegister(4);
+            // int filenameAddr = machine->ReadRegister(4);
 
-            // Seteo -1 en el registro por cualquier fallo que pueda salir.
-            machine->WriteRegister(2, -1);
+            // // Seteo -1 en el registro por cualquier fallo que pueda salir.
+            // machine->WriteRegister(2, -1);
 
-            if (filenameAddr == 0) {
-                DEBUG('e', "Error: address to filename string is null.\n");
-                break;
-            } 
+            // if (filenameAddr == 0) {
+            //     DEBUG('e', "Error: address to filename string is null.\n");
+            //     break;
+            // } 
 
-            char filename[FILE_NAME_MAX_LEN + 1];
-            if (!ReadStringFromUser(filenameAddr, filename, sizeof filename)) {
-                DEBUG('e', "Error: filename string too long (maximum is %u bytes).\n",
-                    FILE_NAME_MAX_LEN);
-            } else {
-                DEBUG('e', "`Remove` requested for file `%s`.\n", filename);
-                int fileRemoved = fileSystem->Remove(filename);
-                machine->WriteRegister(2, fileRemoved);
-            }
-            machine->WriteRegister(2, 0);
+            // char filename[FILE_NAME_MAX_LEN + 1];
+            // if (!ReadStringFromUser(filenameAddr, filename, sizeof filename)) {
+            //     DEBUG('e', "Error: filename string too long (maximum is %u bytes).\n",
+            //         FILE_NAME_MAX_LEN);
+            // } else {
+            //     DEBUG('e', "`Remove` requested for file `%s`.\n", filename);
+            //     int fileRemoved = fileSystem->Remove(filename);
+            //     machine->WriteRegister(2, fileRemoved);
+            // }
+            // machine->WriteRegister(2, 0);
             break;
         }
 
@@ -324,7 +324,7 @@ static void SyscallHandler(ExceptionType _et) {
                     DEBUG('e', "Error: Invalid fileId %d.\n", fileId);
                     errorOcurred=true;
                 }
-                // delete buffer;
+                delete buffer;
             }
             
             if(!errorOcurred) {
@@ -388,7 +388,7 @@ static void SyscallHandler(ExceptionType _et) {
                     errorOcurred=true;
                 }
             }
-            // delete buffer;
+            delete buffer;
             
             if(errorOcurred) {
                 machine->WriteRegister(2, -1);

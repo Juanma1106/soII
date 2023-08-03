@@ -113,14 +113,7 @@ main(void)
 
     for (;;) {
         WritePrompt(OUTPUT);
-        // Write("Leido\n", 10, OUTPUT);
-        // Write("Leido\n", 10, OUTPUT);
-        // Write("Leido\n", 10, OUTPUT);
-        // Write("Leido\n", 10, OUTPUT);
-        // Write("Leido\n", 10, OUTPUT);
-        // Write("Leido\n", 10, OUTPUT);
         const unsigned lineSize = ReadLine(line, MAX_LINE_SIZE, INPUT);
-        // Write("Linea leida\n", 20, OUTPUT);
         if (lineSize == 0) {
             WriteError("No se leyo nada.", OUTPUT);
             continue;
@@ -134,13 +127,16 @@ main(void)
         // Comment and uncomment according to whether command line arguments
         // are given in the system call or not.
         int argc = 0;
-        const SpaceId newProc = Exec(line, argv, 0);
+        const SpaceId newProc = Exec(line, argv, 1);
+
+        Join(newProc);
         // 1 == joinable
 
         // TODO: check for errors when calling `Exec`; this depends on how
         //       errors are reported.
+        // Write("Terminado el programa",50, OUTPUT);
+        Exec("halt",0,1);
 
-        //Join(newProc);
         // TODO: is it necessary to check for errors after `Join` too, or
         //       can you be sure that, with the implementation of the system
         //       call handler you made, it will never give an error?; what
