@@ -4,16 +4,12 @@
             "name": "Nachos debugging",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/userprog/nachos",
+            "program": "${workspaceFolder}/vmem/nachos",
             "args": [
                 "-d",
-<<<<<<< HEAD
                 "vdsy",
-=======
-                "vde",
->>>>>>> 77c6be1d6a1b50da6272f703ba4239f0d0d478e2
                 "-x",
-                "${workspaceFolder}/userland/shell"
+                "${workspaceFolder}/userland/halt"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/userland/",

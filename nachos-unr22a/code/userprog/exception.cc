@@ -82,6 +82,8 @@ static void PageFaultHandler(ExceptionType _et) {
     }
     machine->GetMMU()->sumMiss();
     // machine->GetMMU()->PrintTLB();
+    DEBUG('v', "Se cargó ok la página %d.\n", vpn);
+
 }
 
 

@@ -69,8 +69,8 @@ void MMU::sumMiss(){
     miss++;
 }
 
-double MMU::printRatio(){
-    return miss/total;
+void MMU::printRatio(){
+    printf("Totals: %f - Misses: %f - Ratio: %f\n", total, miss, miss/total );
 }
 
 void
@@ -207,7 +207,7 @@ MMU::RetrievePageEntry(unsigned vpn, TranslationEntry **entry)
     } else {
         // Use the TLB.
 
-        DEBUG ('y', "Buscando la página %d!\n", vpn);
+        DEBUG ('y', "Buscando la página %d en la TLB!\n", vpn);
         unsigned i;
         for (i = 0; i < TLB_SIZE; i++) {
             TranslationEntry *e = &tlb[i];
@@ -215,7 +215,7 @@ MMU::RetrievePageEntry(unsigned vpn, TranslationEntry **entry)
                 *entry = e;  // FOUND!
                 // PrintTLB();
                 sumHit();
-                DEBUG ('v', "Encontrada la página %d!\n", vpn);
+                DEBUG ('v', "Encontrada  %d!\n", vpn);
 
                 return NO_EXCEPTION;
             }

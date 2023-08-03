@@ -24,10 +24,11 @@ int Coremap::Find(int virtualPage,  Thread *currentThread,
    if(ppn < 0) { 
       // no hay espacio en memoria
       ppn = order->Pop();
-      DEBUG('v', "SWAP - Thread: %s, PPN: %d, VPN: %d\n",
-         entries[ppn].thread->GetName(),
-         ppn, virtualPage);
       CoremapEntry entry = GetEntry(ppn);
+      DEBUG('v', "En la PPN: %d estaba la VPN: %d del proceso %s\n",
+               ppn, entry.vpn, entry.thread->GetName());
+      DEBUG('v', "Ahora se guardó la VPN: %d del %s\n",
+               virtualPage, currentThread->GetName() );
       OpenFile * swapFile;
       TranslationEntry *pgtable;
       if (currentThread == entry.thread){

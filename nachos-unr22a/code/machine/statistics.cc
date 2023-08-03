@@ -10,6 +10,7 @@
 
 #include "statistics.hh"
 #include "lib/utility.hh"
+#include "threads/system.hh"
 
 #include <stdio.h>
 
@@ -46,4 +47,5 @@ Statistics::Print()
     printf("Paging: faults %lu\n", numPageFaults);
     printf("Network I/O: packets received %lu, sent %lu\n",
            numPacketsRecvd, numPacketsSent);
+    machine->GetMMU()->printRatio();
 }
