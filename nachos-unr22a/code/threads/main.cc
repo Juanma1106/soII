@@ -140,24 +140,11 @@ main(int argc, char **argv)
         }
 #endif
 #ifdef USER_PROGRAM
+        // Vuelvo todos los cambios hacia atrás
         if (!strcmp(*argv, "-x")) {          // Run a user program.
             ASSERT(argc > 1);
-            int otherArgc = argc;
-            char *args[argc-1] = {};
-            args[0] = argv[1]; // filename
-            for(argCount = 2; argCount < otherArgc; argCount++) {
-                char *nextArg = *(argv + argCount);
-                if (nextArg[0] == '-') {
-                    break;
-                }
-                args[argCount-1] = nextArg;
-            }
-            if(argCount == 2) {
-                StartProcess(args[0]);
-            } else {
-                StartProcess(args, true);
-            }
-            // interrupt->Halt();
+            StartProcess(*(argv + 1));
+            argCount = 2;
         } else if (!strcmp(*argv, "-tc")) {  // Test the console.
             if (argc == 1) {
                 ConsoleTest(nullptr, nullptr);
