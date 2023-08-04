@@ -85,7 +85,12 @@ void WriteStringToUser(const char *string, int userAddress) {
     if(string != nullptr){
         int temp = 0;
         do {
-            ASSERT(machine->WriteMem(userAddress++, 1, string[temp]));
+            int retry=0;
+            while(machine->WriteMem(userAddress++, 1, string[temp]) == false || retry>MAX_RETRY){
+                userAddress--;
+                retry++;
+                DEBUG('a', "Fallo en el acceso. WriteStringToUser\n");
+            };
             temp++;
         } while (string[temp] != '\0');
     } else {

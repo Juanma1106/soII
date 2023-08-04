@@ -9,10 +9,10 @@
                 "-d",
                 "d",
                 "-x",
-                "../userland/shell"
+                "shell"
             ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/vmem/",
+            "cwd": "${workspaceFolder}/userland/",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb"
