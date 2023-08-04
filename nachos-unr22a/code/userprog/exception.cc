@@ -64,16 +64,18 @@ static void PageFaultHandler(ExceptionType _et) {
     // DEBUG('d', "Hilo que está manejando la excepción: %s . \n", currentThread->GetName());
     int virtAddr = machine->ReadRegister(BAD_VADDR_REG);
     uint32_t vpn = (unsigned) virtAddr / PAGE_SIZE;
+    unsigned numPages = currentThread->space->getNumPages();
+    ASSERT(vpn < numPages);
     DEBUG('v', "Fallo de paginación con vpn %d.\n", vpn);
     int indexTLB = currentThread->space->getToReplace();
     // DEBUG('v', "virtAddr: %u . indexTLB: %d \n", virtAddr, indexTLB);
-    // uint32_t ppnToSaveInSwap = machine->GetMMU()->tlb[indexTLB].physicalPage;
-    // currentThread->space->saveInSwap(ppnToSaveInSwap);
 
     if(currentThread->space->getPageTable()[vpn].valid){
+        DEBUG('d', "Cargada la vpn desde memoria: %d.\n", vpn);
         machine->GetMMU()->tlb[indexTLB] = currentThread->space->getPageTable()[vpn];
     } else {
         machine->GetMMU()->tlb[indexTLB] = currentThread->space->loadPage(vpn);
+        DEBUG('d', "Cargada la vpn desde swap o disco: %d.\n", vpn);
     }
 
 #ifdef USE_TLB
