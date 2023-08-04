@@ -175,7 +175,11 @@ void Thread::Finish(int returnValue) {
     DEBUG('t', "Finishing thread \"%s\"\n", GetName());
 
     if(joinable) {
+        DEBUG('t', "Joinneando \"%s\"\n", GetName());
         channel->Send(returnValue);
+        DEBUG('t', "Joinneado \"%s\"\n", GetName());
+    } else {
+        DEBUG('t', "No Joinneado \"%s\"\n", GetName());
     }
 
     #ifdef USER_PROGRAM
