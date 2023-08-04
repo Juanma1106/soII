@@ -61,7 +61,7 @@ MMU::~MMU()
         delete [] tlb;
     }
 }
-
+#ifdef USE_TLB
 void MMU::sumHit(){
     total++;
 }
@@ -72,7 +72,7 @@ void MMU::sumMiss(){
 void MMU::printRatio(){
     printf("Totals: %f - Misses: %f - Ratio: %f\n", total, miss, miss/total );
 }
-
+#endif
 void
 MMU::PrintTLB() const
 {
@@ -214,7 +214,9 @@ MMU::RetrievePageEntry(unsigned vpn, TranslationEntry **entry)
             if (e->valid && e->virtualPage == vpn) {
                 *entry = e;  // FOUND!
                 // PrintTLB();
+                #ifdef USE_TLB
                 sumHit();
+                #endif
                 DEBUG ('v', "Encontrada  %d!\n", vpn);
 
                 return NO_EXCEPTION;

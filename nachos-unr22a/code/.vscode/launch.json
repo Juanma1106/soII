@@ -7,12 +7,12 @@
             "program": "${workspaceFolder}/vmem/nachos",
             "args": [
                 "-d",
-                "vdsy",
+                "vd",
                 "-x",
-                "shell"
+                "../userland/halt"
             ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/userland/",
+            "cwd": "${workspaceFolder}/vmem/",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb"

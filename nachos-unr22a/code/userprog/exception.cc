@@ -80,7 +80,10 @@ static void PageFaultHandler(ExceptionType _et) {
         machine->GetMMU()->tlb[indexTLB] = currentThread->space->loadPage(vpn);
         // DEBUG('d', "DemandLoading. La vpn %d cargó OK.\n", vpn);
     }
+
+#ifdef USE_TLB
     machine->GetMMU()->sumMiss();
+#endif
     // machine->GetMMU()->PrintTLB();
     DEBUG('v', "Se cargó ok la página %d.\n", vpn);
 

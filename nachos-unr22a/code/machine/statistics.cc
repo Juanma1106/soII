@@ -47,5 +47,7 @@ Statistics::Print()
     printf("Paging: faults %lu\n", numPageFaults);
     printf("Network I/O: packets received %lu, sent %lu\n",
            numPacketsRecvd, numPacketsSent);
-    machine->GetMMU()->printRatio();
+#ifdef USE_TLB
+   machine->GetMMU()->printRatio();
+#endif
 }

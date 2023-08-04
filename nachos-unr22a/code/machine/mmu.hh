@@ -81,10 +81,11 @@ public:
 
     TranslationEntry *pageTable;
     unsigned pageTableSize;
+    #ifdef USE_TLB
     void sumHit() ;
     void sumMiss() ;
     void printRatio();
-
+    #endif
 private:
 
     double miss;
