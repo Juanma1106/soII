@@ -121,11 +121,12 @@ static void SyscallHandler(ExceptionType _et) {
 
     switch (scid) {
 
-        case SC_HALT:
+        case SC_HALT:{
             DEBUG('e', "Shutdown, initiated by user program.\n");
             interrupt->Halt();
             break;
-
+        }
+        
         case SC_EXIT:{
             int status = machine->ReadRegister(4);
             DEBUG('a', "Exited with status %d\n", status);

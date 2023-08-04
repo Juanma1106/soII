@@ -127,8 +127,9 @@ main(void)
         // Comment and uncomment according to whether command line arguments
         // are given in the system call or not.
         int argc = 0;
+        Write("A ejecutar\n", 20, OUTPUT);
         const SpaceId newProc = Exec(line, argv, 1);
-
+        Write("Ejecutado\n", 20, OUTPUT);
         Join(newProc);
         // 1 == joinable
 

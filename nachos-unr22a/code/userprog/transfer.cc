@@ -21,6 +21,7 @@ void ReadBufferFromUser(int userAddress, char *outBuffer,
         count++;
         int retry=0;
         while(machine->ReadMem(userAddress++, 1, &temp) == false || retry>MAX_RETRY){
+            userAddress--;
             retry++;
             DEBUG('a', "Fallo en el acceso. ReadBufferFromUser\n");
         }
@@ -45,6 +46,7 @@ bool ReadStringFromUser(int userAddress, char *outString,
         count++;
         int retry=0;
         while(machine->ReadMem(userAddress++, 1, &temp) == false || retry>MAX_RETRY){
+            userAddress--;
             retry++;
             DEBUG('a', "Fallo en el acceso. ReadStringFromUser\n");
         }
@@ -70,6 +72,7 @@ void WriteBufferToUser(const char *buffer, int userAddress,
     do {
         int retry=0;
         while(machine->WriteMem(userAddress++, 1, buffer[temp]) == false || retry>MAX_RETRY){
+            userAddress--;
             retry++;
             DEBUG('a', "Fallo en el acceso. WriteBufferToUser\n");
         }
