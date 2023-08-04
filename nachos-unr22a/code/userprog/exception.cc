@@ -97,6 +97,7 @@ static void SyscallHandler(ExceptionType _et) {
         case SC_EXIT:{
             int status = machine->ReadRegister(4);
             DEBUG('a', "Exited with status %d\n", status);
+            // interrupt->Halt();
             currentThread->Finish(status);
             break;
         }

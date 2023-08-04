@@ -23,7 +23,7 @@ main(void)
 
         if (i > 0) {
             char** argv;
-            newProc = Exec(buffer, 0, argv);
+            newProc = Exec(buffer, argv, 0);
             Join(newProc);
         }
     }

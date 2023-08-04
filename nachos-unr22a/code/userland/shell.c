@@ -135,7 +135,7 @@ main(void)
         // TODO: check for errors when calling `Exec`; this depends on how
         //       errors are reported.
         // Write("Terminado el programa",50, OUTPUT);
-        Exec("halt",0,1);
+        // Exec("halt",0,1);
 
         // TODO: is it necessary to check for errors after `Join` too, or
         //       can you be sure that, with the implementation of the system
