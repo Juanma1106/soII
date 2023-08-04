@@ -184,6 +184,7 @@ void Thread::Finish(int returnValue) {
 
     #ifdef USER_PROGRAM
         threads->Remove(spaceId);
+        // acá por ahí deberíamos hacer un chequeo, a ver si tiramos Halt o no
     #endif
     
     threadToBeDestroyed = currentThread;
