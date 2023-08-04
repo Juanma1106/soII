@@ -31,28 +31,28 @@ void ComensalFailedLocked(void *forkRight) {
 
 void ThreadComensalesTestFailedLocked() {
 	char names[COMENSALES][64] = {"Zero", "1st", "2nd", "3rd", "4th"};
-    Thread** threads = new Thread*[COMENSALES -1];
+    Thread** allThreads = new Thread*[COMENSALES -1];
 
 	for (int i=0; i < COMENSALES; i++){
 		forksLocks[i] = new Lock(names[i]);
 	}
 
 	for(int i = 0; i < COMENSALES - 1; i++){
-		threads[i] = new Thread(names[i+1], true);
+		allThreads[i] = new Thread(names[i+1], true);
 		unsigned *n = new unsigned;
 		*n = (i+2) % COMENSALES;
-		threads[i]->Fork(ComensalFailedLocked, (void *) n);
+		allThreads[i]->Fork(ComensalFailedLocked, (void *) n);
 	}
 	unsigned *n = new unsigned;
 	*n = 1;
 	ComensalFailedLocked((void *) n);
 
 	for(int i = 0; i < COMENSALES -1; i++){
-		threads[i]->Join();
+		allThreads[i]->Join();
 	}
 
 	// free memory
-	delete threads;
+	delete allThreads;
 	for(int i = 0; i < 5; i++){
 		forksLocks[i]->~Lock();
 	}
@@ -89,28 +89,28 @@ void ComensalTestFixed(void *forkRight) {
 
 void ThreadComensalesTestFixed() {
 	char names[COMENSALES][64] = {"Zero", "1st", "2nd", "3rd", "4th"};
-    Thread** threads = new Thread*[COMENSALES -1];
+    Thread** allThreads = new Thread*[COMENSALES -1];
 
 	for (int i=0; i < COMENSALES; i++){
 		forksLocks[i] = new Lock(names[i]);
 	}
 
 	for(int i = 0; i < COMENSALES - 1; i++){
-		threads[i] = new Thread(names[i+1], true);
+		allThreads[i] = new Thread(names[i+1], true);
 		unsigned *n = new unsigned;
 		*n = (i+2) % COMENSALES;
-		threads[i]->Fork(ComensalTestFixed, (void *) n);
+		allThreads[i]->Fork(ComensalTestFixed, (void *) n);
 	}
 	unsigned *n = new unsigned;
 	*n = 1;
 	ComensalTestFixed((void *) n);
 
 	for(int i = 0; i < COMENSALES -1; i++){
-		threads[i]->Join();
+		allThreads[i]->Join();
 	}
 
 	// free memory
-	delete threads;
+	delete allThreads;
 	for(int i = 0; i < 5; i++){
 		forksLocks[i]->~Lock();
 	}

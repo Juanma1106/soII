@@ -13,8 +13,11 @@
 # All rights reserved.  See `copyright.h` for copyright notice and
 # limitation of liability and disclaimer of warranty provisions.
 
-DEFINES      = -DUSER_PROGRAM  -DFILESYS_NEEDED -DFILESYS_STUB -DVMEM \
-               -DUSE_TLB -DDFS_TICKS_FIX
+DEFINES      = -DUSER_PROGRAM  -DFILESYS_NEEDED -DFILESYS_STUB \
+               -DDFS_TICKS_FIX \
+               -DUSE_TLB \
+               -DDEMAND_LOADING \
+               -DSWAP
 INCLUDE_DIRS = -I.. -I../filesys -I../bin -I../userprog -I../threads \
                -I../machine
 HDR_FILES    = $(THREAD_HDR) $(USERPROG_HDR) $(VMEM_HDR)

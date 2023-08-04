@@ -28,25 +28,27 @@
 /// Initialize the list of ready but not running threads to empty.
 Scheduler::Scheduler() {
     readyLists = new List<Thread *>[PRIORITY_SIZE];
+    // entiendo que acá hay que poner el reloj
 }
 
 /// De-allocate the list of ready threads.
 Scheduler::~Scheduler() {
     for(int i = 0; i < PRIORITY_SIZE; i++) {
-        delete &readyLists[i];
+        (&readyLists[i])->~List();
     }
     
 }
 
-List<Thread *>* Scheduler::findMaxPriority() {
-    for(int i = PRIORITY_SIZE-1; i >= 0; i--) {
-        List<Thread *> *myList = &readyLists[i];
-        if(!myList->IsEmpty()) {
-            return myList;
-        }
-    }
-    // Si no tenemos ningun hilo listo para ejecutar, devolvemos una lista vacia
-    return new List<Thread *>;
+bool Scheduler::isReady(Thread *t, int priority) {
+    return (&readyLists[priority])->Has(t);
+}
+
+void Scheduler::removeFromPriorityList(Thread *t, int priority){
+    (&readyLists[priority])->Remove(t);
+}
+
+void Scheduler::addToPriorityList(Thread *t, int priority){
+    (&readyLists[priority])->Append(t);
 }
 
 /// Mark a thread as ready, but not running.
@@ -69,10 +71,14 @@ void Scheduler::ReadyToRun(Thread *thread) {
 /// If there are no ready threads, return null.
 ///
 /// Side effect: thread is removed from the ready list.
-Thread *
-Scheduler::FindNextToRun()
-{
-    return findMaxPriority()->Pop();
+Thread * Scheduler::FindNextToRun() {
+    for(int i = PRIORITY_SIZE-1; i >= 0; i--) {
+        List<Thread *> *myList = &readyLists[i];
+        if(!myList->IsEmpty()) {
+            return myList->Pop();
+        }
+    }
+    return nullptr;
 }
 
 /// Dispatch the CPU to `nextThread`.
@@ -156,3 +162,12 @@ Scheduler::Print()
         (&readyLists[i])->Apply(ThreadPrint);
     }
 }
+
+#ifdef USER_PROGRAM
+void Scheduler::PrintAllThreads() {
+    List<Thread*> *values = threads->getValues();
+    //for(int i = 0; i < PRIORITY_SIZE; i++) {
+    values->Apply(ThreadPrint);
+    //}
+}
+#endif

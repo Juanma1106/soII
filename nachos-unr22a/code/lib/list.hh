@@ -78,12 +78,17 @@ public:
     /// Remove first item from list.
     Item SortedPop(int *keyPtr);
 
+    int GetSize();
+
+    //Item[] toArray();
+
 private:
 
     typedef ListElement<Item> ListNode;
 
     ListNode *first;  ///< Head of the list, null if list is empty.
     ListNode *last;   ///< Last element of list.
+    int size;
 };
 
 /// Initialize a list element, so it can be added somewhere on a list.
@@ -101,10 +106,10 @@ ListElement<Item>::ListElement(Item anItem, int sortKey)
 /// Initialize a list, empty to start with.
 ///
 /// Elements can now be added to the list.
-template <class Item>
-List<Item>::List()
-{
-    first = last = nullptr;
+template <class Item> List<Item>::List() {
+    last = nullptr;
+    first = nullptr;
+    size = 0;
 }
 
 /// Prepare a list for deallocation.
@@ -142,6 +147,7 @@ List<Item>::Append(Item item)
         last->next = element;
         last = element;
     }
+    size++;
 }
 
 /// Put an "item" on the front of the list.
@@ -165,6 +171,7 @@ List<Item>::Prepend(Item item)
         element->next = first;
         first = element;
     }
+    size++;
 }
 
 /// Get a copy of the first `item` form the front of the list.
@@ -210,6 +217,7 @@ List<Item>::Remove(Item item)
                 last = prev_ptr;
             }
             delete ptr;
+            size--;
             return;
         }
     }
@@ -262,8 +270,7 @@ List<Item>::IsEmpty() const
 /// * `sortKey` is the priority of the item.
 template <class Item>
 void
-List<Item>::SortedInsert(Item item, int sortKey)
-{
+List<Item>::SortedInsert(Item item, int sortKey) {
     ListNode *element = new ListNode(item, sortKey);
 
     if (IsEmpty()) {  // If list is empty, put.
@@ -284,6 +291,7 @@ List<Item>::SortedInsert(Item item, int sortKey)
         last->next = element;  // Item goes at end of list.
         last = element;
     }
+    size++;
 }
 
 /// Remove the first “item” from the front of a sorted list.
@@ -316,8 +324,24 @@ List<Item>::SortedPop(int *keyPtr)
         *keyPtr = element->key;
     }
     delete element;
+    size--;
     return thing;
 }
+
+template <class Item> int List<Item>::GetSize() {
+    return size;
+}
+
+//template <class Item> Item* toArray() {
+//    Item *items = new Item[size];
+//    i = 0;
+//    for (ListNode *ptr = first; ptr != nullptr; ptr = ptr->next) {
+//        item == ptr->item;
+//        items[i] = item;
+//        i++;
+//    }
+//    return items;
+//}
 
 
 #endif

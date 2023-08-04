@@ -133,6 +133,16 @@ Close:
         j       $31
         .end    Close
 
+.globl  PrintProcesses
+        .ent    PrintProcesses
+PrintProcesses:
+        addiu   $2, $0, SC_PS
+        syscall
+        j       $31
+        .end    PrintProcesses
+
+
+
 /// Dummy function to keep gcc happy.
         .globl  __main
         .ent    __main

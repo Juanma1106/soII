@@ -1,4 +1,5 @@
-#include "syscall.h"
+// #include "syscall.h"
+#include "../userprog/syscall.h"
 
 
 int
@@ -21,7 +22,8 @@ main(void)
         buffer[--i] = '\0';
 
         if (i > 0) {
-            newProc = Exec(buffer);
+            char** argv;
+            newProc = Exec(buffer, argv, 0);
             Join(newProc);
         }
     }

@@ -92,6 +92,7 @@ void Copy(const char *unixFile, const char *nachosFile);
 void Print(const char *file);
 void PerformanceTest(void);
 void StartProcess(const char *file);
+SpaceId StartProcess(char** args, bool joinable);
 void ConsoleTest(const char *in, const char *out);
 void MailTest(int networkID);
 
@@ -139,6 +140,7 @@ main(int argc, char **argv)
         }
 #endif
 #ifdef USER_PROGRAM
+        // Vuelvo todos los cambios hacia atrás
         if (!strcmp(*argv, "-x")) {          // Run a user program.
             ASSERT(argc > 1);
             StartProcess(*(argv + 1));
@@ -194,7 +196,7 @@ main(int argc, char **argv)
 #endif // NETWORK
     }
 
-    currentThread->Finish();
+    currentThread->Finish(0);
       // NOTE: if the procedure `main` returns, then the program `nachos`
       // will exit (as any other normal program would).  But there may be
       // other threads on the ready list.  We switch to those threads by

@@ -42,6 +42,9 @@ public:
     /// Initialize user-level CPU registers, before jumping to user code.
     void InitRegisters();
 
+    // deprecada por comentarios en mail
+    // void InitRegisters(int argc, char** argv, int sizeArgs);
+
     /// Save/restore address space-specific info on a context switch.
 
     void SaveState();

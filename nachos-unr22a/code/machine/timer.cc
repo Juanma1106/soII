@@ -63,6 +63,10 @@ Timer::TimerExpired()
     interrupt->Schedule(TimerHandler, this, TimeOfNextInterrupt(),
                         TIMER_INT);
 
+/*
+    interrupt->Schedule(TimerHandler, this, TimeOfNextInterrupt(),
+                        TIMER_INT);
+*/
     // Invoke the Nachos interrupt handler for this device.
     (*handler)(arg);
 }
@@ -76,6 +80,11 @@ Timer::TimeOfNextInterrupt()
     if (randomize) {
         return 1 + SystemDep::Random() % (TIMER_TICKS * 2);
     } else {
-        return TIMER_TICKS;
+        #ifdef USER_PROGRAM
+            int time = 125; 
+        #else
+            int time = TIMER_TICKS;
+        #endif
+        return time;
     }
 }

@@ -1,4 +1,5 @@
-#include "syscall.h"
+// #include "syscall.h"
+#include "../userprog/syscall.h"
 
 
 #define MAX_LINE_SIZE  60
@@ -43,14 +44,19 @@ ReadLine(char *buffer, unsigned size, OpenFileId input)
     // TODO: how to make sure that `buffer` is not `NULL`?
 
     unsigned i;
+    // Write("Empieza a leer la linea\n", 50, 1);
 
     for (i = 0; i < size; i++) {
+        // Write("A leer un caracter\n", 50, 1);
         Read(&buffer[i], 1, input);
+
         // TODO: what happens when the input ends?
         if (buffer[i] == '\n') {
             buffer[i] = '\0';
+            // Write("Salgo con break\n", 50, 1);
             break;
         }
+        // Write("Caracter leído\n", 50, 1);
     }
     return i;
 }
@@ -109,6 +115,7 @@ main(void)
         WritePrompt(OUTPUT);
         const unsigned lineSize = ReadLine(line, MAX_LINE_SIZE, INPUT);
         if (lineSize == 0) {
+            WriteError("No se leyo nada.", OUTPUT);
             continue;
         }
 
@@ -119,13 +126,17 @@ main(void)
 
         // Comment and uncomment according to whether command line arguments
         // are given in the system call or not.
-        const SpaceId newProc = Exec(line);
-        //const SpaceId newProc = Exec(line, argv);
+        int argc = 0;
+        const SpaceId newProc = Exec(line, argv, 1);
+
+        Join(newProc);
+        // 1 == joinable
 
         // TODO: check for errors when calling `Exec`; this depends on how
         //       errors are reported.
+        // Write("Terminado el programa",50, OUTPUT);
+        // Exec("halt",0,1);
 
-        Join(newProc);
         // TODO: is it necessary to check for errors after `Join` too, or
         //       can you be sure that, with the implementation of the system
         //       call handler you made, it will never give an error?; what

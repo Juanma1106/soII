@@ -6,11 +6,13 @@
 /// result back to the file system!
 
 
-#include "syscall.h"
+// #include "syscall.h"
+#include "../userprog/syscall.h"
+#include "lib.c"
 
 
 /// Sum total of the arrays does not fit in physical memory.
-#define DIM  20
+#define DIM 3 
 
 static int A[DIM][DIM];
 static int B[DIM][DIM];
@@ -40,5 +42,7 @@ main(void)
     }
 
     // And then we are done.
-    return C[DIM - 1][DIM - 1];
+    int ret = C[DIM - 1][DIM - 1];
+    PrintChar(digitToChar( ret%10 ) );
+    return ret;
 }

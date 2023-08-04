@@ -1,0 +1,16 @@
+SOII- Material de estudio
+- Que es un SO. Funciones primarias: (Cap 1, 2)
+- Historia de SO. Sistemas multiprogramados. Sistemas de tiempo compartido. Multitarea cooperativa vs apropiativa. (Cap 3,4)
+- Dispositivos moviles. Caracteristicas diferenciadoras. (Cap 5)
+- Organizacion de los SO. Monoliticos, microkernel. (Cap 7)
+- Proceso. Diferencia programa. Estados proceso. (Cap 19) + transparencia procesos
+- Hilos. Comparten memoria. Patrones de trabajo con hilos. (Cap 20)
+- Tipos de planificacion. Tick. Quantum. Tiempo nucleo o kernel, de sistema, de usuario, de uso del procesador, idle, utilizacion de cpu. (Cap 24, 25)
+- Unidad de procesamiento. Funciones. Jerarquia de almacenamiento (arquitectura Von Neumann). Registros. Interrupciones y excepciones. Funciones de SO respecto a interrupciones y excepciones (Cap 10)
+- Planificacion multiprocesadores. Afinidad suave y dura. Balanceo de cargas: push y pull. Hyperthreading (Cap 27)
+- Sistema de tiempo real. Tiempo real duro y suave. Implementacion de tiempo real suave con retroalimentacion multinivel. SO interrumpible. Inversion de prioridades. (Cap 28)
+
+linux_scheduler.pdf
+señales.pdf
+
+

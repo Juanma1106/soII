@@ -39,9 +39,7 @@ bool CountArgsToSave(int address, unsigned *count)
     return true;
 }
 
-char **
-SaveArgs(int address)
-{
+char ** SaveArgs(int address) {
     ASSERT(address != 0);
 
     unsigned count;

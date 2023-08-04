@@ -22,7 +22,7 @@
 
 Lock::Lock(const char *debugName) {
     s = new Semaphore (debugName, 1); 
-    myThread = nullptr;
+    lockerThread = nullptr;
 }
 
 Lock::~Lock() {
@@ -34,37 +34,53 @@ const char * Lock::GetName() const {
 }
 
 void Lock::Acquire() {
-
-    // if(myThread != nullptr) {
-    //     DEBUG('v', "Thread %s wants to acquired lock. Lock %s is acquired by %s\n", currentThread->GetName(), GetName(), myThread->GetName());
-    // } else {
-    //     DEBUG('v', "Thread %s wants to acquired lock. Lock %s is free\n", currentThread->GetName(), GetName());
-    // }
-    
-
     ASSERT(!IsHeldByCurrentThread()) ;
-    if(myThread != nullptr) {
-        int priorityTheadLocked = myThread->getPriority();
+    if(lockerThread != nullptr) {
+        int priorityLockerThread = lockerThread->getPriority();
         int priorityCurrentThread = currentThread->getPriority();
-        if(priorityCurrentThread > priorityTheadLocked) {
-            myThread->setPriorityTemp(priorityCurrentThread);
+        if(priorityCurrentThread > priorityLockerThread) {
+            lockerThread->setPriorityTemp(priorityCurrentThread);
+            if(scheduler->isReady(lockerThread, priorityLockerThread)) {
+                scheduler->removeFromPriorityList(lockerThread, priorityLockerThread);
+                scheduler->addToPriorityList(lockerThread, priorityCurrentThread);
+            }
         }
     }
     s->P();
-    myThread = currentThread;
+    DEBUG('s', "*** Thread `%s` acquired %s\n", currentThread->GetName(), GetName());
+    lockerThread = currentThread;
 }
 
+
+
 void Lock::Release() {
-    // if(myThread != nullptr) {
-    //     DEBUG('v', "Thread %s wants to release lock. Lock %s is acquired by %s\n", currentThread->GetName(), GetName(), myThread->GetName());
-    // } else {
-    //     DEBUG('v', "Thread %s wants to release lock. Lock %s is not acquired by anyone\n", currentThread->GetName(), GetName());
-    // }
     ASSERT(IsHeldByCurrentThread()) ;
-    myThread = nullptr;
+    if(lockerThread->getPriorityTemp() != -1) {
+        int priorityTemp = lockerThread->getPriorityTemp(); // original del thread
+        // int priority     = lockerThread->getPriority();     // modificada por inversion
+        // No hace falta chequear si el hilo está ready, ya que lockerThread es currentThread
+        // y por lo tanto está ejecutando (es decir está ready)
+
+        /*
+        Un detalle que les quiero comentar es en la función Release() de Lock: 
+        Cuando restauran la prioridad original del thread lo están agregando 
+        de nuevo a la cola de prioridad en ese momento cuando ese mismo thread 
+        está ejecutando, esto va a provocar que cuando se haga el cambio de contexto 
+        y este thread se duerma, se va a agregar de nuevo al scheduler 
+        y va a estar duplicado. 
+        Además, al intentar de quitarlo de su cola de prioridad no debería suceder nada, 
+        ya que al ser el thread actual no debería estar ahí.
+        scheduler->removeFromPriorityList(lockerThread, priority);
+        scheduler->addToPriorityList(lockerThread, priorityTemp);
+        */
+        lockerThread->setPriority(priorityTemp);
+        lockerThread->setPriorityTemp(-1);
+    }
+    lockerThread = nullptr;
     s->V();
+    DEBUG('s', "*** Thread `%s` released %s\n", currentThread->GetName(), GetName());
 }
 
 bool Lock::IsHeldByCurrentThread() const {
-    return myThread == currentThread;
+    return lockerThread == currentThread;
 }

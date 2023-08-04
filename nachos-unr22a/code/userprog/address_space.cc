@@ -16,8 +16,7 @@
 /// First, set up the translation from program memory to physical memory.
 /// For now, this is really simple (1:1), since we are only uniprogramming,
 /// and we have a single unsegmented page table.
-AddressSpace::AddressSpace(OpenFile *executable_file)
-{
+AddressSpace::AddressSpace(OpenFile *executable_file) {
     ASSERT(executable_file != nullptr);
 
     Executable exe (executable_file);
@@ -30,7 +29,7 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
     numPages = DivRoundUp(size, PAGE_SIZE);
     size = numPages * PAGE_SIZE;
 
-    ASSERT(numPages <= NUM_PHYS_PAGES);
+    ASSERT(numPages <= bitmap->CountClear());
       // Check we are not trying to run anything too big -- at least until we
       // have virtual memory.
 
@@ -39,48 +38,67 @@ AddressSpace::AddressSpace(OpenFile *executable_file)
 
     // First, set up the translation.
 
+    char *mainMemory = machine->GetMMU()->mainMemory;
+
     pageTable = new TranslationEntry[numPages];
     for (unsigned i = 0; i < numPages; i++) {
         pageTable[i].virtualPage  = i;
           // For now, virtual page number = physical page number.
-        pageTable[i].physicalPage = i;
+        pageTable[i].physicalPage = bitmap->Find();
+        ASSERT(pageTable[i].physicalPage >= 0);
+        DEBUG('a', "Page %d to %d\n", i, pageTable[i].physicalPage);
         pageTable[i].valid        = true;
         pageTable[i].use          = false;
         pageTable[i].dirty        = false;
         pageTable[i].readOnly     = false;
           // If the code segment was entirely on a separate page, we could
           // set its pages to be read-only.
+        
+        // Zero out the entire address space, to zero the unitialized data
+        // segment and the stack segment.
+        // Ya no podemos inicializar todas las paginas juntas.
+        memset(mainMemory, pageTable[i].physicalPage, PAGE_SIZE);
     }
 
-    char *mainMemory = machine->GetMMU()->mainMemory;
-
-    // Zero out the entire address space, to zero the unitialized data
-    // segment and the stack segment.
-    memset(mainMemory, 0, size);
-
+    // memset(mainMemory, 0, size);
+    
     // Then, copy in the code and data segments into memory.
     uint32_t codeSize = exe.GetCodeSize();
     uint32_t initDataSize = exe.GetInitDataSize();
+
     if (codeSize > 0) {
         uint32_t virtualAddr = exe.GetCodeAddr();
         DEBUG('a', "Initializing code segment, at 0x%X, size %u\n",
               virtualAddr, codeSize);
-        exe.ReadCodeBlock(&mainMemory[virtualAddr], codeSize, 0);
+        // exe.ReadCodeBlock(&mainMemory[virtualAddr], codeSize, 0);
+        for (uint32_t i = 0; i < codeSize; i++) {
+            uint32_t frame = pageTable[DivRoundDown(virtualAddr + i, PAGE_SIZE)].physicalPage;
+            uint32_t offset = (virtualAddr + i) % PAGE_SIZE;
+            uint32_t physicalAddr = frame * PAGE_SIZE + offset;
+            exe.ReadCodeBlock(&mainMemory[physicalAddr], 1, i);
+        }
     }
     if (initDataSize > 0) {
         uint32_t virtualAddr = exe.GetInitDataAddr();
         DEBUG('a', "Initializing data segment, at 0x%X, size %u\n",
               virtualAddr, initDataSize);
-        exe.ReadDataBlock(&mainMemory[virtualAddr], initDataSize, 0);
+        // exe.ReadDataBlock(&mainMemory[virtualAddr], initDataSize, 0);
+        for (uint32_t i = 0; i < initDataSize; i++) {
+          uint32_t frame = pageTable[DivRoundDown(virtualAddr + i, PAGE_SIZE)].physicalPage;
+          uint32_t offset = (virtualAddr + i) % PAGE_SIZE;
+          uint32_t physicalAddr = frame * PAGE_SIZE + offset;
+          exe.ReadDataBlock(&mainMemory[physicalAddr], 1, i);
+        }
     }
-
 }
 
 /// Deallocate an address space.
 ///
 /// Nothing for now!
-AddressSpace::~AddressSpace()
-{
+AddressSpace::~AddressSpace() {
+    for(unsigned int i = 0; i < numPages; i++) {
+        bitmap->Clear(pageTable[i].physicalPage);
+    }
     delete [] pageTable;
 }
 
@@ -111,6 +129,39 @@ AddressSpace::InitRegisters()
     DEBUG('a', "Initializing stack register to %u\n",
           numPages * PAGE_SIZE - 16);
 }
+
+/////////// VER MAIL DE CORRECCIONES ////////////
+// void AddressSpace::InitRegisters(int argc, char** argv, int sizeArgs) {
+//     for (unsigned i = 0; i < NUM_TOTAL_REGS; i++) {
+//         machine->WriteRegister(i, 0);
+//     }
+
+//     // Initial program counter -- must be location of `Start`.
+//     machine->WriteRegister(PC_REG, 0);
+
+//     // Need to also tell MIPS where next instruction is, because of branch
+//     // delay possibility.
+//     machine->WriteRegister(NEXT_PC_REG, 4);
+
+//     // Set the stack register to the end of the address space, where we
+//     // allocated the stack; but subtract off a bit, to make sure we do not
+//     // accidentally reference off the end!
+//     machine->WriteRegister(ARGC, argc);
+//     machine->WriteRegister(ARGV, numPages * PAGE_SIZE - 16);
+
+//     machine->WriteRegister(STACK_REG, numPages * PAGE_SIZE - 16 - sizeArgs);
+//     DEBUG('a', "Initializing stack register to %u\n",
+//           numPages * PAGE_SIZE - 16);
+
+//     for(int i = 0; i < argc; i++) {
+//         char* arg = argv[i];
+//         for(int j = 0; j != '\0'; j++) {
+//             machine->WriteMem(numPages * PAGE_SIZE - 16, 1, arg[j]);
+//         }
+        
+//     }
+    
+// }
 
 /// On a context switch, save any machine state, specific to this address
 /// space, that needs saving.

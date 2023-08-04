@@ -8,21 +8,25 @@
 /// All rights reserved.  See `copyright.h` for copyright notice and
 /// limitation of liability and disclaimer of warranty provisions.
 
+#ifndef NACHOS_USEPROG_PROG_TEST__CC
+#define NACHOS_USEPROG_PROG_TEST__CC
+
 
 #include "address_space.hh"
 #include "machine/console.hh"
 #include "threads/semaphore.hh"
 #include "threads/system.hh"
 #include "write_read_mem_test.hh"
+#include "args.hh"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-
 /// Run a user program.
 ///
 /// Open the executable, load it into memory, and jump to it.
+
 void StartProcess(const char *filename) {
     ASSERT(filename != nullptr);
 
@@ -44,6 +48,45 @@ void StartProcess(const char *filename) {
     ASSERT(false);   // `machine->Run` never returns; the address space
                      // exits by doing the system call `Exit`.
 }
+
+
+/// Run a user program.
+///
+/// Open the executable, load it into memory, and jump to it.
+// SpaceId StartProcess(char** args, bool joinable) {
+//     const char *filename = args[0];
+
+//     ASSERT(filename != nullptr);
+
+//     OpenFile *executable = fileSystem->Open(filename);
+//     if (executable == nullptr) {
+//         DEBUG('e', "Unable to open file %s\n", filename);
+//         return -1;
+//     }
+
+//     int argc =  sizeof(args) / sizeof(args[0]); // - 1;
+//     int sizeArgs = 0;
+//     char *argv[argc] = {};
+//     for (int i = 0; i < argc; i++) {
+//         argv[i] = args[i+1];
+//         sizeArgs += sizeof(argv[i]);
+//     }
+
+//     Thread * newThread = new Thread(filename, joinable, 0);
+
+//     AddressSpace *space = new AddressSpace(executable);
+//     newThread->space = space;
+//     delete executable;
+
+//     Args * myArgs = new Args();
+//     myArgs->argc=argc;
+//     myArgs->argv=argv;
+//     myArgs->sizeArgs=sizeArgs;
+
+//     newThread->Fork(StartProcess2, (void *) myArgs);
+
+//     return newThread->spaceId;
+// }
 
 /// Data structures needed for the console test.
 ///
@@ -85,3 +128,5 @@ void ConsoleTest(const char *in, const char *out) {
         }
     }
 }
+
+#endif

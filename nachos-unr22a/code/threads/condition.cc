@@ -24,53 +24,50 @@
 /// Note -- without a correct implementation of `Condition::Wait`, the test
 /// case in the network assignment will not work!
 
-Condition::Condition(const char *debugName, Lock *conditionLock)
-{
+Condition::Condition(const char *debugName, Lock *conditionLock) {
     name = debugName;
     cl = conditionLock;
     sem = new Semaphore(debugName, 0);
     countWaiters = 0;
 }
 
-Condition::~Condition()
-{
-    cl->~Lock();
+Condition::~Condition() {
     sem->~Semaphore();
 }
 
-const char *
-Condition::GetName() const
-{
+const char * Condition::GetName() const {
     return name;
 }
 
-void
-Condition::Wait()
-{
-    cl->Acquire();
+
+void Condition::Wait() {
+    /*
+    En la función Wait() de variables de condición están soltando el lock 
+    antes de incrementar countWaiters, 
+    es un detalle menor pero esta variable no está protegida por el lock 
+    y dos threads pueden llegar a modificarla al mismo tiempo y se pierda 
+    uno de esos incrementos.
+    */
     countWaiters++;
     cl->Release();
     sem->P();
+    cl->Acquire();
+
 }
 
-void
-Condition::Signal()
-{
-    cl->Acquire();
+void Condition::Signal() {
+    ASSERT(cl->IsHeldByCurrentThread()) ;
     if(countWaiters > 0) {
 		sem->V();
 		countWaiters--;
 	}
-    cl->Release();
 }
 
-void
-Condition::Broadcast()
-{
-    cl->Acquire();
+
+void Condition::Broadcast() {
+    ASSERT(cl->IsHeldByCurrentThread());
     while(countWaiters > 0) {
-		sem->V();
+        sem->V();
 		countWaiters--;
 	}
-    cl->Release();
 }

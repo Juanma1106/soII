@@ -7,7 +7,10 @@
 
 #include "thread_test_simple.hh"
 
-static Semaphore *mySemaphore;
+#ifdef SEMAPHORE_TEST
+	static Semaphore *mySemaphore;
+#endif
+
 /// Loop 10 times, yielding the CPU to another ready thread each iteration.
 ///
 /// * `name` points to a string with a thread name, just for debugging
@@ -46,11 +49,11 @@ void ThreadTestSimple() {
 #endif
 	char names[4][64] = {"2nd", "3rd", "4th", "5th"};
     currentThread->setPriority(0);
-    Thread** threads = new Thread*[4];
+    Thread** allThreads = new Thread*[4];
 	for(int i = 0; i < 4; i++){
-		threads[i] = new Thread(names[i], true);
-        threads[i]->setPriority(4-i);
-		threads[i]->Fork(SimpleThread, (void *) names[i]);
+		allThreads[i] = new Thread(names[i], true);
+        allThreads[i]->setPriority(4-i);
+		allThreads[i]->Fork(SimpleThread, (void *) names[i]);
 	}
 	SimpleThread((void *) "1st");
 
@@ -67,15 +70,15 @@ void ThreadTestSimpleWithJoin() {
 #endif
 	char names[4][64] = {"2nd", "3rd", "4th", "5th"};
     currentThread->setPriority(4);
-    Thread** threads = new Thread*[4];
+    Thread** allThreads = new Thread*[4];
 	for(int i = 0; i < 4; i++){
-		threads[i] = new Thread(names[i], true);
-        threads[i]->setPriority(4-i-1);
-		threads[i]->Fork(SimpleThread, (void *) names[i]);
+		allThreads[i] = new Thread(names[i], true);
+        allThreads[i]->setPriority(4-i-1);
+		allThreads[i]->Fork(SimpleThread, (void *) names[i]);
 	}
 	SimpleThread((void *) "1st");
     for(int i = 0; i < 4; i++){
-		threads[i]->Join();
+		allThreads[i]->Join();
 	}
 
 }

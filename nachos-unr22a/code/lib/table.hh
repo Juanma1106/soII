@@ -46,6 +46,10 @@ public:
     /// Returns the old item.
     T Update(int i, T item);
 
+    int getSize();
+
+    List<T> *getValues();
+
 private:
     /// Data items.
     T data[SIZE];
@@ -148,5 +152,19 @@ Table<T>::Update(int i, T item)
     return previous;
 }
 
+template <class T> int Table<T>::getSize() {
+    int size = current - freed.GetSize();
+    return size;
+}
+
+template <class T> List<T> *Table<T>::getValues() {
+    List<T> *values = new List<T>();
+    for(int i=0; i < current; i++) {
+        if(!freed.Has(i)) {
+            values->Append(data[i]);
+        }
+    }
+    return values;
+}
 
 #endif

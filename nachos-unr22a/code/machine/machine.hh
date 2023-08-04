@@ -32,6 +32,8 @@
 // any two instructions (thus we need to keep track of things like load
 // delay slots, etc.)
 enum {
+    ARGC           = 4,
+    ARGV           = 5,
     STACK_REG      = 29,  ///< User's stack pointer.
     RET_ADDR_REG   = 31,  ///< Holds return address for procedure calls.
     HI_REG         = 32,  ///< Double register to hold multiply result.

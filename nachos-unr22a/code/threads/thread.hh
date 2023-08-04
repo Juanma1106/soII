@@ -40,10 +40,14 @@ class Channel;
 #ifndef NACHOS_THREADS_THREAD__HH
 #define NACHOS_THREADS_THREAD__HH
 
-// #include "channel.hh"
-static int PRIORITY_SIZE = 5;
+#ifndef PRIORITY_SIZE
+#define PRIORITY_SIZE 5
+#endif
 
-#include "lib/utility.hh"
+#include "lib/table.hh"
+#include "filesys/file_system.hh"
+#include "userprog/syscall.h"
+
 
 #ifdef USER_PROGRAM
 #include "machine/machine.hh"
@@ -51,6 +55,8 @@ static int PRIORITY_SIZE = 5;
 #endif
 
 #include <stdint.h>
+#include <string>
+#include <stdlib.h>
 
 
 /// CPU register state to be saved on context switch.
@@ -73,7 +79,8 @@ enum ThreadStatus {
     RUNNING,
     READY,
     BLOCKED,
-    NUM_THREAD_STATUS
+    NUM_THREAD_STATUS,
+    FINISHED
 };
 
 
@@ -123,10 +130,10 @@ public:
     void Sleep();
 
     // Main thread wait child finisih before continue.
-    void Join();
+    int Join();
 
     /// The thread is done executing.
-    void Finish();
+    void Finish(int returnValue);
 
     /// Check if thread has overflowed its stack.
     void CheckOverflow() const;
@@ -135,7 +142,9 @@ public:
 
     const char *GetName() const;
 
-    void Print() const;
+    void Print();
+
+    std::string ToString();
 
     int getPriority();
 
@@ -144,6 +153,14 @@ public:
     int getPriorityTemp();
 
     void setPriorityTemp(int p);
+
+    OpenFileId openFile(OpenFile* file);
+
+    OpenFile* closeFile(OpenFileId fileId);
+
+    bool isOpenedFile(OpenFileId fileId);
+
+    OpenFile* getFileOpened(OpenFileId fileId);
 
 private:
     // Some of the private data for this class is listed above.
@@ -171,6 +188,8 @@ private:
 
     int priorityTemp;
 
+    Table<OpenFile*> *openedFiles;
+
 #ifdef USER_PROGRAM
     /// User-level CPU register state.
     ///
@@ -189,6 +208,8 @@ public:
 
     // User code this thread is running.
     AddressSpace *space;
+
+    SpaceId spaceId;
 #endif
 };
 

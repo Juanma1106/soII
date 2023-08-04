@@ -24,10 +24,10 @@
 #include <inttypes.h>
 #include <stdio.h>
 
-
 /// This is put at the top of the execution stack, for detecting stack
 /// overflows.
 const unsigned STACK_FENCEPOST = 0xDEADBEEF;
+
 
 
 static inline bool IsThreadStatus(ThreadStatus s) {
@@ -52,6 +52,7 @@ Thread::Thread(const char *threadName, bool isJoinable, Thread *father, int theP
     priorityTemp = -1;
 #ifdef USER_PROGRAM
     space    = nullptr;
+    spaceId = threads->Add(this);
 #endif
 }
 
@@ -103,8 +104,6 @@ void Thread::Fork(VoidFunctionPtr func, void *arg) {
     IntStatus oldLevel = interrupt->SetLevel(INT_OFF);
     scheduler->ReadyToRun(this);  // `ReadyToRun` assumes that interrupts
                                   // are disabled!
-
-
     interrupt->SetLevel(oldLevel);
 }
 
@@ -135,8 +134,25 @@ const char * Thread::GetName() const {
     return name;
 }
 
-void Thread::Print() const {
-    printf("%s, ", name);
+void Thread::Print() {
+#ifdef USER_PROGRAM
+    printf("Name: %s, Pid: %d, Priority: %d", name, spaceId, priority);
+#else
+    printf("Name: %s, Priority: %d", name, priority);
+#endif
+}
+
+std::string Thread::ToString() {
+    std::string str = "Name: ";
+    char bufPriority [33];
+    sprintf(bufPriority,"%d",priority);
+#ifdef USER_PROGRAM
+    char bufSpaceId [33];
+    sprintf(bufSpaceId,"%d",spaceId);
+    return str.append(name).append(", Pid: ").append(bufSpaceId).append(", Priority: ").append(bufPriority);
+#else
+    return str.append(name).append(", Priority: ").append(bufPriority);
+#endif
 }
 
 /// Called by `ThreadRoot` when a thread is done executing the forked
@@ -150,16 +166,26 @@ void Thread::Print() const {
 ///
 /// NOTE: we disable interrupts, so that we do not get a time slice between
 /// setting `threadToBeDestroyed`, and going to sleep.
-void Thread::Finish() {
+
+// returnValue: nos indica el valor de retorno del thread (un 0 indica una salida normal)
+void Thread::Finish(int returnValue) {
     interrupt->SetLevel(INT_OFF);
     ASSERT(this == currentThread);
 
     DEBUG('t', "Finishing thread \"%s\"\n", GetName());
 
     if(joinable) {
-        channel->Send(5); // envia un numero al azar, solo para recibirlo
+        DEBUG('t', "Joinneando \"%s\"\n", GetName());
+        channel->Send(returnValue);
+        DEBUG('t', "Joinneado \"%s\"\n", GetName());
+    } else {
+        DEBUG('t', "No Joinneado \"%s\"\n", GetName());
     }
 
+    #ifdef USER_PROGRAM
+        threads->Remove(spaceId);
+    #endif
+    
     threadToBeDestroyed = currentThread;
     Sleep();  // Invokes `SWITCH`.
     // Not reached.
@@ -225,13 +251,12 @@ void Thread::Sleep() {
     scheduler->Run(nextThread);  // Returns when we have been signalled.
 }
 
-void Thread::Join() {
+int Thread::Join() {
     ASSERT(joinable);
-    //semaphore->P();
-    int message;
-    channel->Receive(&message);
+    int returnValue;
+    channel->Receive(&returnValue);
     //DEBUG('t', "message \"%d\"\n", message);
-
+    return returnValue;
 }
 
 int Thread::getPriority() {
@@ -249,7 +274,7 @@ void Thread::setPriority(int p) {
 }
 
 int Thread::getPriorityTemp() {
-    return priority;
+    return priorityTemp;
 }
 
 void Thread::setPriorityTemp(int p) {
@@ -265,7 +290,7 @@ void Thread::setPriorityTemp(int p) {
 /// function.  So in order to do this, we create a dummy C function (which we
 /// can pass a pointer to), that then simply calls the member function.
 static void ThreadFinish() {
-    currentThread->Finish();
+    currentThread->Finish(0);
 }
 
 static void InterruptEnable() {
@@ -303,6 +328,27 @@ void Thread::StackAllocate(VoidFunctionPtr func, void *arg) {
     machineState[InitialPCState]  = (uintptr_t) func;
     machineState[InitialArgState] = (uintptr_t) arg;
     machineState[WhenDonePCState] = (uintptr_t) ThreadFinish;
+}
+
+OpenFileId Thread::openFile(OpenFile* file) {
+    OpenFileId realFileId = openedFiles->Add(file);
+    // Incrementamos en 2 el fileId para esquivar los FD 0 y 1 reservados para salidas ERR y OUT
+    return realFileId + 2;
+}
+
+OpenFile* Thread::closeFile(OpenFileId fileId) {
+    OpenFileId realFileId = fileId -2;
+    return openedFiles->Remove(realFileId);
+}
+
+bool Thread::isOpenedFile(OpenFileId fileId) {
+    OpenFileId realFileId = fileId -2;
+    return openedFiles->HasKey(realFileId);
+}
+
+OpenFile* Thread::getFileOpened(OpenFileId fileId) {
+    OpenFileId realFileId = fileId -2;
+    return openedFiles->Get(realFileId);
 }
 
 #ifdef USER_PROGRAM

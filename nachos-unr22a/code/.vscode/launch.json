@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        
+
+        {
+            "name": "Nachos debugging",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/userprog/nachos",
+            "args": [
+                "-d",
+                "v",
+                "-x",
+                "shell"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/userland/",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb"
+        }
+    ],
+    "version": "2.0.0"
+}
