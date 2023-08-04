@@ -72,7 +72,7 @@ void WriteStringToUser(const char *string, int userAddress) {
         do {
             ASSERT(machine->WriteMem(userAddress++, 1, string[temp]));
             temp++;
-        } while (*string++ != '\0');
+        } while (string[temp] != '\0');
     } else {
         printf("Puntero nulo \n");
     }

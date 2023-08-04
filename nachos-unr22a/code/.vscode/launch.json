@@ -11,7 +11,7 @@
                 "-d",
                 "vde",
                 "-x",
-                "${workspaceFolder}/userland/shell"
+                "shell"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/userland/",

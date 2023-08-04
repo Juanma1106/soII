@@ -39,13 +39,13 @@ static void IncrementPC() {
 
 void StartProcess2(void *args) {
 	currentThread->space->InitRegisters();
+	currentThread->space->RestoreState();
     if(args != nullptr){
 		machine->WriteRegister(4, WriteArgs((char**) args));
 		int sp = machine->ReadRegister(STACK_REG);
 		machine->WriteRegister(5, sp);
 		machine->WriteRegister(STACK_REG, sp - 16);
     }
-	currentThread->space->RestoreState();
 
     machine->Run();  // Jump to the user progam.
     ASSERT(false);   // `machine->Run` never returns; the address space
@@ -205,7 +205,6 @@ static void SyscallHandler(ExceptionType _et) {
                 machine->WriteRegister(2, fileRemoved);
             }
             machine->WriteRegister(2, 0);
-
             break;
         }
 
