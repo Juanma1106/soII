@@ -21,7 +21,7 @@ public:
     /// Is this directory entry in use?
     bool inUse;
     /// Location on disk to find the `FileHeader` for this file.
-    unsigned sector;
+    unsigned sector; //en un sector entra exactamente un i-node
     /// Text name for file, with +1 for the trailing `'\0'`.
     char name[FILE_NAME_MAX_LEN + 1];
 };

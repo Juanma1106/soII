@@ -21,5 +21,11 @@ code/userland/touch
 code/userland/touch.coff
 code/userland/ps
 code/userland/ps.coff
+code/userland/create
+code/userland/create.coff
+code/userland/remove
+code/userland/remove.coff
+code/userland/exit
+code/userland/exit.coff
 Makefile.depends
 nachos
