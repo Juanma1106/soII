@@ -1,4 +1,5 @@
 #include "coremap.hh"
+#include "threads/system.hh"
 
 #ifdef SWAP
 Coremap::Coremap(unsigned pages){
@@ -17,9 +18,7 @@ Coremap::~Coremap() {
 
 }
 
-int Coremap::Find(int virtualPage,  Thread *currentThread, 
-               OpenFile * currentSwapFile, TranslationEntry *pageTable,
-               char * mainMemory ){
+int Coremap::Find(int virtualPage, OpenFile *currentSwapFile, TranslationEntry *currentPageTable){
    int ppn = physicals->Find();
    if(ppn < 0) { 
       // no hay espacio en memoria
@@ -27,25 +26,13 @@ int Coremap::Find(int virtualPage,  Thread *currentThread,
       CoremapEntry entry = GetEntry(ppn);
       DEBUG('v', "En la PPN: %d estaba la VPN: %d del proceso %s.- Ahora se guardó la VPN: %d del %s\n",
                ppn, entry.vpn, entry.thread->GetName(), virtualPage, currentThread->GetName());
-      OpenFile * swapFile;
-      TranslationEntry *pgtable;
-      if (currentThread == entry.thread){
-         swapFile = currentSwapFile;
-         pgtable = pageTable;
-      } else {
-         swapFile = entry.thread->space->getSwapFile();
-         pgtable = entry.thread->space->getPageTable();
-      }
-
       // ASSERT((entries[ppn].thread)->space != nullptr);
       // hay que swappear
-      char from = mainMemory[ppn];
-      saveInSwap(ppn, swapFile, pgtable, &from);
+      saveInSwap(ppn, currentSwapFile, currentPageTable );
       // currentThread->space->loadFromSwap(ppn, virtualPage);
    } else {
       DEBUG('v', "No hizo falta SWAP - Thread: %s, PPN: %d, VPN: %d\n",
-         currentThread->GetName(),
-         ppn, virtualPage);
+         currentThread->GetName(), ppn, virtualPage);
    }
    // habia lugar, o se hizo lugar con swap
    entries[ppn].thread = currentThread;
@@ -54,12 +41,17 @@ int Coremap::Find(int virtualPage,  Thread *currentThread,
    return ppn;
 }
 
-void Coremap::saveInSwap(int ppn, OpenFile * swapFile, TranslationEntry *pgtable, char *from){
+void Coremap::saveInSwap(int ppn, OpenFile *currentSwapFile, TranslationEntry *currentPageTable){
    CoremapEntry entry = GetEntry(ppn);
    unsigned position = entry.vpn * PAGE_SIZE;
-   swapFile->WriteAt(from, PAGE_SIZE, position);
-   pgtable[entry.vpn].valid = false;
-   // DEBUG('v', "SWAP - VPN: %d guardada en swap \n", entry.vpn);
+   if (currentThread == entry.thread){
+      currentSwapFile->WriteAt(&machine->GetMMU()->mainMemory[ppn], PAGE_SIZE, position);
+      currentPageTable[entry.vpn].valid = false;
+   } else {
+      entry.thread->space->getSwapFile()->WriteAt(&machine->GetMMU()->mainMemory[ppn], PAGE_SIZE, position);
+      entry.thread->space->getPageTable()[entry.vpn].valid = false;
+   }
+   DEBUG('v', "SWAP - VPN: %d guardada en swap \n", entry.vpn);
 }
 
 

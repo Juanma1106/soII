@@ -71,14 +71,9 @@ static void PageFaultHandler(ExceptionType _et) {
     // currentThread->space->saveInSwap(ppnToSaveInSwap);
 
     if(currentThread->space->getPageTable()[vpn].valid){
-        // DEBUG('d', "vpn: %u . Válida \n", vpn);
-        // DEBUG('d', "NO-DemandLoading. La vpn %d la saco de la tabla de paginación.\n", vpn);
         machine->GetMMU()->tlb[indexTLB] = currentThread->space->getPageTable()[vpn];
     } else {
-        // DEBUG('d', "vpn: %u . Inválida \n", vpn);
-        // DEBUG('v', "Llamando al loadPage con thread %s \n",currentThread->GetName());
         machine->GetMMU()->tlb[indexTLB] = currentThread->space->loadPage(vpn);
-        // DEBUG('d', "DemandLoading. La vpn %d cargó OK.\n", vpn);
     }
 
 #ifdef USE_TLB

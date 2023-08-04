@@ -54,7 +54,6 @@ DEBUG('v', "Inició el constructor de address space del proceso %s\n", currentTh
 
     // First, set up the translation.
 
-    char *mainMemory = machine->GetMMU()->mainMemory;
 
     pageTable = new TranslationEntry[numPages];
     for (unsigned i = 0; i < numPages; i++) {
@@ -64,7 +63,7 @@ DEBUG('v', "Inició el constructor de address space del proceso %s\n", currentTh
         //         pageTable[i].physicalPage = -2; // ponemos el -1 así no hace la búsqueda
         // #else
         #ifdef SWAP
-            pageTable[i].physicalPage = coremap->Find(i, currentThread, swapFile, pageTable, mainMemory);
+            pageTable[i].physicalPage = coremap->Find(i, swapFile, pageTable);
         #else
             pageTable[i].physicalPage = bitmap->Find();
         #endif
@@ -86,7 +85,7 @@ DEBUG('v', "Inició el constructor de address space del proceso %s\n", currentTh
         // Zero out the entire address space, to zero the unitialized data
         // segment and the stack segment.
         // Ya no podemos inicializar todas las paginas juntas.
-        memset(mainMemory, pageTable[i].physicalPage, PAGE_SIZE);
+        memset(machine->GetMMU()->mainMemory, pageTable[i].physicalPage, PAGE_SIZE);
     }
 
     // memset(mainMemory, 0, size);
@@ -106,7 +105,7 @@ DEBUG('v', "Inició el constructor de address space del proceso %s\n", currentTh
             uint32_t frame = pageTable[DivRoundDown(virtualAddr + i, PAGE_SIZE)].physicalPage;
             uint32_t offset = (virtualAddr + i) % PAGE_SIZE;
             uint32_t physicalAddr = frame * PAGE_SIZE + offset;
-            exe.ReadCodeBlock(&mainMemory[physicalAddr], 1, i);
+            exe.ReadCodeBlock(&machine->GetMMU()->mainMemory[physicalAddr], 1, i);
         }
     }
     if (initDataSize > 0) {
@@ -118,7 +117,7 @@ DEBUG('v', "Inició el constructor de address space del proceso %s\n", currentTh
           uint32_t frame = pageTable[DivRoundDown(virtualAddr + i, PAGE_SIZE)].physicalPage;
           uint32_t offset = (virtualAddr + i) % PAGE_SIZE;
           uint32_t physicalAddr = frame * PAGE_SIZE + offset;
-          exe.ReadDataBlock(&mainMemory[physicalAddr], 1, i);
+          exe.ReadDataBlock(&machine->GetMMU()->mainMemory[physicalAddr], 1, i);
         }
     }
 #endif
@@ -132,8 +131,7 @@ TranslationEntry AddressSpace::loadPage(unsigned vpn){
 
     // chequear si la pagina corresponde a codigo, datos o stack
     #ifdef SWAP
-        int ppn = coremap->Find(vpn, currentThread, swapFile, 
-                        pageTable, machine->GetMMU()->mainMemory);
+        int ppn = coremap->Find(vpn, swapFile, pageTable);
     #else
         int ppn = bitmap->Find();
         Executable exec (addressSpaceFile);
@@ -149,7 +147,8 @@ TranslationEntry AddressSpace::loadPage(unsigned vpn){
     #ifdef SWAP
         unsigned position = vpn * PAGE_SIZE;
         swapFile->ReadAt(&machine->GetMMU()->mainMemory[ppn * PAGE_SIZE], PAGE_SIZE, position);
-    
+        DEBUG('d', "Leida la vpn: %d desde el swap.\n", vpn);
+
     #else
         DEBUG('d', "Cargando la página virtual %d en la física %d.\n", vpn, ppn);
 
