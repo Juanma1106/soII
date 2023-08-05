@@ -24,7 +24,8 @@ unsigned AddressSpace::getNumPages(){
 /// For now, this is really simple (1:1), since we are only uniprogramming,
 /// and we have a single unsegmented page table.
 AddressSpace::AddressSpace(OpenFile *executable_file) {
-DEBUG('v', "Inició el constructor de address space del proceso %s\n", currentThread->GetName());    toReplace = 0;
+    DEBUG('d', "Inició el constructor de address space del proceso %s\n", currentThread->GetName());    
+    toReplace = 0;
     ASSERT(executable_file != nullptr);
 
     addressSpaceFile = executable_file;
@@ -120,11 +121,12 @@ TranslationEntry AddressSpace::loadPage(unsigned vpn){
     uint32_t initDataSize = exec.GetInitDataSize();
     uint32_t totalSize = exec.GetSize() + USER_STACK_SIZE;
 
-    if(currentThread->space->getPageTable()[vpn].physicalPage == -1){
+    if(pageTable[vpn].physicalPage == -1){
         // demand loading
         ppn = bitmap->Find();
 
-        ASSERT(ppn >= 0 && vpn*PAGE_SIZE < totalSize);
+        ASSERT(ppn >= 0);
+        ASSERT(virtAddr < totalSize);
 
 
         // chequear si la pagina corresponde a codigo, datos o stack
@@ -140,13 +142,13 @@ TranslationEntry AddressSpace::loadPage(unsigned vpn){
         } else if(virtAddr < codeSize){
             if (codeSize>0){
                 // es codigo
-                DEBUG('d', "DemandLoading. La vpn %d es un segmento de CODIGO.\n", vpn);
+                DEBUG('d', "DemandLoading. La vpn %d es un segmento del CODIGO.\n", vpn);
                 for (uint32_t alreadyRead=0; alreadyRead<PAGE_SIZE; alreadyRead++){
                     exec.ReadCodeBlock(&machine->GetMMU()->mainMemory[position], 1, alreadyRead); 
                 }
             }
         } else if(virtAddr < codeSize+initDataSize){
-            if (codeSize>0){
+            if (initDataSize>0){
                 // es dato
                 DEBUG('d', "DemandLoading. La vpn %d es un segmento de DATOS.\n", vpn);
                 for (uint32_t alreadyRead=0; alreadyRead<PAGE_SIZE; alreadyRead++){

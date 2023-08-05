@@ -69,10 +69,11 @@ static void PageFaultHandler(ExceptionType _et) {
     DEBUG('v', "Fallo de paginación con vpn %d.\n", vpn);
     int indexTLB = currentThread->space->getToReplace();
     // DEBUG('v', "virtAddr: %u . indexTLB: %d \n", virtAddr, indexTLB);
+    TranslationEntry *pageTable = currentThread->space->getPageTable();
 
-    if(currentThread->space->getPageTable()[vpn].valid){
-        DEBUG('d', "Cargada la vpn desde memoria: %d.\n", vpn);
-        machine->GetMMU()->tlb[indexTLB] = currentThread->space->getPageTable()[vpn];
+    if(pageTable[vpn].valid){
+        // DEBUG('d', "Cargada la vpn desde memoria: %d.\n", vpn);
+        machine->GetMMU()->tlb[indexTLB] = pageTable[vpn];
     } else {
         machine->GetMMU()->tlb[indexTLB] = currentThread->space->loadPage(vpn);
         DEBUG('d', "Cargada la vpn desde swap o disco: %d.\n", vpn);
@@ -82,7 +83,7 @@ static void PageFaultHandler(ExceptionType _et) {
     machine->GetMMU()->sumMiss();
 #endif
     // machine->GetMMU()->PrintTLB();
-    DEBUG('v', "Se cargó ok la página %d.\n", vpn);
+    DEBUG('d', "Se cargó ok la página %d.\n", vpn);
 
 }
 
