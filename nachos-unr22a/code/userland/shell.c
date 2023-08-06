@@ -128,7 +128,13 @@ main(void)
         // are given in the system call or not.
         int argc = 0;
         // Write("A ejecutar\n", 20, OUTPUT);
-        const SpaceId newProc = Exec(line, argv, 0);
+
+        int joinnable;
+        if (line[0] != '&')
+            joinnable = 1;
+        else
+            joinnable = 0; 
+        const SpaceId newProc = Exec(line, argv, joinnable);
         // Write("Ejecutado\n", 20, OUTPUT);
         Join(newProc);
         // 1 == joinable
