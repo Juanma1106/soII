@@ -179,7 +179,7 @@ TranslationEntry AddressSpace::loadPage(unsigned vpn){
     pageTable[vpn].valid        = true;
     pageTable[vpn].use          = false;
     pageTable[vpn].dirty        = false;
-    pageTable[vpn].readOnly     = (vpn*PAGE_SIZE)<virtualCodeAddr + codeSize? true: false;
+    pageTable[vpn].readOnly     = false; //(vpn*PAGE_SIZE)<virtualCodeAddr + codeSize? true: false;
 
     return pageTable[vpn];
 }
