@@ -7,9 +7,9 @@
             "program": "${workspaceFolder}/vmem/nachos",
             "args": [
                 "-d",
-                "dsva",
+                "d",
                 "-x",
-                "shell"
+                "halt"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/userland/",

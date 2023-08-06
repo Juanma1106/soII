@@ -202,6 +202,7 @@ FileSystem::Create(const char *name, unsigned initialSize)
         delete freeMap;
     }
     delete dir;
+    DEBUG('f', "Creado\n", name, initialSize);
     return success;
 }
 

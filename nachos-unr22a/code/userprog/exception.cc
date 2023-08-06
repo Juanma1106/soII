@@ -64,23 +64,26 @@ static void PageFaultHandler(ExceptionType _et) {
     // DEBUG('d', "Hilo que está manejando la excepción: %s . \n", currentThread->GetName());
     int virtAddr = machine->ReadRegister(BAD_VADDR_REG);
     uint32_t vpn = (unsigned) virtAddr / PAGE_SIZE;
+    unsigned numPages = currentThread->space->getNumPages();
+    ASSERT(vpn < numPages);
     DEBUG('v', "Fallo de paginación con vpn %d.\n", vpn);
     int indexTLB = currentThread->space->getToReplace();
     // DEBUG('v', "virtAddr: %u . indexTLB: %d \n", virtAddr, indexTLB);
-    // uint32_t ppnToSaveInSwap = machine->GetMMU()->tlb[indexTLB].physicalPage;
-    // currentThread->space->saveInSwap(ppnToSaveInSwap);
+    TranslationEntry *pageTable = currentThread->space->getPageTable();
 
-    if(currentThread->space->getPageTable()[vpn].valid){
-        machine->GetMMU()->tlb[indexTLB] = currentThread->space->getPageTable()[vpn];
+    if(pageTable[vpn].valid){
+        // DEBUG('d', "Cargada la vpn desde memoria: %d.\n", vpn);
+        machine->GetMMU()->tlb[indexTLB] = pageTable[vpn];
     } else {
         machine->GetMMU()->tlb[indexTLB] = currentThread->space->loadPage(vpn);
+        DEBUG('d', "Cargada la vpn desde swap o disco: %d.\n", vpn);
     }
 
 #ifdef USE_TLB
     machine->GetMMU()->sumMiss();
 #endif
     // machine->GetMMU()->PrintTLB();
-    DEBUG('v', "Se cargó ok la página %d.\n", vpn);
+    DEBUG('d', "Se cargó ok la página %d.\n", vpn);
 
 }
 
@@ -177,7 +180,7 @@ static void SyscallHandler(ExceptionType _et) {
 
         case SC_JOIN: {
             SpaceId pid = machine->ReadRegister(4);
-            DEBUG('e', "Haciendo el join del %d.\n", pid);
+            DEBUG('p', "Haciendo el join del %d.\n", pid);
 
             if(threads->HasKey(pid)) {
                 Thread *thread = threads->Get(pid);
@@ -219,26 +222,25 @@ static void SyscallHandler(ExceptionType _et) {
         }
         
         case SC_REMOVE: {
-            // int filenameAddr = machine->ReadRegister(4);
+            int filenameAddr = machine->ReadRegister(4);
 
-            // // Seteo -1 en el registro por cualquier fallo que pueda salir.
-            // machine->WriteRegister(2, -1);
+            // Seteo -1 en el registro por cualquier fallo que pueda salir.
+            machine->WriteRegister(2, -1);
 
-            // if (filenameAddr == 0) {
-            //     DEBUG('e', "Error: address to filename string is null.\n");
-            //     break;
-            // } 
+            if (filenameAddr == 0) {
+                DEBUG('e', "Error: address to filename string is null.\n");
+                break;
+            } 
 
-            // char filename[FILE_NAME_MAX_LEN + 1];
-            // if (!ReadStringFromUser(filenameAddr, filename, sizeof filename)) {
-            //     DEBUG('e', "Error: filename string too long (maximum is %u bytes).\n",
-            //         FILE_NAME_MAX_LEN);
-            // } else {
-            //     DEBUG('e', "`Remove` requested for file `%s`.\n", filename);
-            //     int fileRemoved = fileSystem->Remove(filename);
-            //     machine->WriteRegister(2, fileRemoved);
-            // }
-            // machine->WriteRegister(2, 0);
+            char filename[FILE_NAME_MAX_LEN + 1];
+            if (!ReadStringFromUser(filenameAddr, filename, sizeof filename)) {
+                DEBUG('p', "Error: filename string too long (maximum is %u bytes).\n", FILE_NAME_MAX_LEN);
+                machine->WriteRegister(2, 0);
+            } else {
+                DEBUG('p', "`Remove` requested for file `%s`.\n", filename);
+                int fileRemoved = fileSystem->Remove(filename);
+                machine->WriteRegister(2, fileRemoved);
+            }
             break;
         }
 
@@ -434,7 +436,9 @@ static void SyscallHandler(ExceptionType _et) {
         }
 
         case SC_PS: {
-            scheduler->PrintAllThreads();
+            #ifdef USER_PROGRAM
+                scheduler->PrintAllThreads();
+            #endif
             break;
         }
 

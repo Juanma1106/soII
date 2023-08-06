@@ -53,6 +53,7 @@ public:
     TranslationEntry *getPageTable();
     int getToReplace();
     TranslationEntry loadPage(uint32_t vpn);
+    unsigned getNumPages();
 
     #ifdef SWAP
         OpenFile * getSwapFile();
