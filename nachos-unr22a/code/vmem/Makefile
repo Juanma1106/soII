@@ -15,7 +15,7 @@
 
 DEFINES      = -DUSER_PROGRAM  -DFILESYS_NEEDED -DFILESYS_STUB \
                -DDFS_TICKS_FIX \
-               -DUSE_TLB 
+               -DUSE_TLB  \
                #-DDEMAND_LOADING 
                #-DSWAP
 

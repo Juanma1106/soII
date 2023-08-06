@@ -30,6 +30,8 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
 
     addressSpaceFile = executable_file;
     Executable exe (executable_file);
+    uint32_t codeSize = exe.GetCodeSize();
+    uint32_t initDataSize = exe.GetInitDataSize();
 
     ASSERT(exe.CheckMagic());
     // addressSpaceExecutable = &exe;
@@ -70,7 +72,7 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
             pageTable[i].physicalPage = bitmap->Find();
             pageTable[i].valid        = true;
             ASSERT(pageTable[i].physicalPage >= 0); // debería haber espacio
-            memset(mainMemory + pageTable[i].physicalPage + PAGE_SIZE, 0, PAGE_SIZE);
+            memset(mainMemory + pageTable[i].physicalPage * PAGE_SIZE, 0, PAGE_SIZE);
         #endif
 
         pageTable[i].virtualPage  = i;
@@ -81,8 +83,6 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
 
     #ifndef DEMAND_LOADING
         // Then, copy in the code and data segments into memory.
-        uint32_t codeSize = exe.GetCodeSize();
-        uint32_t initDataSize = exe.GetInitDataSize();
 
         if (codeSize > 0) {
             uint32_t virtualAddr = exe.GetCodeAddr();
@@ -138,7 +138,7 @@ TranslationEntry AddressSpace::loadPage(unsigned vpn){
         if (virtAddr > codeSize+initDataSize) { 
             // es stack
             DEBUG('d', "DemandLoading. La vpn %d es un segmento del STACK.\n", vpn);
-            memset(&machine->GetMMU()->mainMemory[position], 0, PAGE_SIZE);
+            memset(machine->GetMMU()->mainMemory + position, 0, PAGE_SIZE);
         } else if(virtAddr < codeSize){
             if (codeSize>0){
                 // es codigo
@@ -160,9 +160,11 @@ TranslationEntry AddressSpace::loadPage(unsigned vpn){
 
     // si es inválida y no tiene -1, significa que está en swap
     #ifdef SWAP
-        ppn = coremap->Find(vpn, swapFile, pageTable);
-        swapFile->ReadAt(&machine->GetMMU()->mainMemory[ppn * PAGE_SIZE], PAGE_SIZE, virtAddr);
-        DEBUG('d', "Leida la vpn: %d desde el swap.\n", vpn);
+        if(pageTable[vpn].physicalPage != -1){
+            ppn = coremap->Find(vpn, swapFile, pageTable);
+            swapFile->ReadAt(&machine->GetMMU()->mainMemory[ppn * PAGE_SIZE], PAGE_SIZE, virtAddr);
+            DEBUG('d', "Leida la vpn: %d desde el swap.\n", vpn);
+        }
     #endif
 
     // el caso en que no tenga -1, sea inválida y no esté activada swap, no existe

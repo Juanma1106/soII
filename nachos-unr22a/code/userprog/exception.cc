@@ -70,7 +70,7 @@ static void PageFaultHandler(ExceptionType _et) {
     int indexTLB = currentThread->space->getToReplace();
     // DEBUG('v', "virtAddr: %u . indexTLB: %d \n", virtAddr, indexTLB);
     TranslationEntry *pageTable = currentThread->space->getPageTable();
-    machine->GetMMU()->PrintTLB();
+    // machine->GetMMU()->PrintTLB();
     if(pageTable[vpn].valid){
         // DEBUG('d', "Cargada la vpn desde memoria: %d.\n", vpn);
         machine->GetMMU()->tlb[indexTLB] = pageTable[vpn];
@@ -179,15 +179,15 @@ static void SyscallHandler(ExceptionType _et) {
         }
 
         case SC_JOIN: {
-            SpaceId pid = machine->ReadRegister(4);
-            DEBUG('p', "Haciendo el join del %d.\n", pid);
+            // SpaceId pid = machine->ReadRegister(4);
+            // DEBUG('p', "Haciendo el join del %d.\n", pid);
 
-            if(threads->HasKey(pid)) {
-                Thread *thread = threads->Get(pid);
-                int joinned = thread->Join();
-                machine->WriteRegister(2, joinned);
-                DEBUG('e', "Join terminado.\n");
-            }
+            // if(threads->HasKey(pid)) {
+            //     Thread *thread = threads->Get(pid);
+            //     int joinned = thread->Join();
+            //     machine->WriteRegister(2, joinned);
+            //     DEBUG('e', "Join terminado.\n");
+            // }
             break;
         }
 
@@ -222,26 +222,26 @@ static void SyscallHandler(ExceptionType _et) {
         }
         
         case SC_REMOVE: {
-            int filenameAddr = machine->ReadRegister(4);
+            // int filenameAddr = machine->ReadRegister(4);
 
-            // Seteo -1 en el registro por cualquier fallo que pueda salir.
-            machine->WriteRegister(2, -1);
+            // // Seteo -1 en el registro por cualquier fallo que pueda salir.
+            // machine->WriteRegister(2, -1);
 
-            if (filenameAddr == 0) {
-                DEBUG('e', "Error: address to filename string is null.\n");
-                break;
-            } 
+            // if (filenameAddr == 0) {
+            //     DEBUG('e', "Error: address to filename string is null.\n");
+            //     break;
+            // } 
 
-            char filename[FILE_NAME_MAX_LEN + 1];
-            if (!ReadStringFromUser(filenameAddr, filename, sizeof filename)) {
-                DEBUG('p', "Error: filename string too long (maximum is %u bytes).\n", FILE_NAME_MAX_LEN);
-                machine->WriteRegister(2, 0);
-            } else {
-                DEBUG('p', "`Remove` requested for file `%s`.\n", filename);
-                int fileRemoved = fileSystem->Remove(filename);
-                machine->WriteRegister(2, fileRemoved);
-            }
-            break;
+            // char filename[FILE_NAME_MAX_LEN + 1];
+            // if (!ReadStringFromUser(filenameAddr, filename, sizeof filename)) {
+            //     DEBUG('p', "Error: filename string too long (maximum is %u bytes).\n", FILE_NAME_MAX_LEN);
+            //     machine->WriteRegister(2, 0);
+            // } else {
+            //     DEBUG('p', "`Remove` requested for file `%s`.\n", filename);
+            //     int fileRemoved = fileSystem->Remove(filename);
+            //     machine->WriteRegister(2, fileRemoved);
+            // }
+            // break;
         }
 
         case SC_OPEN: {
