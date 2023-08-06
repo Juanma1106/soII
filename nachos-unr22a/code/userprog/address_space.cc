@@ -59,7 +59,7 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
 
     // First, set up the translation.
 
-
+    char *mainMemory = machine->GetMMU()->mainMemory;
     pageTable = new TranslationEntry[numPages];
     for (unsigned i = 0; i < numPages; i++) {
         // For now, virtual page number = physical page number.
@@ -70,7 +70,7 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
             pageTable[i].physicalPage = bitmap->Find();
             pageTable[i].valid        = true;
             ASSERT(pageTable[i].physicalPage >= 0); // debería haber espacio
-            memset(&machine->GetMMU()->mainMemory, pageTable[i].physicalPage, PAGE_SIZE);
+            memset(mainMemory + pageTable[i].physicalPage + PAGE_SIZE, 0, PAGE_SIZE);
         #endif
 
         pageTable[i].virtualPage  = i;
@@ -229,16 +229,21 @@ void AddressSpace::SaveState() {}
 ///
 /// For now, tell the machine where to find the page table.
 void AddressSpace::RestoreState() {
-//    machine->GetMMU()->pageTable     = pageTable;
-//    machine->GetMMU()->pageTableSize = numPages;
-    invalidateTLB();
-    toReplace = 0;
+    #ifndef USE_TLB
+        machine->GetMMU()->pageTable     = pageTable;
+        machine->GetMMU()->pageTableSize = numPages;
+    #else
+        invalidateTLB();
+        toReplace = 0;
+    #endif
 }
 
 void AddressSpace::invalidateTLB() {
     #ifdef USE_TLB
-    for(unsigned i=0; i<TLB_SIZE; i++)
-        machine->GetMMU()->tlb[i].valid = false;
+    TranslationEntry *tlb = machine->GetMMU()->tlb;
+    for(unsigned i=0; i<TLB_SIZE; i++) {
+        tlb[i].valid = false;
+        }
     #endif
 }
 

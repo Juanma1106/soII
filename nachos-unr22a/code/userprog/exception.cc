@@ -70,7 +70,7 @@ static void PageFaultHandler(ExceptionType _et) {
     int indexTLB = currentThread->space->getToReplace();
     // DEBUG('v', "virtAddr: %u . indexTLB: %d \n", virtAddr, indexTLB);
     TranslationEntry *pageTable = currentThread->space->getPageTable();
-
+    machine->GetMMU()->PrintTLB();
     if(pageTable[vpn].valid){
         // DEBUG('d', "Cargada la vpn desde memoria: %d.\n", vpn);
         machine->GetMMU()->tlb[indexTLB] = pageTable[vpn];

@@ -15,8 +15,8 @@
 
 DEFINES      = -DUSER_PROGRAM  -DFILESYS_NEEDED -DFILESYS_STUB \
                -DDFS_TICKS_FIX \
-               -DUSE_TLB \
-               -DDEMAND_LOADING 
+               -DUSE_TLB 
+               #-DDEMAND_LOADING 
                #-DSWAP
 
 INCLUDE_DIRS = -I.. -I../filesys -I../bin -I../userprog -I../threads \
