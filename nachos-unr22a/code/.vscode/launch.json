@@ -7,7 +7,7 @@
             "program": "${workspaceFolder}/vmem/nachos",
             "args": [
                 "-d",
-                "n",
+                "d",
                 "-x",
                 "shell"
             ],
