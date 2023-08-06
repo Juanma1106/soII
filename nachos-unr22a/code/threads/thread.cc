@@ -50,6 +50,7 @@ Thread::Thread(const char *threadName, bool isJoinable, Thread *father, int theP
     _father = father;
     priority = thePriority;
     priorityTemp = -1;
+    openedFiles = new Table<OpenFile*>();
 #ifdef USER_PROGRAM
     space = nullptr;
     spaceId = threads->Add(this);
@@ -77,6 +78,7 @@ Thread::~Thread()
     // if(joinable) {
     //     channel->~Channel();
     // }
+    openedFiles->~Table();
 }
 
 /// Invoke `(*func)(arg)`, allowing caller and callee to execute

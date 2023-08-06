@@ -113,6 +113,7 @@ main(void)
 
     for (;;) {
         WritePrompt(OUTPUT);
+        // Write("Programa a ejecutar\n", 30, OUTPUT);
         const unsigned lineSize = ReadLine(line, MAX_LINE_SIZE, INPUT);
         if (lineSize == 0) {
             WriteError("No se leyo nada.", OUTPUT);

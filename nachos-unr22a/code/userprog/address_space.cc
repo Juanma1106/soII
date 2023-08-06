@@ -112,71 +112,66 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
 
 TranslationEntry AddressSpace::loadPage(unsigned vpn){
     DEBUG('d', "Empezando con el loadpage de la vpn: %d.\n", vpn);
-    int ppn = vpn;
     Executable exec (addressSpaceFile);
     uint32_t virtualPosition = vpn*PAGE_SIZE;
+    uint32_t virtualCodeAddr = exec.GetCodeAddr();
+    uint32_t virtualDataAddr = exec.GetInitDataAddr();
     uint32_t codeSize = exec.GetCodeSize();
-    uint32_t initDataSize = exec.GetInitDataSize();
-    uint32_t totalSize = exec.GetSize() + USER_STACK_SIZE;
+    uint32_t dataSize = exec.GetInitDataSize();
 
-    if(pageTable[vpn].physicalPage == -1){
-        // demand loading
-        ppn = bitmap->Find();
+    #ifdef SWAP
+        int ppn = coremap->Find(vpn, swapFile, pageTable);
+    #else
+        // DEMAND LOADING
+        int ppn = bitmap->Find();
+    #endif
+    ASSERT(ppn >= 0);
 
-        ASSERT(ppn >= 0);
-        ASSERT(virtualPosition < totalSize);
-
-
+    if (pageTable[vpn].virtualPage == -1){
+        // está en swap
+        #ifdef SWAP
+            DEBUG('w', "Leyendo la vpn: %d desde el swap.\n", vpn);
+            swapFile->ReadAt(&machine->GetMMU()->mainMemory[ppn * PAGE_SIZE], PAGE_SIZE, virtualPosition);
+        #endif
+        DEBUG('w', "Leida la vpn: %d desde el swap.\n", vpn);
+    } else {
         // chequear si la pagina corresponde a codigo, datos o stack
+        // se carga desde el disco
         DEBUG('d', "Cargando la página virtual %d en la física %d.\n", vpn, ppn);
 
         char *mainMemory = machine->GetMMU()->mainMemory;
-        uint32_t virtualCodeAddr = exec.GetCodeAddr();
-        uint32_t virtualDataAddr = exec.GetInitDataAddr();
-
         int position = ppn * PAGE_SIZE;
         //por las dudas, antes, inicializamos la página completa
         memset(mainMemory + position, 0, PAGE_SIZE);
-        uint32_t offset;
+        uint32_t size;
+        uint32_t lastRead = virtualPosition;
         if(virtualPosition < virtualCodeAddr + codeSize){
             if (codeSize>0){
                 // es codigo
                 DEBUG('d', "DemandLoading. La vpn %d es un segmento del CODIGO.\n", vpn);
                 if (virtualCodeAddr + codeSize - virtualPosition < PAGE_SIZE){
-                    offset = virtualCodeAddr + codeSize - virtualPosition;
-                }else{
-                    offset = PAGE_SIZE;
+                    size = virtualCodeAddr + codeSize - virtualPosition;
+                } else {
+                    size = PAGE_SIZE;
                 }
-                exec.ReadCodeBlock(&mainMemory[position], offset, virtualPosition);
+                exec.ReadCodeBlock(&mainMemory[position], size, virtualPosition-virtualCodeAddr);
+                lastRead += size;
             }
-        } else if(virtualCodeAddr+codeSize < virtualPosition && virtualPosition < virtualDataAddr+initDataSize){
-            if (initDataSize>0){
+        } 
+
+        if(lastRead < virtualPosition + PAGE_SIZE && lastRead < virtualDataAddr + dataSize) {
+            if (dataSize>0){
                 // es dato
-                if (virtualDataAddr + initDataSize - virtualPosition < PAGE_SIZE){
-                    offset = virtualDataAddr + initDataSize - virtualPosition;
-                }else{
-                    offset = PAGE_SIZE;
+                size = PAGE_SIZE - size;
+                if (lastRead + size > virtualDataAddr + dataSize){
+                    size = virtualDataAddr + dataSize - lastRead;
                 }
                 DEBUG('d', "DemandLoading. La vpn %d es un segmento de DATOS.\n", vpn);
-                for (uint32_t alreadyRead=0; alreadyRead<offset; alreadyRead++){
-                    exec.ReadDataBlock(&machine->GetMMU()->mainMemory[position+alreadyRead], 1, alreadyRead);
-                }
+                exec.ReadDataBlock(&mainMemory[position], size, lastRead-virtualDataAddr);
             }
         }
-    } else {
-        DEBUG('d', "Cargando vpn %d por segunda vez.\n", vpn);
     }
 
-    // si es inválida y no tiene -1, significa que está en swap
-    #ifdef SWAP
-        if(pageTable[vpn].physicalPage != -1){
-            ppn = coremap->Find(vpn, swapFile, pageTable);
-            swapFile->ReadAt(&machine->GetMMU()->mainMemory[ppn * PAGE_SIZE], PAGE_SIZE, virtAddr);
-            DEBUG('d', "Leida la vpn: %d desde el swap.\n", vpn);
-        }
-    #endif
-
-    // el caso en que no tenga -1, sea inválida y no esté activada swap, no existe
     // sería el caso en que no entra en memoria, y asumimos que eso no sucede
 
     pageTable[vpn].physicalPage = ppn;
@@ -184,7 +179,7 @@ TranslationEntry AddressSpace::loadPage(unsigned vpn){
     pageTable[vpn].valid        = true;
     pageTable[vpn].use          = false;
     pageTable[vpn].dirty        = false;
-    pageTable[vpn].readOnly     = (vpn*PAGE_SIZE)<codeSize? true: false;
+    pageTable[vpn].readOnly     = (vpn*PAGE_SIZE)<virtualCodeAddr + codeSize? true: false;
 
     return pageTable[vpn];
 }

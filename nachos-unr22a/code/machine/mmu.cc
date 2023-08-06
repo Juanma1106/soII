@@ -211,7 +211,7 @@ MMU::RetrievePageEntry(unsigned vpn, TranslationEntry **entry)
         unsigned i;
         for (i = 0; i < TLB_SIZE; i++) {
             TranslationEntry *e = &tlb[i];
-            if (e->valid && e->virtualPage == vpn) {
+            if (e->valid && e->virtualPage == (int) vpn) {
                 *entry = e;  // FOUND!
                 // PrintTLB();
                 #ifdef USE_TLB

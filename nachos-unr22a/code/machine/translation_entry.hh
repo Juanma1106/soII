@@ -32,7 +32,7 @@ class TranslationEntry {
 public:
 
     /// The page number in virtual memory.
-    unsigned virtualPage;
+    int virtualPage;
 
     /// The page number in real memory (relative to the start of
     /// `mainMemory`).
