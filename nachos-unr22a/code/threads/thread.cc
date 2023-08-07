@@ -54,6 +54,7 @@ Thread::Thread(const char *threadName, bool isJoinable, Thread *father, int theP
 #ifdef USER_PROGRAM
     space = nullptr;
     spaceId = threads->Add(this);
+    openedFiles = new Table<OpenFile*>;
 #endif
 }
 
@@ -110,9 +111,9 @@ void Thread::Fork(VoidFunctionPtr func, void *arg)
     scheduler->ReadyToRun(this); // `ReadyToRun` assumes that interrupts
                                  // are disabled!
     interrupt->SetLevel(oldLevel);
-    // if (joinable){
-    //     Join();
-    // }
+    if (joinable){
+        Join();
+    }
 }
 
 /// Check a thread's stack to see if it has overrun the space that has been

@@ -133,6 +133,7 @@ static void SyscallHandler(ExceptionType _et) {
         case SC_EXIT:{
             int status = machine->ReadRegister(4);
             DEBUG('a', "Exited with status %d\n", status);
+            machine->WriteRegister(2, status);
             // interrupt->Halt();
             currentThread->Finish(status);
             break;
@@ -145,7 +146,7 @@ static void SyscallHandler(ExceptionType _et) {
 
             int filenameAddr = machine->ReadRegister(4);
             int argsAddr = machine->ReadRegister(5);
-            bool joinable = machine->ReadRegister(6) ? true : false;
+            bool joinable = machine->ReadRegister(6) == 1 ? true:false;
             
             if (filenameAddr == 0) {
                 DEBUG('e', "Error: address to filename string is null.\n");
@@ -223,25 +224,25 @@ static void SyscallHandler(ExceptionType _et) {
         }
         
         case SC_REMOVE: {
-            int filenameAddr = machine->ReadRegister(4);
+            // int filenameAddr = machine->ReadRegister(4);
 
-            // Seteo -1 en el registro por cualquier fallo que pueda salir.
-            machine->WriteRegister(2, -1);
+            // // Seteo -1 en el registro por cualquier fallo que pueda salir.
+            // machine->WriteRegister(2, -1);
 
-            if (filenameAddr == 0) {
-                DEBUG('e', "Error: address to filename string is null.\n");
-                break;
-            } 
+            // if (filenameAddr == 0) {
+            //     DEBUG('e', "Error: address to filename string is null.\n");
+            //     break;
+            // } 
 
-            char filename[FILE_NAME_MAX_LEN + 1];
-            if (!ReadStringFromUser(filenameAddr, filename, sizeof filename)) {
-                DEBUG('p', "Error: filename string too long (maximum is %u bytes).\n", FILE_NAME_MAX_LEN);
-                machine->WriteRegister(2, 0);
-            } else {
-                DEBUG('p', "`Remove` requested for file `%s`.\n", filename);
-                int fileRemoved = fileSystem->Remove(filename);
-                machine->WriteRegister(2, fileRemoved);
-            }
+            // char filename[FILE_NAME_MAX_LEN + 1];
+            // if (!ReadStringFromUser(filenameAddr, filename, sizeof filename)) {
+            //     DEBUG('p', "Error: filename string too long (maximum is %u bytes).\n", FILE_NAME_MAX_LEN);
+            //     machine->WriteRegister(2, 0);
+            // } else {
+            //     DEBUG('p', "`Remove` requested for file `%s`.\n", filename);
+            //     int fileRemoved = fileSystem->Remove(filename);
+            //     machine->WriteRegister(2, fileRemoved);
+            // }
             break;
         }
 
@@ -365,10 +366,7 @@ static void SyscallHandler(ExceptionType _et) {
             }
             
             if(!errorOcurred) {
-                // DEBUG('e', "Read OK.\n");
                 machine->WriteRegister(2, 0);
-            //     machine->WriteRegister(2, -1);
-            // } else {
             }
             break;
         }
