@@ -108,9 +108,9 @@ void Thread::Fork(VoidFunctionPtr func, void *arg)
     scheduler->ReadyToRun(this); // `ReadyToRun` assumes that interrupts
                                  // are disabled!
     interrupt->SetLevel(oldLevel);
-    // if (joinable){
-    //     Join();
-    // }
+    if (joinable){
+        Join();
+    }
 }
 
 /// Check a thread's stack to see if it has overrun the space that has been

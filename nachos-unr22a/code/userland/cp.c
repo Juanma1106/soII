@@ -6,7 +6,7 @@
 int 
 main(int argc, char **argv)
 {
-    int CONSOLE_OUTPUT = 0;
+    // int CONSOLE_OUTPUT = 0;
     // Valido que sean dos argumentos
     if (argc < 3) {
         Write("Argumentos invalidos\n", 30, CONSOLE_OUTPUT);

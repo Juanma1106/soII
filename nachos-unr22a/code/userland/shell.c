@@ -129,13 +129,16 @@ main(void)
         int argc = 0;
         
         int joinnable;
-        if (line[0] != '&')
+        if (line[0] == '&') {
             joinnable = 1;
-        else
-            joinnable = 0; 
-        const SpaceId newProc = Exec(line, argv, joinnable);
+            const SpaceId newProc = Exec(&line[1], argv, joinnable);
+            Join(newProc);
+        } else {
+            joinnable = 0;
+            const SpaceId newProc = Exec(line, argv, joinnable);
+            // Join(newProc);
+        }  
 
-        Join(newProc);
         // 1 == joinable
 
         // TODO: check for errors when calling `Exec`; this depends on how
