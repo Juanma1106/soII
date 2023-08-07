@@ -53,7 +53,7 @@ Thread::Thread(const char *threadName, bool isJoinable, Thread *father, int theP
 #ifdef USER_PROGRAM
     space = nullptr;
     spaceId = threads->Add(this);
-    openedFiles = new Table<OpenFile*>;
+    openedFiles = new Table<OpenFile*>();
 #endif
 }
 
