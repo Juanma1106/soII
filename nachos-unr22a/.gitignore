@@ -27,5 +27,11 @@ code/userland/remove
 code/userland/remove.coff
 code/userland/exit
 code/userland/exit.coff
+code/userland/cat
+code/userland/cat.coff
+code/userland/rm
+code/userland/rm.coff
+code/userland/cp
+code/userland/cp.coff
 Makefile.depends
 nachos

@@ -127,7 +127,13 @@ main(void)
         // Comment and uncomment according to whether command line arguments
         // are given in the system call or not.
         int argc = 0;
-        const SpaceId newProc = Exec(line, argv, 1);
+        
+        int joinnable;
+        if (line[0] != '&')
+            joinnable = 1;
+        else
+            joinnable = 0; 
+        const SpaceId newProc = Exec(line, argv, joinnable);
 
         Join(newProc);
         // 1 == joinable

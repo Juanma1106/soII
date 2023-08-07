@@ -134,7 +134,8 @@ static void SyscallHandler(ExceptionType _et) {
             #ifdef USER_PROGRAM
                 AddressSpace *execSpace = new AddressSpace(exe);
 	    	    execThread->space = execSpace;
-                threads->Add(execThread);
+                int ret = threads->Add(execThread);
+                machine->WriteRegister(2, ret);
             #endif
 
             char **args = SaveArgs(argsAddr);
