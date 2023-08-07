@@ -9,7 +9,7 @@
             "program": "${workspaceFolder}/userprog/nachos",
             "args": [
                 "-d",
-                "vp",
+                "vpe",
                 "-x",
                 "shell"
             ],
