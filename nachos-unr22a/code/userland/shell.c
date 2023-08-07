@@ -137,10 +137,7 @@ main(void)
         } else {
             joinnable = 0;
             const SpaceId newProc = Exec(line, argv, joinnable);
-            // Join(newProc);
         }  
-
-        // 1 == joinable
 
         // TODO: check for errors when calling `Exec`; this depends on how
         //       errors are reported.

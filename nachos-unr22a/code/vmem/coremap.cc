@@ -70,13 +70,13 @@ void Coremap::Clear(int ppn){
 void Coremap::Get(int ppn){
    if(!physicals->Test(ppn)){
       return;
+   } else {
+      #ifdef LRU
+         order->Remove(ppn);
+         order->Append(ppn);
+      #endif
+      return;
    }
-   // #ifdef COREMAP_LRU
-   // order->Remove(ppn);
-   // order->Append(ppn);
-   // #endif
-
-   return;
 }
 
 CoremapEntry Coremap::GetEntry(int ppn){
