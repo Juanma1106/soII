@@ -32,8 +32,6 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
     Executable exe (executable_file);
 
     ASSERT(exe.CheckMagic());
-    // addressSpaceExecutable = &exe;
-    // How big is address space?
 
     unsigned size = exe.GetSize() + USER_STACK_SIZE;
       // We need to increase the size to leave room for the stack.
@@ -51,14 +49,11 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
         } else
             DEBUG('d', "Error al crear el archivo %s \n", fileName);
     #endif
-      // Check we are not trying to run anything too big -- at least until we
-      // have virtual memory.
 
     DEBUG('a', "Initializing address space, num pages %u, size %u\n",
           numPages, size);
 
     // First, set up the translation.
-
 
     pageTable = new TranslationEntry[numPages];
     for (unsigned i = 0; i < numPages; i++) {
@@ -70,7 +65,7 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
             pageTable[i].physicalPage = bitmap->Find();
             pageTable[i].valid        = true;
             ASSERT(pageTable[i].physicalPage >= 0); // debería haber espacio
-            memset(&machine->GetMMU()->mainMemory, pageTable[i].physicalPage, PAGE_SIZE);
+            memset(machine->GetMMU()->mainMemory + pageTable[i].physicalPage * PAGE_SIZE, 0, PAGE_SIZE);
         #endif
 
         pageTable[i].virtualPage  = i;
@@ -80,7 +75,10 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
     }
 
     #ifndef DEMAND_LOADING
+        char *mainMemory = machine->GetMMU()->mainMemory;
+
         // Then, copy in the code and data segments into memory.
+
         uint32_t codeSize = exe.GetCodeSize();
         uint32_t initDataSize = exe.GetInitDataSize();
 
@@ -93,7 +91,7 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
                 uint32_t frame = pageTable[DivRoundDown(virtualAddr + i, PAGE_SIZE)].physicalPage;
                 uint32_t offset = (virtualAddr + i) % PAGE_SIZE;
                 uint32_t physicalAddr = frame * PAGE_SIZE + offset;
-                exe.ReadCodeBlock(&machine->GetMMU()->mainMemory[physicalAddr], 1, i);
+                exe.ReadCodeBlock(&mainMemory[physicalAddr], 1, i);
             }
         }
         if (initDataSize > 0) {
@@ -103,7 +101,7 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
                 uint32_t frame = pageTable[DivRoundDown(virtualAddr + i, PAGE_SIZE)].physicalPage;
                 uint32_t offset = (virtualAddr + i) % PAGE_SIZE;
                 uint32_t physicalAddr = frame * PAGE_SIZE + offset;
-                exe.ReadDataBlock(&machine->GetMMU()->mainMemory[physicalAddr], 1, i);
+                exe.ReadDataBlock(&mainMemory[physicalAddr], 1, i);
             }
         }
     #endif
@@ -114,58 +112,66 @@ AddressSpace::AddressSpace(OpenFile *executable_file) {
 
 TranslationEntry AddressSpace::loadPage(unsigned vpn){
     DEBUG('d', "Empezando con el loadpage de la vpn: %d.\n", vpn);
-    int ppn = vpn;
     Executable exec (addressSpaceFile);
-    uint32_t virtAddr = vpn*PAGE_SIZE;
+    uint32_t virtualPosition = vpn*PAGE_SIZE;
+    uint32_t virtualCodeAddr = exec.GetCodeAddr();
+    uint32_t virtualDataAddr = exec.GetInitDataAddr();
     uint32_t codeSize = exec.GetCodeSize();
-    uint32_t initDataSize = exec.GetInitDataSize();
-    uint32_t totalSize = exec.GetSize() + USER_STACK_SIZE;
+    uint32_t dataSize = exec.GetInitDataSize();
 
-    if(pageTable[vpn].physicalPage == -1){
-        // demand loading
-        ppn = bitmap->Find();
+    #ifdef SWAP
+        int ppn = coremap->Find(vpn, swapFile, pageTable);
+    #else
+        // DEMAND LOADING
+        int ppn = bitmap->Find();
+    #endif
+    ASSERT(ppn >= 0);
 
-        ASSERT(ppn >= 0);
-        ASSERT(virtAddr < totalSize);
-
-
+    if (pageTable[vpn].virtualPage == -1){
+        // está en swap
+        #ifdef SWAP
+            DEBUG('w', "Leyendo la vpn: %d desde el swap.\n", vpn);
+            swapFile->ReadAt(&machine->GetMMU()->mainMemory[ppn * PAGE_SIZE], PAGE_SIZE, virtualPosition);
+        #endif
+        DEBUG('w', "Leida la vpn: %d desde el swap.\n", vpn);
+    } else {
         // chequear si la pagina corresponde a codigo, datos o stack
+        // se carga desde el disco
         DEBUG('d', "Cargando la página virtual %d en la física %d.\n", vpn, ppn);
 
-
-
+        char *mainMemory = machine->GetMMU()->mainMemory;
         int position = ppn * PAGE_SIZE;
-        if (virtAddr > codeSize+initDataSize) { 
-            // es stack
-            DEBUG('d', "DemandLoading. La vpn %d es un segmento del STACK.\n", vpn);
-            memset(&machine->GetMMU()->mainMemory[position], 0, PAGE_SIZE);
-        } else if(virtAddr < codeSize){
+        //por las dudas, antes, inicializamos la página completa
+        memset(mainMemory + position, 0, PAGE_SIZE);
+        uint32_t size;
+        uint32_t lastRead = virtualPosition;
+        if(virtualPosition < virtualCodeAddr + codeSize){
             if (codeSize>0){
                 // es codigo
                 DEBUG('d', "DemandLoading. La vpn %d es un segmento del CODIGO.\n", vpn);
-                for (uint32_t alreadyRead=0; alreadyRead<PAGE_SIZE; alreadyRead++){
-                    exec.ReadCodeBlock(&machine->GetMMU()->mainMemory[position], 1, alreadyRead); 
+                if (virtualCodeAddr + codeSize - virtualPosition < PAGE_SIZE){
+                    size = virtualCodeAddr + codeSize - virtualPosition;
+                } else {
+                    size = PAGE_SIZE;
                 }
+                exec.ReadCodeBlock(&mainMemory[position], size, virtualPosition-virtualCodeAddr);
+                lastRead += size;
             }
-        } else if(virtAddr < codeSize+initDataSize){
-            if (initDataSize>0){
+        } 
+
+        if(lastRead < virtualPosition + PAGE_SIZE && lastRead < virtualDataAddr + dataSize) {
+            if (dataSize>0){
                 // es dato
-                DEBUG('d', "DemandLoading. La vpn %d es un segmento de DATOS.\n", vpn);
-                for (uint32_t alreadyRead=0; alreadyRead<PAGE_SIZE; alreadyRead++){
-                    exec.ReadDataBlock(&machine->GetMMU()->mainMemory[position], 1, alreadyRead);
+                size = PAGE_SIZE - size;
+                if (lastRead + size > virtualDataAddr + dataSize){
+                    size = virtualDataAddr + dataSize - lastRead;
                 }
+                DEBUG('d', "DemandLoading. La vpn %d es un segmento de DATOS.\n", vpn);
+                exec.ReadDataBlock(&mainMemory[position], size, lastRead-virtualDataAddr);
             }
         }
     }
 
-    // si es inválida y no tiene -1, significa que está en swap
-    #ifdef SWAP
-        ppn = coremap->Find(vpn, swapFile, pageTable);
-        swapFile->ReadAt(&machine->GetMMU()->mainMemory[ppn * PAGE_SIZE], PAGE_SIZE, virtAddr);
-        DEBUG('d', "Leida la vpn: %d desde el swap.\n", vpn);
-    #endif
-
-    // el caso en que no tenga -1, sea inválida y no esté activada swap, no existe
     // sería el caso en que no entra en memoria, y asumimos que eso no sucede
 
     pageTable[vpn].physicalPage = ppn;
@@ -173,7 +179,7 @@ TranslationEntry AddressSpace::loadPage(unsigned vpn){
     pageTable[vpn].valid        = true;
     pageTable[vpn].use          = false;
     pageTable[vpn].dirty        = false;
-    pageTable[vpn].readOnly     = (vpn*PAGE_SIZE)<codeSize? true: false;
+    pageTable[vpn].readOnly     = false; //(vpn*PAGE_SIZE)<virtualCodeAddr + codeSize? true: false;
 
     return pageTable[vpn];
 }
@@ -229,16 +235,21 @@ void AddressSpace::SaveState() {}
 ///
 /// For now, tell the machine where to find the page table.
 void AddressSpace::RestoreState() {
-//    machine->GetMMU()->pageTable     = pageTable;
-//    machine->GetMMU()->pageTableSize = numPages;
-    invalidateTLB();
-    toReplace = 0;
+    #ifndef USE_TLB
+        machine->GetMMU()->pageTable     = pageTable;
+        machine->GetMMU()->pageTableSize = numPages;
+    #else
+        invalidateTLB();
+        toReplace = 0;
+    #endif
 }
 
 void AddressSpace::invalidateTLB() {
     #ifdef USE_TLB
-    for(unsigned i=0; i<TLB_SIZE; i++)
-        machine->GetMMU()->tlb[i].valid = false;
+    TranslationEntry *tlb = machine->GetMMU()->tlb;
+    for(unsigned i=0; i<TLB_SIZE; i++) {
+        tlb[i].valid = false;
+        }
     #endif
 }
 

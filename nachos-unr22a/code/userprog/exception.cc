@@ -70,7 +70,7 @@ static void PageFaultHandler(ExceptionType _et) {
     int indexTLB = currentThread->space->getToReplace();
     // DEBUG('v', "virtAddr: %u . indexTLB: %d \n", virtAddr, indexTLB);
     TranslationEntry *pageTable = currentThread->space->getPageTable();
-
+    // machine->GetMMU()->PrintTLB();
     if(pageTable[vpn].valid){
         // DEBUG('d', "Cargada la vpn desde memoria: %d.\n", vpn);
         machine->GetMMU()->tlb[indexTLB] = pageTable[vpn];
@@ -133,6 +133,7 @@ static void SyscallHandler(ExceptionType _et) {
         case SC_EXIT:{
             int status = machine->ReadRegister(4);
             DEBUG('a', "Exited with status %d\n", status);
+            machine->WriteRegister(2, status);
             // interrupt->Halt();
             currentThread->Finish(status);
             break;
@@ -145,7 +146,7 @@ static void SyscallHandler(ExceptionType _et) {
 
             int filenameAddr = machine->ReadRegister(4);
             int argsAddr = machine->ReadRegister(5);
-            bool joinable = machine->ReadRegister(6) ? true : false;
+            bool joinable = machine->ReadRegister(6) == 1 ? true:false;
             
             if (filenameAddr == 0) {
                 DEBUG('e', "Error: address to filename string is null.\n");
@@ -169,7 +170,8 @@ static void SyscallHandler(ExceptionType _et) {
             #ifdef USER_PROGRAM
                 AddressSpace *execSpace = new AddressSpace(exe);
 	    	    execThread->space = execSpace;
-                threads->Add(execThread);
+                int ret = threads->Add(execThread);
+                machine->WriteRegister(2, ret);
             #endif
 
             char **args = SaveArgs(argsAddr);
@@ -364,10 +366,7 @@ static void SyscallHandler(ExceptionType _et) {
             }
             
             if(!errorOcurred) {
-                // DEBUG('e', "Read OK.\n");
                 machine->WriteRegister(2, 0);
-            //     machine->WriteRegister(2, -1);
-            // } else {
             }
             break;
         }

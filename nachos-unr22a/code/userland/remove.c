@@ -2,6 +2,6 @@
 
 int main(){
     Remove("pastito");
-    Halt(0);
+    // Halt(0);
     Exit(0);
 }

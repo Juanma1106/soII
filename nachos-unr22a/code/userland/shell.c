@@ -113,6 +113,7 @@ main(void)
 
     for (;;) {
         WritePrompt(OUTPUT);
+        // Write("Programa a ejecutar\n", 30, OUTPUT);
         const unsigned lineSize = ReadLine(line, MAX_LINE_SIZE, INPUT);
         if (lineSize == 0) {
             WriteError("No se leyo nada.", OUTPUT);
@@ -127,11 +128,16 @@ main(void)
         // Comment and uncomment according to whether command line arguments
         // are given in the system call or not.
         int argc = 0;
-        // Write("A ejecutar\n", 20, OUTPUT);
-        const SpaceId newProc = Exec(line, argv, 0);
-        // Write("Ejecutado\n", 20, OUTPUT);
-        Join(newProc);
-        // 1 == joinable
+        
+        int joinnable;
+        if (line[0] == '&') {
+            joinnable = 1;
+            const SpaceId newProc = Exec(&line[1], argv, joinnable);
+            Join(newProc);
+        } else {
+            joinnable = 0;
+            const SpaceId newProc = Exec(line, argv, joinnable);
+        }  
 
         // TODO: check for errors when calling `Exec`; this depends on how
         //       errors are reported.

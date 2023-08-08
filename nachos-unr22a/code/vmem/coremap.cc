@@ -24,14 +24,14 @@ int Coremap::Find(int virtualPage, OpenFile *currentSwapFile, TranslationEntry *
       // no hay espacio en memoria
       ppn = order->Pop();
       CoremapEntry entry = GetEntry(ppn);
-      DEBUG('v', "En la PPN: %d estaba la VPN: %d del proceso %s.- Ahora se guardó la VPN: %d del %s\n",
+      DEBUG('w', "En la PPN: %d estaba la VPN: %d del proceso %s.- Ahora se guardó la VPN: %d del %s\n",
                ppn, entry.vpn, entry.thread->GetName(), virtualPage, currentThread->GetName());
       // ASSERT((entries[ppn].thread)->space != nullptr);
       // hay que swappear
       saveInSwap(ppn, currentSwapFile, currentPageTable );
       // currentThread->space->loadFromSwap(ppn, virtualPage);
    } else {
-      DEBUG('v', "No hizo falta SWAP - Thread: %s, PPN: %d, VPN: %d\n",
+      DEBUG('w', "No hizo falta SWAP - Thread: %s, PPN: %d, VPN: %d\n",
          currentThread->GetName(), ppn, virtualPage);
    }
    // habia lugar, o se hizo lugar con swap
@@ -45,11 +45,13 @@ void Coremap::saveInSwap(int ppn, OpenFile *currentSwapFile, TranslationEntry *c
    CoremapEntry entry = GetEntry(ppn);
    unsigned position = entry.vpn * PAGE_SIZE;
    if (currentThread == entry.thread){
-      currentSwapFile->WriteAt(&machine->GetMMU()->mainMemory[ppn], PAGE_SIZE, position);
+      currentSwapFile->WriteAt(&machine->GetMMU()->mainMemory[ppn*PAGE_SIZE], PAGE_SIZE, position);
       currentPageTable[entry.vpn].valid = false;
+      currentPageTable[entry.vpn].virtualPage = -1;
    } else {
-      entry.thread->space->getSwapFile()->WriteAt(&machine->GetMMU()->mainMemory[ppn], PAGE_SIZE, position);
+      entry.thread->space->getSwapFile()->WriteAt(&machine->GetMMU()->mainMemory[ppn*PAGE_SIZE], PAGE_SIZE, position);
       entry.thread->space->getPageTable()[entry.vpn].valid = false;
+      entry.thread->space->getPageTable()[entry.vpn].virtualPage = -1;
    }
    DEBUG('v', "SWAP - VPN: %d guardada en swap \n", entry.vpn);
 }
@@ -68,13 +70,13 @@ void Coremap::Clear(int ppn){
 void Coremap::Get(int ppn){
    if(!physicals->Test(ppn)){
       return;
+   } else {
+      #ifdef LRU
+         order->Remove(ppn);
+         order->Append(ppn);
+      #endif
+      return;
    }
-   // #ifdef COREMAP_LRU
-   // order->Remove(ppn);
-   // order->Append(ppn);
-   // #endif
-
-   return;
 }
 
 CoremapEntry Coremap::GetEntry(int ppn){
