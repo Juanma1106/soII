@@ -24,6 +24,10 @@ public:
     unsigned sector; //en un sector entra exactamente un i-node
     /// Text name for file, with +1 for the trailing `'\0'`.
     char name[FILE_NAME_MAX_LEN + 1];
+    //
+    unsigned openCounter;
+    //
+    unsigned readCounter;
 };
 
 
