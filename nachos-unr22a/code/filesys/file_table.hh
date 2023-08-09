@@ -18,7 +18,7 @@ public:
     void addReadFile(unsigned sector);
 
 private:
-    List<DirectoryEntry*> *table;
+    DirectoryEntry *table;
     Lock *lock; //< Table lock.
 };
 
