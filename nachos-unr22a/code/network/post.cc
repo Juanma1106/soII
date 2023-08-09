@@ -20,8 +20,6 @@
 
 #include "post.hh"
 
-#include <stdio.h>
-#include <string.h>
 
 
 /// Initialize a single mail message, by concatenating the headers to

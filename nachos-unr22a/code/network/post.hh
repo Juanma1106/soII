@@ -26,11 +26,12 @@
 #ifndef NACHOS_NETWORK_POST__HH
 #define NACHOS_NETWORK_POST__HH
 
+#include <stdio.h>
+#include <string.h>
 
 #include "network.hh"
-#include "threads/semaphore.hh"
 #include "threads/synch_list.hh"
-
+#include "threads/thread.hh"
 
 /// Mailbox address -- uniquely identifies a mailbox on a given machine.
 ///

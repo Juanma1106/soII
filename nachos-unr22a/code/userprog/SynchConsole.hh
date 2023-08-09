@@ -2,7 +2,6 @@
 #define NACHOS_USERPROG_SYNCH_CONSOLE__HH
 
 #include "machine/console.hh"
-#include "threads/semaphore.hh"
 #include "threads/lock.hh"
 
 // #ifndef READ_AVAIL__WRITE_DONE
