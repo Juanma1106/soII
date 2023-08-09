@@ -37,11 +37,13 @@
 
 
 #include "open_file.hh"
+#include "openfile_entry.hh"
+#include "threads/system.hh"
 
-
-#ifdef FILESYS_STUB  // Temporarily implement file system calls as calls to
-                     // UNIX, until the real file system implementation is
-                     // available.
+#ifdef FILESYS_STUB  
+                    // Temporarily implement file system calls as calls to
+                    // UNIX, until the real file system implementation is
+                    // available.
 
 /// Constant definitions with dummy values.  For the stub filesystem they
 /// are not required, but system information tools expects them to be

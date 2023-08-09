@@ -19,10 +19,15 @@
 #ifndef NACHOS_THREADS_SEMAPHORE__HH
 #define NACHOS_THREADS_SEMAPHORE__HH
 
-
+    // #ifndef NACHOS_THREADS_THREAD__HH
+    // #define NACHOS_THREADS_THREAD__HH
+    //     #include "thread.hh"
+    // #else
+    //     class Thread;
+    // #endif
 #include "thread.hh"
-#include "lib/list.hh"
 
+#include "lib/list.hh"
 
 /// This class defines a “semaphore”, which has a positive integer as its
 /// value.
@@ -36,6 +41,8 @@
 /// directly -- even if you were able to read it, it would serve for nothing,
 /// because meanwhile another thread could have modified the semaphore, in
 /// case you have lost the CPU for some time.
+
+
 class Semaphore {
 public:
 

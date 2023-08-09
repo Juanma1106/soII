@@ -47,6 +47,7 @@
 #include "file_header.hh"
 #include "lib/bitmap.hh"
 
+
 #include <stdio.h>
 #include <string.h>
 
@@ -206,6 +207,18 @@ FileSystem::Create(const char *name, unsigned initialSize)
     return success;
 }
 
+#ifdef FILESYS
+int findFileID(unsigned sector){
+	int i = 0;
+	while(opennedFilesTable->HasKey(i)){
+		if (opennedFilesTable->Get(i)->sector == sector){
+			return i;
+        }
+		i++;
+	}
+	return -1;
+}
+#endif
 /// Open a file for reading and writing.
 ///
 /// To open a file:
@@ -225,7 +238,23 @@ FileSystem::Open(const char *name)
     dir->FetchFrom(directoryFile);
     int sector = dir->Find(name);
     if (sector >= 0) {
-        openFile = new OpenFile(sector);  // `name` was found in directory.
+        #ifdef FILESYS
+            int id = findFileID( (unsigned) sector);
+            if (id == -1){
+                OpenFileEntry* entry = new OpenFileEntry(name, sector);
+                id = opennedFilesTable->Add(entry);
+                openFile = new OpenFile(sector,id);
+            } else if ( !opennedFilesTable->Get(id)->mustRemove){
+                opennedFilesTable->Get(id)->openFileCount++;
+                openFile = new OpenFile(sector,id);
+            } else {
+                DEBUG('f',"No se puede abrir. El archivo %s va a ser eliminado.\n",name);
+                openFile = nullptr;
+            }
+        #else
+            openFile = new OpenFile(sector);  
+        #endif
+
     }
     delete dir;
     return openFile;  // Return null if not found.

@@ -19,6 +19,7 @@
 
 #include "semaphore.hh"
 
+
 /// This class defines a “lock”.
 ///
 /// A lock can have two states: free and busy. Only two operations are

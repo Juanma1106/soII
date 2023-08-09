@@ -60,6 +60,9 @@ extern FileSystem *fileSystem;
 #ifdef FILESYS
 #include "filesys/synch_disk.hh"
 extern SynchDisk *synchDisk;
+#include "filesys/openfile_entry.hh"
+#include "lib/table.hh"
+extern Table<OpenFileEntry*> *opennedFilesTable;
 #endif
 
 #ifdef NETWORK

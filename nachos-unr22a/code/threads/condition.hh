@@ -17,10 +17,7 @@
 #ifndef NACHOS_THREADS_CONDITION__HH
 #define NACHOS_THREADS_CONDITION__HH
 
-
 #include "lock.hh"
-
-
 /// This class defines a “condition variable”.
 ///
 /// A condition variable does not have any value.  It is used for enqueuing

@@ -42,6 +42,7 @@ FileSystem *fileSystem;
 
 #ifdef FILESYS
 SynchDisk *synchDisk;
+Table<OpenFileEntry*> *opennedFilesTable;
 #endif
 
 #ifdef USER_PROGRAM  // Requires either *FILESYS* or *FILESYS_STUB*.
@@ -252,6 +253,7 @@ Initialize(int argc, char **argv)
 
 #ifdef FILESYS
     synchDisk = new SynchDisk("DISK");
+    opennedFilesTable = new Table<OpenFileEntry*> ();
 #endif
 
 #ifdef FILESYS_NEEDED
@@ -289,6 +291,7 @@ Cleanup()
 
 #ifdef FILESYS
     delete synchDisk;
+    delete opennedFilesTable;
 #endif
 
 #ifdef SWAP

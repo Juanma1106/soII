@@ -45,7 +45,8 @@ class Channel;
 #endif
 
 #include "lib/table.hh"
-#include "filesys/file_system.hh"
+
+// #include "filesys/file_system.hh"
 #include "userprog/syscall.h"
 
 

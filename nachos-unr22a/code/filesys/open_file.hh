@@ -92,6 +92,9 @@ public:
 
     /// Open a file whose header is located at `sector` on the disk.
     OpenFile(int sector);
+    #ifdef FILESYS
+        OpenFile(int sector, int id);
+    #endif
 
     /// Close the file.
     ~OpenFile();
@@ -117,6 +120,9 @@ public:
   private:
     FileHeader *hdr;  ///< Header for this file.
     unsigned seekPosition;  ///< Current position within the file.
+    #ifdef FILESYS
+        int id;
+    #endif
 };
 
 #endif

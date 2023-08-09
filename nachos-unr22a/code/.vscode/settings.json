@@ -57,6 +57,7 @@
         "climits": "cpp",
         "cstdbool": "cpp",
         "ios": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "thread": "cpp"
     }
 }
