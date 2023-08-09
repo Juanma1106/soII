@@ -28,12 +28,12 @@ OpenFile::OpenFile(int sector) {
     seekPosition = 0;       
 }
 #ifdef FILESYS
-    OpenFile::OpenFile(int sector, int _id) {
-        hdr = new FileHeader;
-        hdr->FetchFrom(sector);
-        seekPosition = 0;       
-        id = _id;
-    }
+OpenFile::OpenFile(int sector, int _id) {
+    hdr = new FileHeader;
+    hdr->FetchFrom(sector);
+    seekPosition = 0;       
+    id = _id;
+}
 #endif
 
 

@@ -132,7 +132,9 @@ public:
 
     /// Delete a file (UNIX `unlink`).
     bool Remove(const char *name);
-
+    #ifdef FILESYS
+    bool removeFile(const char *name);
+    #endif
     /// List all the files in the file system.
     void List();
 

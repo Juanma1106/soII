@@ -282,23 +282,62 @@ FileSystem::Remove(const char *name)
        delete dir;
        return false;  // file not found
     }
-    FileHeader *fileH = new FileHeader;
-    fileH->FetchFrom(sector);
 
-    Bitmap *freeMap = new Bitmap(NUM_SECTORS);
-    freeMap->FetchFrom(freeMapFile);
+    #ifdef FILESYS
+        int id = findFileID(sector);
+        if (id == -1){
+            DEBUG('f',"El archivo %s no esta abierto -> Se borra.\n",name);
+            removeFile(name);
+        } else {
+            DEBUG('f',"El archivo %s esta abierto -> Se marca para borrar.\n",name);
+            opennedFilesTable->Get(id)->mustRemove = true;
+        }
+    #endif
 
-    fileH->Deallocate(freeMap);  // Remove data blocks.
-    freeMap->Clear(sector);      // Remove header block.
-    dir->Remove(name);
-
-    freeMap->WriteBack(freeMapFile);  // Flush to disk.
-    dir->WriteBack(directoryFile);    // Flush to disk.
-    delete fileH;
-    delete dir;
-    delete freeMap;
     return true;
 }
+
+#ifdef FILESYS
+bool FileSystem::removeFile(const char *name){
+    ASSERT(name != NULL);
+	
+    Directory *directory = new Directory(NUM_DIR_ENTRIES);
+    Bitmap *freeMap = new Bitmap(NUM_SECTORS);
+    FileHeader *fileHeader = new FileHeader;
+    int sector = directory->Find(name);
+
+	DEBUG('f',"Eliminando el archivo %s del disco.\n",name);
+	
+    directory->FetchFrom(directoryFile);
+
+    if (sector == -1) { 
+       delete directory;
+       DEBUG('f',"El archivo no existe en el directorio.\n");
+       return false;  // file not found
+    }
+    
+    fileHeader->FetchFrom(sector);
+
+    freeMap->FetchFrom(freeMapFile); 
+
+    fileHeader->Deallocate(freeMap);  // Remove data blocks.
+    freeMap->Clear(sector);           // Remove header block.
+    directory->Remove(name);
+
+    freeMap->WriteBack(freeMapFile);      // Flush to disk.
+    directory->WriteBack(directoryFile);  // Flush to disk.
+
+    delete fileHeader;
+    delete directory;
+    delete freeMap;
+    
+    DEBUG('f',"Se eliminó el archivo.\n");
+    
+
+    return true;
+
+}    
+#endif
 
 /// List all the files in the file system directory.
 void
