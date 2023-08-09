@@ -136,6 +136,8 @@ public:
     /// List all the files in the file system.
     void List();
 
+    bool expand(FileHeader *header, unsigned opennedID, unsigned sizeToExpand);
+
     /// Check the filesystem.
     bool Check();
 

@@ -145,6 +145,10 @@ FileHeader::Print(const char *title)
     delete [] data;
 }
 
+bool FileHeader::expand(Bitmap *freeMap, int size) {   
+	return true;
+}
+
 const RawFileHeader *
 FileHeader::GetRaw() const
 {

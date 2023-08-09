@@ -311,6 +311,23 @@ FileSystem::List()
     delete dir;
 }
 
+bool FileSystem::expand(FileHeader *header, unsigned opennedID, unsigned sizeToExpand) {
+	ASSERT(header != nullptr);
+	DEBUG('f',"Expandiendo el archivo %s\n",opennedFilesTable->Get(opennedID)->name);
+	
+    Bitmap *freeMap = new Bitmap(NUM_SECTORS);
+	freeMap->FetchFrom(freeMapFile);
+
+    // el laburo de verdad lo tiene que hacer el header
+	bool ret = header->expand(freeMap, sizeToExpand);
+
+    // actualizamos
+	freeMap->WriteBack(freeMapFile); 
+    header->WriteBack(opennedFilesTable->Get(opennedID)->sector);
+	delete freeMap;
+	return ret;
+}
+
 static bool
 AddToShadowBitmap(unsigned sector, Bitmap *map)
 {

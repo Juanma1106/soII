@@ -57,6 +57,9 @@ public:
     /// Print the contents of the file.
     void Print(const char *title);
 
+    // vamos a tener que tener en cuenta varias cosas sobre la indirección. Lo dejamos para más adelante, seguimos con el 2.
+    bool expand(Bitmap *freeMap, int sizeToExpand);
+
     /// Get the raw file header structure.
     ///
     /// NOTE: this should only be used by routines that operate on the file
