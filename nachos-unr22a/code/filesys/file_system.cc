@@ -43,14 +43,7 @@
 
 
 #include "file_system.hh"
-#include "directory.hh"
-#include "file_header.hh"
-#include "lib/bitmap.hh"
-
-
-#include <stdio.h>
-#include <string.h>
-
+#include "openfile_entry.hh"
 
 /// Sectors containing the file headers for the bitmap of free sectors, and
 /// the directory of files.  These file headers are placed in well-known
@@ -226,9 +219,7 @@ int findFileID(unsigned sector){
 /// 2. Bring the header into memory.
 ///
 /// * `name` is the text name of the file to be opened.
-OpenFile *
-FileSystem::Open(const char *name)
-{
+OpenFile * FileSystem::Open(const char *name) {
     ASSERT(name != nullptr);
 
     Directory *dir = new Directory(NUM_DIR_ENTRIES);
@@ -239,14 +230,21 @@ FileSystem::Open(const char *name)
     int sector = dir->Find(name);
     if (sector >= 0) {
         #ifdef FILESYS
-            int id = findFileID( (unsigned) sector);
+            int id = findFileID( (unsigned int) sector);
             if (id == -1){
-                OpenFileEntry* entry = new OpenFileEntry(name, sector);
+                // no se encontró abierto. Hay que agregarlo a la tabla
+                // #include "openfile_entry.hh"
+                OpenFileEntry *entry = new OpenFileEntry(name, (unsigned int)sector);
                 id = opennedFilesTable->Add(entry);
-                openFile = new OpenFile(sector,id);
+                if (id<0){
+                    // no hay lugar en la tabla
+                    openFile = nullptr;
+                } else {
+                    openFile = new OpenFile(sector, (unsigned) id);
+                }
             } else if ( !opennedFilesTable->Get(id)->mustRemove){
                 opennedFilesTable->Get(id)->openFileCount++;
-                openFile = new OpenFile(sector,id);
+                openFile = new OpenFile(sector, (unsigned) id);
             } else {
                 DEBUG('f',"No se puede abrir. El archivo %s va a ser eliminado.\n",name);
                 openFile = nullptr;

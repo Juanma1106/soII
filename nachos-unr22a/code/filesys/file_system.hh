@@ -37,8 +37,14 @@
 
 
 #include "open_file.hh"
-#include "openfile_entry.hh"
 #include "threads/system.hh"
+#include "directory.hh"
+#include "file_header.hh"
+#include "lib/bitmap.hh"
+
+
+#include <stdio.h>
+#include <string.h>
 
 #ifdef FILESYS_STUB  
                     // Temporarily implement file system calls as calls to
@@ -103,8 +109,7 @@ public:
 /// files that can be loaded onto the disk.
 static const unsigned FREE_MAP_FILE_SIZE = NUM_SECTORS / BITS_IN_BYTE;
 static const unsigned NUM_DIR_ENTRIES = 10;
-static const unsigned DIRECTORY_FILE_SIZE
-  = sizeof (DirectoryEntry) * NUM_DIR_ENTRIES;
+static const unsigned DIRECTORY_FILE_SIZE = sizeof (DirectoryEntry) * NUM_DIR_ENTRIES;
 
 
 class FileSystem {

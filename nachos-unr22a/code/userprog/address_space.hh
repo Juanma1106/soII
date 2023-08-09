@@ -14,9 +14,9 @@
 #define NACHOS_USERPROG_ADDRESSSPACE__HH
 
 
-#include "filesys/file_system.hh"
 #include "machine/translation_entry.hh"
 #include "executable.hh"
+#include "filesys/open_file.hh"
 
 const unsigned USER_STACK_SIZE = 1024;  ///< Increase this as necessary!
 

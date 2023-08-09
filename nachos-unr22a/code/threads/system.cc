@@ -37,6 +37,7 @@ PreemptiveScheduler *preemptiveScheduler = nullptr;
 const long long DEFAULT_TIME_SLICE = 50000;
 
 #ifdef FILESYS_NEEDED
+#include "filesys/file_system.hh"
 FileSystem *fileSystem;
 #endif
 

@@ -2,6 +2,9 @@
 #define NACHOS_FILESYS_FILESYSTEM_LOCK__HH
 
 #include "threads/condition.hh"
+#include "lib/assert.hh"
+#include "lib/utility.hh"
+
 
 class FileSystemLock {
 public:

@@ -46,8 +46,11 @@ class Channel;
 
 #include "lib/table.hh"
 
-// #include "filesys/file_system.hh"
+#include "filesys/open_file.hh"
 #include "userprog/syscall.h"
+#include "switch.h"
+#include <inttypes.h>
+#include <stdio.h>
 
 
 #ifdef USER_PROGRAM

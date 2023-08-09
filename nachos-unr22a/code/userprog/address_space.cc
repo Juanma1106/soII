@@ -8,6 +8,7 @@
 
 #include "address_space.hh"
 #include "threads/system.hh"
+#include "filesys/file_system.hh"
 
 #include <string.h>
 

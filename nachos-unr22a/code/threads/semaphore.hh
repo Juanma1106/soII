@@ -18,15 +18,14 @@
 //
 #ifndef NACHOS_THREADS_SEMAPHORE__HH
 #define NACHOS_THREADS_SEMAPHORE__HH
+    
+class Thread;
 
     // #ifndef NACHOS_THREADS_THREAD__HH
     // #define NACHOS_THREADS_THREAD__HH
     //     #include "thread.hh"
-    // #else
-    //     class Thread;
     // #endif
-#include "thread.hh"
-
+// #include "thread.hh"
 #include "lib/list.hh"
 
 /// This class defines a “semaphore”, which has a positive integer as its

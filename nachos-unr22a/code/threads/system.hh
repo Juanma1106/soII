@@ -53,7 +53,7 @@ extern Bitmap *bitmap;
 #endif
 
 #ifdef FILESYS_NEEDED  // *FILESYS* or *FILESYS_STUB*.
-#include "filesys/file_system.hh"
+class FileSystem;
 extern FileSystem *fileSystem;
 #endif
 

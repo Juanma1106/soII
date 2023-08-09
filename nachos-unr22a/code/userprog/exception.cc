@@ -23,6 +23,7 @@
 
 
 #include "exception.hh"
+#include "filesys/file_system.hh"
 
 SpaceId StartProcess(char** args, bool joinable);
 

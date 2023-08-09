@@ -136,6 +136,8 @@ FILESYS_HDR = filesys/directory.hh       \
               filesys/raw_directory.hh   \
               filesys/raw_file_header.hh \
               filesys/synch_disk.hh      \
+              filesys/openfile_entry.hh  \
+              filesys/filesystem_lock.hh \
               machine/disk.hh
 FILESYS_SRC = filesys/directory.cc   \
               filesys/file_header.cc \
@@ -143,6 +145,8 @@ FILESYS_SRC = filesys/directory.cc   \
               filesys/fs_test.cc     \
               filesys/open_file.cc   \
               filesys/synch_disk.cc  \
+              filesys/openfile_entry.cc  \
+              filesys/filesystem_lock.cc \
               machine/disk.cc
 
 NETWORK_HDR = network/post.hh \

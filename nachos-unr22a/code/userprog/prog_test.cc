@@ -18,6 +18,7 @@
 #include "threads/system.hh"
 #include "write_read_mem_test.hh"
 #include "args.hh"
+#include "filesys/file_system.hh"
 
 #include <stdio.h>
 #include <stdlib.h>

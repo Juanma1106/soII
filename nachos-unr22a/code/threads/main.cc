@@ -78,6 +78,7 @@
 #include "system.hh"
 #include "thread_test.hh"
 #include "lib/utility.hh"
+#include "filesys/file_system.hh"
 
 #include <stdio.h>
 #include <string.h>
