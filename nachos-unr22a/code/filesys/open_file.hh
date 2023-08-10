@@ -85,7 +85,9 @@ private:
 };
 
 #else // FILESYS
-class FileHeader;
+#include "openfile_entry.hh"
+#include "file_header.hh"
+// class FileHeader;
 
 class OpenFile {
 public:
@@ -111,6 +113,11 @@ public:
     /// Read/write bytes from the file, bypassing the implicit position.
 
     int ReadAt(char *into, unsigned numBytes, unsigned position);
+    #ifdef FILESYS
+        int ReadAt(char *into, unsigned numBytes, unsigned position, bool isBeingWritten);
+    #endif
+
+
     int WriteAt(const char *from, unsigned numBytes, unsigned position);
 
     // Return the number of bytes in the file (this interface is simpler than

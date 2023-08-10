@@ -25,7 +25,7 @@
 
 #include "file_header.hh"
 #include "threads/system.hh"
-
+#include "lib/utility.hh"
 #include <ctype.h>
 #include <stdio.h>
 
@@ -145,12 +145,136 @@ FileHeader::Print(const char *title)
     delete [] data;
 }
 
-bool FileHeader::expand(Bitmap *freeMap, int size) {   
+bool FileHeader::expand(Bitmap *freeMap, int sizeToExpand) {   
+	int freeSpaceWithoutNewSectors = (raw.numSectors * SECTOR_SIZE) - raw.numBytes;
+	int neededSpace = sizeToExpand - freeSpaceWithoutNewSectors;
+	if(neededSpace>=0){
+		raw.numBytes = raw.numBytes + sizeToExpand;
+		return true;
+	}
+    // dataSectors[0] a dataSectors[28] ==> Sin idireccion
+    // dataSectors[29]                  ==> Primera indireccion (puntero a 32 dataSectors)
+    // dataSectors[30]                  ==> Segunda indireccion (puntero a 32 punteors de 32 dataSectors)
+	
+    // need first indirection for the first time
+    bool needFirstIndirection = false; 
+
+    // need second indirection for the first time
+    bool needSecondIndirection = false;
+
+	// Cantidad de sectores adicionales que necesitamos
+	unsigned neededSectors = DivRoundUp((unsigned)neededSpace,SECTOR_SIZE);
+	int secondIndirectionSectorsToExpand = 0;
+	
+    unsigned ENTRIES_IN_SECTOR = SECTOR_SIZE / sizeof(int);
+
+    int secondIndirectionUsedSectors = raw.numSectors - NUM_DIRECT - ENTRIES_IN_SECTOR;
+
+	if(secondIndirectionUsedSectors <= 0){
+        // no usa segunda indirección
+		secondIndirectionSectorsToExpand = secondIndirectionUsedSectors + neededSectors ;
+    } else {
+		secondIndirectionSectorsToExpand = neededSectors - (ENTRIES_IN_SECTOR - secondIndirectionUsedSectors % ENTRIES_IN_SECTOR);
+	}
+	
+	if(secondIndirectionSectorsToExpand < 0){
+        // no hace falta otro índice en la segunda indirección
+		secondIndirectionSectorsToExpand = 0;
+    }
+	
+	unsigned sectorsToExpand = neededSectors;
+	if(raw.numSectors <= NUM_DIRECT && raw.numSectors + neededSectors > NUM_DIRECT){
+		// En un principio me alcanzaban con los sectores de nivel 0, pero con el crecimiento no entra más ahi. Necesitamos 1er indireccion
+		sectorsToExpand++; // sumamos uno, porque perdemos un sector al usarlo como indirección
+		needFirstIndirection = true;	
+	}
+	if (secondIndirectionUsedSectors<=0 && raw.numSectors + neededSectors > NUM_DIRECT + ENTRIES_IN_SECTOR) {
+		// En un principio me alcanzaban con los sectores de nivel 0 y 1, 
+        // pero con el crecimiento no entra más ahi. Necesitamos 2da indireccion
+		sectorsToExpand++;
+		needSecondIndirection = true;
+		sectorsToExpand += DivRoundUp((unsigned)secondIndirectionSectorsToExpand, ENTRIES_IN_SECTOR);
+	}
+
+	if (freeMap->CountClear() < sectorsToExpand){
+        return false;  // No hay espacio disponible.
+    }
+    
+
+    unsigned i = 0;
+    unsigned k = 0;
+    // Reservo sectores nivel 0
+    for(i = raw.numSectors; i < NUM_DIRECT && k < neededSectors; i++,k++){
+		raw.dataSectors[i] = freeMap->Find();
+	}
+
+
+    ////// PRIMERA INDIRECCIÓN////////
+
+	// Reservo bloque nivel 1 si es necesario (o lo leo si existe)
+	int firstIndirectionData[ENTRIES_IN_SECTOR] = {0};
+	if(needFirstIndirection) {
+		// Antes no teníamos primera indireccion, pero ahora la necesitamos
+		raw.dataSectors[NUM_DIRECT] = freeMap->Find();
+    } else if (raw.numSectors > NUM_DIRECT) {
+        //El bloque de primera indireccion existe
+		synchDisk->ReadSector(raw.dataSectors[NUM_DIRECT],(char *) firstIndirectionData);
+    }
+	// Reservo sectores de primera indireccion a partir de los que ya tengo reservados.
+    i = (raw.numSectors - NUM_DIRECT >= 0) ? (raw.numSectors - NUM_DIRECT) : 0;
+	for(; i < ENTRIES_IN_SECTOR && k < neededSectors; i++,k++){
+        // recorro hasta que completé todos los sectores necesario, o hasta que complete el primer nivel
+		firstIndirectionData[i] = freeMap->Find();
+		needFirstIndirection = true;
+	}
+	// Guardo el bloque de primera indireccion en el disco
+	if(needFirstIndirection) {
+		synchDisk->WriteSector(raw.dataSectors[NUM_DIRECT], (char *) firstIndirectionData);
+    }
+    
+    
+    
+    ////// SEGUNDA INDIRECCIÓN///////    
+    
+    //Reservo bloque de segunda indireccion si es necesario o lo leo si existe
+	int secondIndirectionData[ENTRIES_IN_SECTOR];
+	int _secondIndirectionData[ENTRIES_IN_SECTOR];
+	if(needSecondIndirection) {
+		// Antes no teníamos segunda indireccion, pero ahora la necesitamos
+		raw.dataSectors[NUM_DIRECT + 1] = freeMap->Find();
+	} else if (secondIndirectionUsedSectors > 0) { 
+		synchDisk->ReadSector(raw.dataSectors[NUM_DIRECT+1],(char *) secondIndirectionData);
+	}
+	//Reservo sectores de segunda indireccion
+    unsigned j = 0;
+    i = secondIndirectionUsedSectors > 0 ? DivRoundDown( (unsigned)secondIndirectionUsedSectors, ENTRIES_IN_SECTOR) : 0;
+	for(; i <= ENTRIES_IN_SECTOR && k < neededSectors; i++){
+		bool newSecondIndirectionNeeded = ((unsigned)secondIndirectionUsedSectors <= ENTRIES_IN_SECTOR * i);
+		if(newSecondIndirectionNeeded) {
+            // no pido un nuevo indice en la segunda indireccion
+			secondIndirectionData[i] = freeMap->Find();
+        } else {
+            j = (secondIndirectionUsedSectors - ENTRIES_IN_SECTOR * i) % ENTRIES_IN_SECTOR;
+            // synchDisk->ReadSector(secondIndirectionData[i],(char *) _secondIndirectionData);
+        } 
+        for(; j < ENTRIES_IN_SECTOR && k < neededSectors; j++, k++){
+			_secondIndirectionData[j] = freeMap->Find();
+			newSecondIndirectionNeeded = true;
+		}
+		if(newSecondIndirectionNeeded){
+			synchDisk->WriteSector(secondIndirectionData[i],(char *) _secondIndirectionData);
+        }
+		needSecondIndirection = true;
+	}
+	//Guardo el bloque de segunda indireccion
+	if(needSecondIndirection) {
+		synchDisk->WriteSector(raw.dataSectors[NUM_DIRECT+1],(char *) secondIndirectionData);
+    }
+	raw.numBytes = raw.numBytes + sizeToExpand;
+	raw.numSectors = raw.numSectors + neededSectors;
 	return true;
 }
 
-const RawFileHeader *
-FileHeader::GetRaw() const
-{
+const RawFileHeader *FileHeader::GetRaw() const {
     return &raw;
 }

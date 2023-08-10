@@ -10,15 +10,15 @@
 #include "machine/disk.hh"
 
 
-static const unsigned NUM_DIRECT  = (SECTOR_SIZE - 2 * sizeof (int)) / sizeof (int);
+static const unsigned NUM_DIRECT  = (SECTOR_SIZE - (2+3) * sizeof (int)) / sizeof (int);
 const unsigned MAX_FILE_SIZE      =  NUM_DIRECT * SECTOR_SIZE;
 
 struct RawFileHeader {
   // Simula ser un i-node (o f-node)
     unsigned numBytes;  ///< Number of bytes in the file.
     unsigned numSectors;  ///< Number of data sectors in the file.
-    unsigned dataSectors[NUM_DIRECT];  ///< Disk sector numbers for each data
-                                       ///< block in the file.
+    unsigned dataSectors[NUM_DIRECT+2];   ///< Disk sector numbers for each data
+                                          ///< block in the file.
 };
 
 

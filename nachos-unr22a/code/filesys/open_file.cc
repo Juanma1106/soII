@@ -38,8 +38,18 @@ OpenFile::OpenFile(int sector, int _id) {
 
 
 /// Close a Nachos file, de-allocating any in-memory data structures.
-OpenFile::~OpenFile()
-{
+OpenFile::~OpenFile() {
+    #ifdef FILESYS
+        opennedFilesTable->Get(id)->openFileCount--;
+        OpenFileEntry *entry = opennedFilesTable->Get(id);
+        if (entry->openFileCount == 0 && entry->mustRemove) {
+            fileSystem->removeFile(entry->name);
+            opennedFilesTable->Remove(id);
+        } else if (entry->openFileCount == 0 && !entry->mustRemove) {
+            opennedFilesTable->Remove(id);
+        }
+        delete entry;
+    #endif
     delete hdr;
 }
 
@@ -76,11 +86,21 @@ OpenFile::Read(char *into, unsigned numBytes)
     return result;
 }
 
-int
-OpenFile::Write(const char *into, unsigned numBytes)
-{
+int OpenFile::Write(const char *into, unsigned numBytes) {
     ASSERT(into != nullptr);
     ASSERT(numBytes > 0);
+
+    #ifdef FILESYS
+	if (seekPosition + numBytes > Length()){
+        // necesita expandir
+		int sizeToExpand = numBytes - (Length() - seekPosition);
+		if(!fileSystem->expand(hdr, sizeToExpand, id)){
+            numBytes = Length() - seekPosition; 
+        }
+	}
+	ASSERT(seekPosition + numBytes <= Length());
+    #endif
+
 
     int result = WriteAt(into, numBytes, seekPosition);
     seekPosition += result;
@@ -112,9 +132,99 @@ OpenFile::Write(const char *into, unsigned numBytes)
 /// * `position` is the offset within the file of the first byte to be
 ///   read/written.
 
-int
-OpenFile::ReadAt(char *into, unsigned numBytes, unsigned position)
-{
+#ifdef FILESYS
+int OpenFile::ReadAt(char *into, unsigned numBytes, unsigned position, bool isGettingWritten) {
+    ASSERT(into != nullptr);
+    ASSERT(numBytes > 0);
+
+	DEBUG('f',"Intentando leer en el archivo.\n");
+	if (!isGettingWritten)
+		opennedFilesTable->Get(id)->fileSystemLock->addReader();
+	DEBUG('f',"Leyendo en el archivo.\n");
+
+    int ret = ReadAt(into, numBytes, position);
+
+    DEBUG('f',"Terminando de leer en el archivo.\n");
+    if (!isGettingWritten)
+		opennedFilesTable->Get(id)->fileSystemLock->removeReader();
+    DEBUG('f',"Se termino de leer en el archivo.\n");
+    return ret;
+}
+#endif
+
+int OpenFile::WriteAt(const char *from, unsigned numBytes, unsigned position) {
+    ASSERT(from != nullptr);
+    ASSERT(numBytes > 0);
+
+    #ifdef FILESYS
+	DEBUG('f',"Intentando escribir en el archivo.\n");
+	opennedFilesTable->Get(id)->fileSystemLock->addWriter();
+	DEBUG('f',"Escribiendo en el archivo.\n");
+    #endif
+
+    ASSERT(from != nullptr);
+    ASSERT(numBytes > 0);
+
+    unsigned fileLength = hdr->FileLength();
+    unsigned firstSector, lastSector, numSectors;
+    bool firstAligned, lastAligned;
+    char *buf;
+
+    if (position >= fileLength) {
+        return 0;  // Check request.
+    }
+    if (position + numBytes > fileLength) {
+        numBytes = fileLength - position;
+    }
+    DEBUG('f', "Writing %u bytes at %u, from file of length %u.\n",
+          numBytes, position, fileLength);
+
+    firstSector = DivRoundDown(position, SECTOR_SIZE);
+    lastSector  = DivRoundDown(position + numBytes - 1, SECTOR_SIZE);
+    numSectors  = 1 + lastSector - firstSector;
+
+    buf = new char [numSectors * SECTOR_SIZE];
+
+    firstAligned = position == firstSector * SECTOR_SIZE;
+    lastAligned  = position + numBytes == (lastSector + 1) * SECTOR_SIZE;
+
+    // Read in first and last sector, if they are to be partially modified.
+    if (!firstAligned) {
+        #ifdef FILESYS
+        ReadAt(buf, SECTOR_SIZE, firstSector * SECTOR_SIZE, true);
+        #else
+        ReadAt(buf, SECTOR_SIZE, firstSector * SECTOR_SIZE);
+        #endif
+    }
+    if (!lastAligned && (firstSector != lastSector || firstAligned)) {
+        #ifdef FILESYS
+        ReadAt(&buf[(lastSector - firstSector) * SECTOR_SIZE], SECTOR_SIZE, lastSector * SECTOR_SIZE, true);
+        #else
+        ReadAt(&buf[(lastSector - firstSector) * SECTOR_SIZE], SECTOR_SIZE, lastSector * SECTOR_SIZE);
+        #endif
+    }
+
+    // Copy in the bytes we want to change.
+    memcpy(&buf[position - firstSector * SECTOR_SIZE], from, numBytes);
+
+    // Write modified sectors back.
+    for (unsigned i = firstSector; i <= lastSector; i++) {
+        synchDisk->WriteSector(hdr->ByteToSector(i * SECTOR_SIZE),
+                               &buf[(i - firstSector) * SECTOR_SIZE]);
+    }
+
+    #ifdef FILESYS
+    DEBUG('f',"Terminando de leer en el archivo.\n");
+    opennedFilesTable->Get(id)->fileSystemLock->removeReader();
+    DEBUG('f',"Se termino de leer en el archivo.\n");
+    #endif
+
+    delete [] buf;
+    return numBytes;
+}
+
+
+int OpenFile::ReadAt(char *into, unsigned numBytes, unsigned position) {
     ASSERT(into != nullptr);
     ASSERT(numBytes > 0);
 
@@ -148,55 +258,6 @@ OpenFile::ReadAt(char *into, unsigned numBytes, unsigned position)
     return numBytes;
 }
 
-int
-OpenFile::WriteAt(const char *from, unsigned numBytes, unsigned position)
-{
-    ASSERT(from != nullptr);
-    ASSERT(numBytes > 0);
-
-    unsigned fileLength = hdr->FileLength();
-    unsigned firstSector, lastSector, numSectors;
-    bool firstAligned, lastAligned;
-    char *buf;
-
-    if (position >= fileLength) {
-        return 0;  // Check request.
-    }
-    if (position + numBytes > fileLength) {
-        numBytes = fileLength - position;
-    }
-    DEBUG('f', "Writing %u bytes at %u, from file of length %u.\n",
-          numBytes, position, fileLength);
-
-    firstSector = DivRoundDown(position, SECTOR_SIZE);
-    lastSector  = DivRoundDown(position + numBytes - 1, SECTOR_SIZE);
-    numSectors  = 1 + lastSector - firstSector;
-
-    buf = new char [numSectors * SECTOR_SIZE];
-
-    firstAligned = position == firstSector * SECTOR_SIZE;
-    lastAligned  = position + numBytes == (lastSector + 1) * SECTOR_SIZE;
-
-    // Read in first and last sector, if they are to be partially modified.
-    if (!firstAligned) {
-        ReadAt(buf, SECTOR_SIZE, firstSector * SECTOR_SIZE);
-    }
-    if (!lastAligned && (firstSector != lastSector || firstAligned)) {
-        ReadAt(&buf[(lastSector - firstSector) * SECTOR_SIZE],
-               SECTOR_SIZE, lastSector * SECTOR_SIZE);
-    }
-
-    // Copy in the bytes we want to change.
-    memcpy(&buf[position - firstSector * SECTOR_SIZE], from, numBytes);
-
-    // Write modified sectors back.
-    for (unsigned i = firstSector; i <= lastSector; i++) {
-        synchDisk->WriteSector(hdr->ByteToSector(i * SECTOR_SIZE),
-                               &buf[(i - firstSector) * SECTOR_SIZE]);
-    }
-    delete [] buf;
-    return numBytes;
-}
 
 /// Return the number of bytes in the file.
 unsigned

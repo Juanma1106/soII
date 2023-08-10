@@ -19,8 +19,7 @@
 
 
 #include "utility.hh"
-#include "filesys/open_file.hh"
-
+class OpenFile;
 
 /// A “bitmap” -- an array of bits, each of which can be independently set,
 /// cleared, and tested.

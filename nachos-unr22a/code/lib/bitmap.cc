@@ -8,6 +8,7 @@
 
 
 #include "bitmap.hh"
+#include "filesys/open_file.hh"
 
 #include <stdio.h>
 

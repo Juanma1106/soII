@@ -8,8 +8,7 @@
             "args": [
                 "-d",
                 "f",
-                "-x",
-                "shellInterno"
+                "-ls"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/filesys/",
