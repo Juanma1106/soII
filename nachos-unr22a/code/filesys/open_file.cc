@@ -17,22 +17,42 @@
 
 #include <string.h>
 
+#ifdef FILESYS
+int findFileID(unsigned sector){
+	int i = 0;
+	while(opennedFilesTable->HasKey(i)){
+		if (opennedFilesTable->Get(i)->sector == sector){
+			return i;
+        }
+		i++;
+	}
+	return -1;
+}
+#endif
+
 
 /// Open a Nachos file for reading and writing.  Bring the file header into
 /// memory while the file is open.
 ///
 /// * `sector` is the location on disk of the file header for this file.
-OpenFile::OpenFile(int sector) {
+#ifdef FILESYS
+OpenFile::OpenFile(int sector, const char *name) {
+    id = findFileID(sector);
+    if(id == -1){
+        OpenFileEntry *entry = new OpenFileEntry(name, (unsigned int)sector);
+        id = opennedFilesTable->Add(entry);
+    } else {
+        opennedFilesTable->Get(id)->openFileCount++;
+    }
     hdr = new FileHeader;
     hdr->FetchFrom(sector);
     seekPosition = 0;       
 }
-#ifdef FILESYS
-OpenFile::OpenFile(int sector, int _id) {
+#else
+OpenFile::OpenFile(int sector) {
     hdr = new FileHeader;
     hdr->FetchFrom(sector);
-    seekPosition = 0;       
-    id = _id;
+    seekPosition = 0;     
 }
 #endif
 

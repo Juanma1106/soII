@@ -243,7 +243,7 @@ Initialize(int argc, char **argv)
 #ifdef USER_PROGRAM
     Debugger *d = debugUserProg ? new Debugger : nullptr;
     machine = new Machine(d);  // This must come first.
-    synchConsole = new SynchConsole(nullptr, nullptr);
+    // synchConsole = new SynchConsole(nullptr, nullptr);
     bitmap = new Bitmap(NUM_PHYS_PAGES);
     SetExceptionHandlers();
 #endif

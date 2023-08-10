@@ -95,14 +95,24 @@ FileSystem::FileSystem(bool format)
         // The file system operations assume these two files are left open
         // while Nachos is running.
 
+        #ifdef FILESYS
+        freeMapFile   = new OpenFile(FREE_MAP_SECTOR,"freeMapName");
+        directoryFile = new OpenFile(DIRECTORY_SECTOR,"directoryName");
+        #else
         freeMapFile   = new OpenFile(FREE_MAP_SECTOR);
         directoryFile = new OpenFile(DIRECTORY_SECTOR);
+        #endif
 
         // Once we have the files “open”, we can write the initial version of
         // each file back to disk.  The directory at this point is completely
         // empty; but the bitmap has been changed to reflect the fact that
         // sectors on the disk have been allocated for the file headers and
         // to hold the file data for the directory and bitmap.
+
+        OpenFileEntry *freeMapEntry = new OpenFileEntry("freeMapName" , FREE_MAP_SECTOR);
+        OpenFileEntry *directoryEntry = new OpenFileEntry("directoryName" , DIRECTORY_SECTOR);
+        opennedFilesTable->Add(freeMapEntry);
+        opennedFilesTable->Add(directoryEntry);
 
         DEBUG('f', "Writing bitmap and directory back to disk.\n");
         freeMap->WriteBack(freeMapFile);     // flush changes to disk
@@ -121,8 +131,17 @@ FileSystem::FileSystem(bool format)
         // If we are not formatting the disk, just open the files
         // representing the bitmap and directory; these are left open while
         // Nachos is running.
+        #ifdef FILESYS
+        freeMapFile   = new OpenFile(FREE_MAP_SECTOR,"freeMapName");
+        directoryFile = new OpenFile(DIRECTORY_SECTOR,"directoryName");
+        #else
         freeMapFile   = new OpenFile(FREE_MAP_SECTOR);
         directoryFile = new OpenFile(DIRECTORY_SECTOR);
+        #endif
+        OpenFileEntry *freeMapEntry = new OpenFileEntry("freeMapName" , FREE_MAP_SECTOR);
+        OpenFileEntry *directoryEntry = new OpenFileEntry("directoryName" , DIRECTORY_SECTOR);
+        opennedFilesTable->Add(freeMapEntry);
+        opennedFilesTable->Add(directoryEntry);
     }
 }
 
@@ -200,8 +219,15 @@ FileSystem::Create(const char *name, unsigned initialSize)
     return success;
 }
 
+/// Open a file for reading and writing.
+///
+/// To open a file:
+/// 1. Find the location of the file's header, using the directory.
+/// 2. Bring the header into memory.
+///
+/// * `name` is the text name of the file to be opened.
 #ifdef FILESYS
-int findFileID(unsigned sector){
+int findFileID_2(unsigned sector){
 	int i = 0;
 	while(opennedFilesTable->HasKey(i)){
 		if (opennedFilesTable->Get(i)->sector == sector){
@@ -212,13 +238,7 @@ int findFileID(unsigned sector){
 	return -1;
 }
 #endif
-/// Open a file for reading and writing.
-///
-/// To open a file:
-/// 1. Find the location of the file's header, using the directory.
-/// 2. Bring the header into memory.
-///
-/// * `name` is the text name of the file to be opened.
+
 OpenFile * FileSystem::Open(const char *name) {
     ASSERT(name != nullptr);
 
@@ -230,7 +250,7 @@ OpenFile * FileSystem::Open(const char *name) {
     int sector = dir->Find(name);
     if (sector >= 0) {
         #ifdef FILESYS
-            int id = findFileID( (unsigned int) sector);
+            int id = findFileID_2( (unsigned int) sector);
             if (id == -1){
                 // no se encontró abierto. Hay que agregarlo a la tabla
                 // #include "openfile_entry.hh"
@@ -240,11 +260,11 @@ OpenFile * FileSystem::Open(const char *name) {
                     // no hay lugar en la tabla
                     openFile = nullptr;
                 } else {
-                    openFile = new OpenFile(sector, (unsigned) id);
+                    openFile = new OpenFile(sector, name);
                 }
             } else if ( !opennedFilesTable->Get(id)->mustRemove){
                 opennedFilesTable->Get(id)->openFileCount++;
-                openFile = new OpenFile(sector, (unsigned) id);
+                openFile = new OpenFile(sector, name);
             } else {
                 DEBUG('f',"No se puede abrir. El archivo %s va a ser eliminado.\n",name);
                 openFile = nullptr;
@@ -284,7 +304,7 @@ FileSystem::Remove(const char *name)
     }
 
     #ifdef FILESYS
-        int id = findFileID(sector);
+        int id = findFileID_2(sector);
         if (id == -1){
             DEBUG('f',"El archivo %s no esta abierto -> Se borra.\n",name);
             removeFile(name);
@@ -304,11 +324,11 @@ bool FileSystem::removeFile(const char *name){
     Directory *directory = new Directory(NUM_DIR_ENTRIES);
     Bitmap *freeMap = new Bitmap(NUM_SECTORS);
     FileHeader *fileHeader = new FileHeader;
+    directory->FetchFrom(directoryFile);
     int sector = directory->Find(name);
 
 	DEBUG('f',"Eliminando el archivo %s del disco.\n",name);
 	
-    directory->FetchFrom(directoryFile);
 
     if (sector == -1) { 
        delete directory;

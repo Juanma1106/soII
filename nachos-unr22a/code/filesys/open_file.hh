@@ -88,14 +88,14 @@ private:
 #include "openfile_entry.hh"
 #include "file_header.hh"
 // class FileHeader;
-
 class OpenFile {
 public:
 
     /// Open a file whose header is located at `sector` on the disk.
-    OpenFile(int sector);
     #ifdef FILESYS
-        OpenFile(int sector, int id);
+        OpenFile(int sector, const char* name);
+    #else
+        OpenFile(int sector);
     #endif
 
     /// Close the file.
