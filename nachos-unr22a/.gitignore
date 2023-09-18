@@ -33,5 +33,6 @@ code/userland/rm
 code/userland/rm.coff
 code/userland/cp
 code/userland/cp.coff
+code/filesys/DISK
 Makefile.depends
 nachos
